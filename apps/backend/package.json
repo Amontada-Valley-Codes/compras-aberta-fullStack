@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx --watch "
   },
   "keywords": [],
   "author": "",
@@ -12,5 +12,10 @@
   "type": "commonjs",
   "dependencies": {
     "fastify": "^5.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
   }
 }
