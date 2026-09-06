@@ -1,5 +1,6 @@
-import Fastify from "fastify";
+import fastify from "fastify";
+import { routes } from "./routes";
 
-export const app = Fastify({ logger: true });
+export const app = fastify()
 
-app.get("/", async () => ({ message: "Hello World" }));
+app.register(routes);
