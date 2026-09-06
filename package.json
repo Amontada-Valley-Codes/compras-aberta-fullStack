@@ -1,5 +1,5 @@
 {
-  "name": "compras-aberta",
+  "name":"compras-aberta",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
