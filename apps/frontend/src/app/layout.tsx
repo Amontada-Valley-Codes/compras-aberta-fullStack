@@ -1,37 +1,35 @@
-import React from 'react'
-import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans } from 'next/font/google'
-import './css/globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
+import React from "react";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./css/globals.css";
 
-const plus_jakarta_sans = Plus_Jakarta_Sans({
-  subsets: ['latin']
-})
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: 'Compras Abertas',
-  description: 'Painel do Compras Abertas',
-}
+  title: "Compras Abertas | Transparência que movimenta",
+  description:
+    "Oportunidades públicas, dados transparentes e desenvolvimento para a economia local.",
+  icons: {
+    icon: "/logos/logo-symbol.png",
+    shortcut: "/logos/logo-symbol.png",
+    apple: "/logos/logo-symbol.png",
+  },
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html lang="pt-BR" data-scroll-behavior="smooth">
       <head>
-        <link rel='icon' href='/favicon.svg' type='image/svg+xml' />
+        <link rel="icon" href="/logos/logo-symbol.png" type="image/png" />
       </head>
-      <body className={`${plus_jakarta_sans.className}`}>
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
-          enableSystem
-          disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
-  )
+  );
 }

@@ -11,18 +11,48 @@ datasource db {
 enum UserRole {
   ADMIN
   BUSINESS
-
 }
-model user {
-  id String @id @default(uuid())
-  name String 
-  email String @unique
-  password String
-  role      UserRole @default(BUSINESS)
 
+model user {
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  role     UserRole @default(BUSINESS)
+  isActive Boolean  @default(true)
+
+  cnpj     String?   @unique
+  business business? @relation(fields: [cnpj], references: [cnpj])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("User")
+}
+
+model business {
+  id String @id @default(uuid())
+
+  cnpj                     String  @unique
+  name_businss              String
+  isActive Boolean  @default(true)
+  url_cartao_cnpj            String
+  url_contrato_social         String
+  url_comprovante_endereco    String
+  url_comprovante_socio       String
+  user                       user?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Business")
+}
+
+model municipios {
+  id          String  @id @default(uuid())
+  nome        String?
+  codigo_ibge Int     @unique
+  codigo_tce  Int?    @unique
+
+  @@map("Municipios")
 }
