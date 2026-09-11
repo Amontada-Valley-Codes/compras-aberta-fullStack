@@ -70,9 +70,6 @@ export function LandingPage() {
             </a>
           </nav>
           <div className="header-actions">
-            <Link className="text-link" href="/admin">
-              Sou gestor público
-            </Link>
             <Link className="button button-primary button-sm" href="/me">
               Acessar painel <ArrowRight size={16} />
             </Link>
@@ -120,7 +117,7 @@ export function LandingPage() {
                 </div>
                 <p>
                   <strong>+40 municípios</strong>
-                  <br />
+                  <br />  
                   com dados reunidos em um só lugar
                 </p>
               </div>
