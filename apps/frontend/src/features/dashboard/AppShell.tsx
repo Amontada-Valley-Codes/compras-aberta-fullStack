@@ -1,0 +1,177 @@
+"use client";
+
+import Link from "next/link";
+import { useState, type ReactNode } from "react";
+import { Bell, ChevronDown, Menu, Search, X } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
+
+export type NavItem = {
+  id: string;
+  label: string;
+  icon: ReactNode;
+  badge?: string;
+};
+
+type AppShellProps = {
+  role: "me" | "admin";
+  active: string;
+  onNavigate: (id: string) => void;
+  items: NavItem[];
+  children: ReactNode;
+};
+
+export function AppShell({
+  role,
+  active,
+  onNavigate,
+  items,
+  children,
+}: AppShellProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const isAdmin = role === "admin";
+
+  const navigate = (id: string) => {
+    onNavigate(id);
+    setMobileOpen(false);
+  };
+
+  return (
+    <div className="app-shell">
+      <aside className={`app-sidebar ${mobileOpen ? "is-open" : ""}`}>
+        <div className="sidebar-head">
+          <BrandLogo href="/" />
+          <button
+            className="icon-button sidebar-close"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Fechar menu"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="workspace-switcher">
+          <span className="workspace-avatar">{isAdmin ? "CA" : "MS"}</span>
+          <span>
+            <small>{isAdmin ? "AMBIENTE" : "MINHA EMPRESA"}</small>
+            <strong>{isAdmin ? "Administração" : "Mercado São José"}</strong>
+          </span>
+          <ChevronDown size={16} />
+        </div>
+
+        <nav className="sidebar-nav" aria-label="Navegação do painel">
+          <small className="nav-group-label">MENU PRINCIPAL</small>
+          {items.map((item) => (
+            <button
+              className={active === item.id ? "active" : ""}
+              key={item.id}
+              onClick={() => navigate(item.id)}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+              {item.badge && <em>{item.badge}</em>}
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-help">
+          <span>?</span>
+          <div>
+            <strong>Precisa de ajuda?</strong>
+            <small>Acesse a central de suporte</small>
+          </div>
+        </div>
+
+        <div className="sidebar-user">
+          <span className="user-avatar">{isAdmin ? "CM" : "AR"}</span>
+          <span>
+            <strong>{isAdmin ? "Carlos Mendes" : "Ana Ribeiro"}</strong>
+            <small>{isAdmin ? "Administrador" : "Responsável legal"}</small>
+          </span>
+          <ChevronDown size={16} />
+        </div>
+      </aside>
+
+      {mobileOpen && (
+        <button
+          className="sidebar-backdrop"
+          onClick={() => setMobileOpen(false)}
+          aria-label="Fechar menu"
+        />
+      )}
+
+      <div className="app-main">
+        <header className="app-topbar">
+          <button
+            className="icon-button mobile-menu-button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Abrir menu"
+          >
+            <Menu size={21} />
+          </button>
+          <label className="topbar-search">
+            <Search size={18} />
+            <input
+              placeholder={
+                isAdmin
+                  ? "Buscar empresa, CNPJ ou município"
+                  : "Buscar oportunidade ou município"
+              }
+              aria-label="Buscar"
+            />
+            <kbd>⌘ K</kbd>
+          </label>
+          <div className="topbar-actions">
+            <div className="notification-wrap">
+              <button
+                className="icon-button notification-button"
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                aria-label="Notificações"
+              >
+                <Bell size={19} />
+                <i />
+              </button>
+              {notificationsOpen && (
+                <div className="notification-popover">
+                  <div>
+                    <strong>Notificações</strong>
+                    <span>2 novas</span>
+                  </div>
+                  <button>
+                    <b>
+                      {isAdmin
+                        ? "3 cadastros aguardam análise"
+                        : "Nova oportunidade compatível"}
+                    </b>
+                    <small>
+                      {isAdmin
+                        ? "Fila atualizada há 12 min"
+                        : "Pregão em Amontada • há 18 min"}
+                    </small>
+                  </button>
+                  <button>
+                    <b>
+                      {isAdmin
+                        ? "Integração concluída"
+                        : "Prazo termina em 3 dias"}
+                    </b>
+                    <small>
+                      {isAdmin
+                        ? "2.763 registros importados"
+                        : "Alimentação escolar • hoje"}
+                    </small>
+                  </button>
+                </div>
+              )}
+            </div>
+            <Link className="portal-link" href="/">
+              Portal público
+            </Link>
+            <span className="topbar-avatar">{isAdmin ? "CM" : "AR"}</span>
+          </div>
+        </header>
+        <main className="dashboard-content">{children}</main>
+      </div>
+    </div>
+  );
+}
