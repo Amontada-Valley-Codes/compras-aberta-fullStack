@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -26,26 +25,16 @@ import {
   X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { formatMoney, opportunities } from "@/lib/mock-data";
+import { ExpensesChart, LocalShareChart } from "@/features/public-data/PublicCharts";
+import { compactMoney, count, money, percent } from "@/features/public-data/format";
+import { landingData, landingYear } from "./landing-mock";
 
 export function LandingPage() {
-  const router = useRouter();
+  const data = landingData;
+  const year = landingYear;
   const [menuOpen, setMenuOpen] = useState(false);
-  const [city, setCity] = useState("Todos os municípios");
-  const [category, setCategory] = useState("Todas as categorias");
-  const [searched, setSearched] = useState(false);
-
-  const visible = useMemo(
-    () =>
-      opportunities
-        .filter(
-          (item) =>
-            (city === "Todos os municípios" || item.city === city) &&
-            (category === "Todas as categorias" || item.category === category),
-        )
-        .slice(0, 3),
-    [city, category],
-  );
+  const localSummary = data.local.data?.resumo;
+  const totalDotacao = data.expenses.data?.data.reduce((sum, item) => sum + Number(item.valor_total_dotacao), 0);
 
   return (
     <div className="public-site">
@@ -60,7 +49,7 @@ export function LandingPage() {
               Como funciona
             </a>
             <a href="#oportunidades" onClick={() => setMenuOpen(false)}>
-              Oportunidades
+              Licitações
             </a>
             <a href="#impacto" onClick={() => setMenuOpen(false)}>
               Transparência
@@ -89,7 +78,7 @@ export function LandingPage() {
           <div className="public-container hero-grid">
             <div className="hero-copy">
               <span className="eyebrow">
-                <Sparkles size={15} /> OPORTUNIDADES MAIS PERTO DE VOCÊ
+                <Sparkles size={15} /> DADOS PÚBLICOS MAIS PERTO DE VOCÊ
               </span>
               <h1>
                 Compras públicas
@@ -97,12 +86,12 @@ export function LandingPage() {
                 que fortalecem <em>quem é daqui.</em>
               </h1>
               <p>
-                Encontre oportunidades, acompanhe investimentos e conecte sua
-                empresa ao desenvolvimento dos municípios cearenses.
+                Consulte licitações e acompanhe como os recursos públicos
+                movimentam os municípios cearenses.
               </p>
               <div className="hero-actions">
                 <a className="button button-primary" href="#oportunidades">
-                  Encontrar oportunidades <ArrowRight size={18} />
+                  Explorar licitações <ArrowRight size={18} />
                 </a>
                 <a className="button button-ghost" href="#como-funciona">
                   Conhecer a plataforma
@@ -116,9 +105,8 @@ export function LandingPage() {
                   <span>AC</span>
                 </div>
                 <p>
-                  <strong>+40 municípios</strong>
-                  <br />  
-                  com dados reunidos em um só lugar
+                  <strong>{count(data.municipalities.data?.length)} municípios</strong>
+                  <br /> com dados disponíveis para consulta
                 </p>
               </div>
             </div>
@@ -134,7 +122,7 @@ export function LandingPage() {
                   <i />
                   <i />
                   <i />
-                  <span>Visão geral do município</span>
+                  <span>Visão geral dos dados públicos</span>
                 </div>
                 <div className="preview-body">
                   <div className="preview-sidebar">
@@ -151,63 +139,39 @@ export function LandingPage() {
                   <div className="preview-content">
                     <div className="preview-heading">
                       <span>
-                        <b>Bom dia, Amontada</b>
-                        <small>Dados atualizados hoje, 08:40</small>
+                        <b>Compras públicas do Ceará</b>
+                        <small>Prévia com dados demonstrativos</small>
                       </span>
                       <i />
                     </div>
                     <div className="preview-metrics">
                       <article>
-                        <small>Compras realizadas</small>
-                        <b>R$ 8,4 mi</b>
-                        <em>+12,4%</em>
+                        <small>Licitações com ME</small>
+                        <b>{count(data.micro.data?.data.quantidade_licitacoes)}</b>
                       </article>
                       <article>
-                        <small>Compras locais</small>
-                        <b>R$ 3,2 mi</b>
-                        <em>+8,7%</em>
+                        <small>Valor vencido por ME</small>
+                        <b>{compactMoney(data.micro.data?.data.valor_total_vencido)}</b>
                       </article>
                       <article>
-                        <small>Fornecedores ME</small>
-                        <b>184</b>
-                        <em>+16</em>
+                        <small>Microempresas</small>
+                        <b>{count(data.micro.data?.data.quantidade_microempresas)}</b>
                       </article>
                     </div>
                     <div className="preview-panels">
                       <article className="preview-chart">
                         <span>
-                          <b>Evolução das compras</b>
-                          <small>Últimos 6 meses</small>
+                          <b>Dotações por natureza</b>
+                          <small>Maiores naturezas registradas</small>
                         </span>
-                        <div className="mini-bars">
-                          {[36, 48, 43, 62, 69, 82, 74, 92].map((h, index) => (
-                            <i key={index} style={{ height: `${h}%` }} />
-                          ))}
-                        </div>
-                        <div className="mini-axis">
-                          <small>Mar</small>
-                          <small>Abr</small>
-                          <small>Mai</small>
-                          <small>Jun</small>
-                          <small>Jul</small>
-                          <small>Ago</small>
-                        </div>
+                        {data.expenses.data?.data.length ? <ExpensesChart data={data.expenses.data.data} compactView /> : <p className="public-data-state">Dados indisponíveis.</p>}
                       </article>
                       <article className="preview-donut-card">
                         <span>
-                          <b>Participação local</b>
-                          <small>Por origem</small>
+                          <b>ME locais em Amontada</b>
+                          <small>Valor vencido em {year}</small>
                         </span>
-                        <div className="css-donut">
-                          <b>38%</b>
-                          <small>local</small>
-                        </div>
-                        <p>
-                          <i /> Local <b>R$ 3,2 mi</b>
-                        </p>
-                        <p>
-                          <i /> Regional <b>R$ 2,8 mi</b>
-                        </p>
+                        {localSummary?.percentual_valor_vencido_me_local != null ? <LocalShareChart percentage={localSummary.percentual_valor_vencido_me_local} size={118} /> : <p className="public-data-state">Sem dados.</p>}
                       </article>
                     </div>
                   </div>
@@ -218,9 +182,9 @@ export function LandingPage() {
                   <BellRing size={18} />
                 </span>
                 <div>
-                  <small>NOVA OPORTUNIDADE</small>
-                  <b>Alta compatibilidade</b>
-                  <em>96% para seu negócio</em>
+                  <small>LICITAÇÕES REGISTRADAS</small>
+                  <b>{count(data.micro.data?.data.quantidade_licitacoes)} com ME</b>
+                  <em>Prévia ilustrativa</em>
                 </div>
               </div>
               <div className="floating-card floating-trend">
@@ -228,9 +192,9 @@ export function LandingPage() {
                   <TrendingUp size={18} />
                 </span>
                 <div>
-                  <small>ECONOMIA LOCAL</small>
-                  <b>+18,6%</b>
-                  <em>nos últimos 6 meses</em>
+                  <small>MICROEMPRESAS</small>
+                  <b>{count(data.micro.data?.data.quantidade_microempresas)}</b>
+                  <em>identificadas na base</em>
                 </div>
               </div>
             </div>
@@ -240,19 +204,19 @@ export function LandingPage() {
         <section className="trust-strip">
           <div className="public-container trust-grid">
             <p>
-              <ShieldCheck size={20} /> Dados de fontes públicas oficiais
+              <ShieldCheck size={20} /> Indicadores demonstrativos
             </p>
             <div>
-              <strong>R$ 184 mi</strong>
-              <small>em compras monitoradas</small>
+              <strong>{money(totalDotacao)}</strong>
+              <small>em dotações associadas a contratações</small>
             </div>
             <div>
-              <strong>2.840</strong>
-              <small>oportunidades mapeadas</small>
+              <strong>{count(data.micro.data?.data.quantidade_participacoes)}</strong>
+              <small>participações de ME</small>
             </div>
             <div>
-              <strong>1.260</strong>
-              <small>negócios locais conectados</small>
+              <strong>{count(data.micro.data?.data.quantidade_microempresas)}</strong>
+              <small>microempresas identificadas</small>
             </div>
           </div>
         </section>
@@ -260,36 +224,25 @@ export function LandingPage() {
         <section className="opportunities-section" id="oportunidades">
           <div className="public-container">
             <div className="section-heading centered">
-              <span className="eyebrow">OPORTUNIDADES ABERTAS</span>
-              <h2>Seu próximo contrato pode estar aqui.</h2>
-              <p>
-                Filtre processos abertos e descubra onde sua empresa pode
-                participar.
-              </p>
+              <span className="eyebrow">LICITAÇÕES REGISTRADAS</span>
+              <h2>Explore os dados de compras públicas.</h2>
+              <p>Filtre município e natureza da despesa para analisar os registros históricos.</p>
             </div>
             <form
               className="opportunity-search"
-              onSubmit={(event) => {
-                event.preventDefault();
-                setSearched(true);
-                router.push(
-                  `/analise?municipio=${encodeURIComponent(city)}&categoria=${encodeURIComponent(category)}`,
-                );
-              }}
+              action="/analise"
+              method="get"
             >
               <label>
                 <MapPin size={18} />
                 <span>
                   <small>Município</small>
                   <select
-                    value={city}
-                    onChange={(event) => setCity(event.target.value)}
+                    name="municipio"
+                    defaultValue=""
                   >
-                    <option>Todos os municípios</option>
-                    <option>Amontada</option>
-                    <option>Itarema</option>
-                    <option>Itapipoca</option>
-                    <option>Trairi</option>
+                    <option value="">Todos os municípios</option>
+                    {data.municipalities.data?.map((item) => <option key={item.ibgeCode} value={item.ibgeCode}>{item.name}</option>)}
                   </select>
                 </span>
                 <ChevronDown size={16} />
@@ -297,85 +250,22 @@ export function LandingPage() {
               <label>
                 <FileSearch size={18} />
                 <span>
-                  <small>Categoria</small>
+                  <small>Natureza da despesa</small>
                   <select
-                    value={category}
-                    onChange={(event) => setCategory(event.target.value)}
+                    name="natureza"
+                    defaultValue=""
                   >
-                    <option>Todas as categorias</option>
-                    <option>Alimentos</option>
-                    <option>Tecnologia</option>
-                    <option>Equipamentos</option>
-                    <option>Serviços</option>
+                    <option value="">Todas as naturezas</option>
+                    {data.expenses.data?.data.map((item) => <option key={item.codigo_natureza} value={item.codigo_natureza}>{item.nome_natureza}</option>)}
                   </select>
                 </span>
                 <ChevronDown size={16} />
               </label>
               <button className="button button-primary" type="submit">
-                <Search size={18} /> Buscar oportunidades
+                <Search size={18} /> Consultar dados
               </button>
             </form>
-            {searched && (
-              <p className="search-feedback" role="status">
-                {visible.length} oportunidade{visible.length === 1 ? "" : "s"}{" "}
-                encontrada{visible.length === 1 ? "" : "s"} com seus filtros.
-              </p>
-            )}
-            <div className="opportunity-grid">
-              {visible.map((item) => (
-                <article className="opportunity-card" key={item.id}>
-                  <div className="opportunity-card-head">
-                    <span className="category-icon">
-                      <Store size={19} />
-                    </span>
-                    <span className="status-dot">ABERTA</span>
-                    {item.exclusive && (
-                      <span className="exclusive-badge">EXCLUSIVA ME</span>
-                    )}
-                  </div>
-                  <small>
-                    {item.process} • {item.category}
-                  </small>
-                  <h3>{item.title}</h3>
-                  <p>
-                    <MapPin size={15} /> {item.city}, Ceará
-                  </p>
-                  <dl>
-                    <div>
-                      <dt>Valor estimado</dt>
-                      <dd>{formatMoney(item.value)}</dd>
-                    </div>
-                    <div>
-                      <dt>Prazo</dt>
-                      <dd>{item.deadline}</dd>
-                    </div>
-                  </dl>
-                  <div className="opportunity-card-footer">
-                    <span>
-                      <i style={{ width: `${item.match}%` }} />
-                      <small>
-                        <b>{item.match}%</b> compatível
-                      </small>
-                    </span>
-                    <Link href={`/me?oportunidade=${item.id}`}>
-                      Ver detalhes <ArrowRight size={16} />
-                    </Link>
-                  </div>
-                </article>
-              ))}
-              {!visible.length && (
-                <div className="empty-search">
-                  <Search />
-                  <h3>Nenhuma oportunidade encontrada</h3>
-                  <p>Tente combinar outros filtros.</p>
-                </div>
-              )}
-            </div>
-            <div className="section-cta">
-              <Link className="button button-outline" href="/me">
-                Ver todas as oportunidades <ArrowRight size={17} />
-              </Link>
-            </div>
+            {data.municipalities.error && <p className="public-data-state" role="status">Lista de municípios: {data.municipalities.error}</p>}
           </div>
         </section>
 
@@ -500,43 +390,33 @@ export function LandingPage() {
             <div className="impact-card">
               <div className="impact-card-head">
                 <span>
-                  <small>PARTICIPAÇÃO LOCAL</small>
-                  <b>Compras por origem</b>
+                  <small>EXEMPLO: AMONTADA</small>
+                  <b>Valor vencido por ME locais</b>
                 </span>
                 <em>
-                  2026 <ChevronDown />
+                  {year}
                 </em>
               </div>
               <div className="impact-chart-row">
-                <div className="large-css-donut">
-                  <span>
-                    <b>38,4%</b>
-                    <small>fica no município</small>
-                  </span>
-                </div>
+                <div>{localSummary?.percentual_valor_vencido_me_local != null ? <LocalShareChart percentage={localSummary.percentual_valor_vencido_me_local} /> : <p className="public-data-state">{data.local.error ?? "Sem dados disponíveis."}</p>}</div>
                 <div className="impact-legend">
                   <span>
                     <i className="local" />
-                    <small>Fornecedores locais</small>
-                    <b>R$ 32,8 mi</b>
+                    <small>Valor vencido por ME locais</small>
+                    <b>{money(localSummary?.valor_vencido_me_local)}</b>
                   </span>
                   <span>
                     <i className="regional" />
-                    <small>Outros municípios do CE</small>
-                    <b>R$ 28,2 mi</b>
-                  </span>
-                  <span>
-                    <i className="external" />
-                    <small>Outros estados</small>
-                    <b>R$ 24,4 mi</b>
+                    <small>Valor total vencido</small>
+                    <b>{money(localSummary?.valor_total_vencido)}</b>
                   </span>
                 </div>
               </div>
               <div className="impact-highlight">
                 <CircleDollarSign />
                 <span>
-                  <small>Potencial identificado</small>
-                  <b>R$ 9,6 mi em categorias com oferta local</b>
+                  <small>Licitações com ME local em {year}</small>
+                  <b>{count(localSummary?.licitacoes_com_me_local)} de {count(localSummary?.total_licitacoes)} · {percent(localSummary?.percentual_licitacoes_com_me_local)}</b>
                 </span>
                 <TrendingUp />
               </div>
@@ -574,7 +454,7 @@ export function LandingPage() {
           </div>
           <div>
             <b>Plataforma</b>
-            <a href="#oportunidades">Oportunidades</a>
+            <a href="#oportunidades">Licitações</a>
             <a href="#impacto">Transparência</a>
             <a href="#municipios">Municípios</a>
           </div>
@@ -586,7 +466,7 @@ export function LandingPage() {
           </div>
           <div>
             <b>Dados públicos</b>
-            <p>Informações demonstrativas baseadas em fontes oficiais.</p>
+            <p>Indicadores ilustrativos. O filtro abre a análise com dados da API pública.</p>
             <span className="footer-source">
               <ShieldCheck size={17} /> Atualização contínua
             </span>

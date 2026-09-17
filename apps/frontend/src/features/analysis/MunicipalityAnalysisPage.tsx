@@ -1,60 +1,29 @@
-"use client";
-
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
-  ArrowLeft,
-  Building2,
-  CalendarDays,
-  CheckCircle2,
-  ChevronDown,
-  CircleDollarSign,
-  Database,
-  Download,
-  ExternalLink,
-  FileBarChart,
-  Info,
-  MapPin,
-  RefreshCw,
-  Store,
-  Users,
+  ArrowLeft, Building2, CalendarDays, ChevronDown, CircleDollarSign,
+  Database, FileBarChart, Info, MapPin, Search, Store, Users,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { formatMoney } from "@/lib/mock-data";
-import { getAnalysisMock } from "@/lib/analysis-mock";
-import {
-  NatureValuesChart,
-  SectorEvolutionChart,
-  SupplierOriginChart,
-  TopSuppliersChart,
-} from "./AnalysisCharts";
+import { ExpensesChart, LocalShareChart, MicroenterpriseValueChart, ParticipationChart } from "@/features/public-data/PublicCharts";
+import { count, maskCnpj, money, percent } from "@/features/public-data/format";
+import type { AnalysisData } from "@/features/public-data/public-data";
+import { ExportBidsButton } from "./ExportBidsButton";
 
-type Props = { initialMunicipality: string; initialCategory: string };
-
-export function MunicipalityAnalysisPage({
-  initialMunicipality,
-  initialCategory,
-}: Props) {
-  const [municipality, setMunicipality] = useState(initialMunicipality);
-  const [category, setCategory] = useState(initialCategory);
-  const [applied, setApplied] = useState({
-    municipality: initialMunicipality,
-    category: initialCategory,
-  });
-  const [loading, setLoading] = useState(false);
-  const data = getAnalysisMock(applied.municipality, applied.category);
-
-  const updateAnalysis = () => {
-    setLoading(true);
-    window.setTimeout(() => {
-      setApplied({ municipality, category });
-      setLoading(false);
-      window.history.replaceState(
-        null,
-        "",
-        `/analise?municipio=${encodeURIComponent(municipality)}&categoria=${encodeURIComponent(category)}`,
-      );
-    }, 650);
+export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
+  const { filters, selectedMunicipality, municipalities, micro, expenses, participation, local, bids } = data;
+  const municipalityName = selectedMunicipality?.name ?? "Ceará";
+  const natureName = expenses.data?.data.find((item) => item.codigo_natureza === filters.natureCode)?.nome_natureza ?? "todas as naturezas";
+  const rows = bids.data?.data.slice(0, filters.pageSize) ?? [];
+  const highestNature = expenses.data?.data.reduce<typeof expenses.data.data[number] | null>(
+    (best, item) => !best || Number(item.valor_total_dotacao) > Number(best.valor_total_dotacao) ? item : best,
+    null,
+  );
+  const pageLink = (page: number) => {
+    const params = new URLSearchParams({ ano: String(filters.year), pagina: String(page), limite: String(filters.pageSize) });
+    if (filters.municipalityIbge) params.set("municipio", filters.municipalityIbge);
+    if (filters.natureCode) params.set("natureza", filters.natureCode);
+    return `/analise?${params.toString()}`;
   };
 
   return (
@@ -62,307 +31,131 @@ export function MunicipalityAnalysisPage({
       <header className="analysis-header">
         <div className="analysis-container">
           <BrandLogo />
-          <nav>
-            <Link href="/">Portal público</Link>
-            <Link href="/me">Área da microempresa</Link>
-          </nav>
+          <nav><Link href="/">Portal público</Link><Link href="/me">Área da microempresa</Link></nav>
         </div>
       </header>
 
       <main className="analysis-container analysis-main">
-        <Link className="analysis-back" href="/">
-          <ArrowLeft /> Voltar para a busca
-        </Link>
+        <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a busca</Link>
         <section className="analysis-title-row">
           <div>
             <span>PAINEL DE COMPRAS PÚBLICAS</span>
-            <h1>Compras públicas em {data.municipality}</h1>
-            <p>
-              Entenda como os recursos movimentam o setor de{" "}
-              <b>{data.category.toLowerCase()}</b> no município.
-            </p>
+            <h1>Licitações e participação de ME em {municipalityName}</h1>
+            <p>Indicadores e registros de <b>{natureName.toLowerCase()}</b> em {filters.year}. Os gráficos por natureza comparam todas as naturezas.</p>
           </div>
-          <button className="ds-button secondary">
-            <Download /> Exportar relatório
-          </button>
+          <ExportBidsButton bids={rows.map((bid) => ({
+            numero_licitacao: bid.numero_licitacao,
+            empresa: bid.empresa,
+            cnpjMascarado: maskCnpj(bid.cnpj),
+            municipio: bid.municipio,
+            nome_natureza: bid.nome_natureza,
+            ano_licitacao: bid.ano_licitacao,
+            valor_total_vencido: bid.valor_total_vencido,
+          }))} />
         </section>
 
-        <section className="analysis-filters">
-          <label>
-            <MapPin />
-            <span>
-              <small>Município</small>
-              <select
-                value={municipality}
-                onChange={(event) => setMunicipality(event.target.value)}
-              >
-                <option>Amontada</option>
-                <option>Itarema</option>
-                <option>Itapipoca</option>
-                <option>Trairi</option>
-              </select>
-            </span>
-            <ChevronDown />
-          </label>
-          <label>
-            <FileBarChart />
-            <span>
-              <small>Categoria / natureza</small>
-              <select
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-              >
-                <option>Alimentos</option>
-                <option>Tecnologia</option>
-                <option>Equipamentos</option>
-                <option>Serviços</option>
-                <option>Todas as categorias</option>
-              </select>
-            </span>
-            <ChevronDown />
-          </label>
-          <label>
-            <CalendarDays />
-            <span>
-              <small>Exercício</small>
-              <select defaultValue="2026">
-                <option>2026</option>
-                <option>2025</option>
-              </select>
-            </span>
-            <ChevronDown />
-          </label>
-          <label>
-            <CalendarDays />
-            <span>
-              <small>Competência</small>
-              <select defaultValue="Agosto">
-                <option>Agosto</option>
-                <option>Julho</option>
-                <option>Junho</option>
-              </select>
-            </span>
-            <ChevronDown />
-          </label>
-          <button
-            className="ds-button primary"
-            onClick={updateAnalysis}
-            disabled={loading}
-          >
-            {loading ? <RefreshCw className="spin" /> : null}
-            {loading ? "Atualizando..." : "Atualizar análise"}
-          </button>
-        </section>
+        <form className="analysis-filters" action="/analise" method="get">
+          <input type="hidden" name="limite" value={filters.pageSize} />
+          <label><MapPin /><span><small>Município</small>
+            <select name="municipio" defaultValue={filters.municipalityIbge ?? ""}>
+              <option value="">Todos os municípios</option>
+              {municipalities.data?.map((item) => <option key={item.ibgeCode} value={item.ibgeCode}>{item.name}</option>)}
+            </select>
+          </span><ChevronDown /></label>
+          <label><FileBarChart /><span><small>Natureza da despesa</small>
+            <select name="natureza" defaultValue={filters.natureCode ?? ""}>
+              <option value="">Todas as naturezas</option>
+              {expenses.data?.data.map((item) => <option key={item.codigo_natureza} value={item.codigo_natureza}>{item.nome_natureza}</option>)}
+              {filters.natureCode && !expenses.data?.data.some((item) => item.codigo_natureza === filters.natureCode) && <option value={filters.natureCode}>Natureza {filters.natureCode}</option>}
+            </select>
+          </span><ChevronDown /></label>
+          <label><CalendarDays /><span><small>Exercício</small>
+            <select name="ano" defaultValue={String(filters.year)}>
+              {Array.from({ length: 7 }, (_, index) => new Date().getUTCFullYear() - index).map((year) => <option key={year} value={year}>{year}</option>)}
+              {filters.year < new Date().getUTCFullYear() - 6 && <option value={filters.year}>{filters.year}</option>}
+            </select>
+          </span><ChevronDown /></label>
+          <button className="ds-button primary" type="submit"><Search size={17} /> Atualizar análise</button>
+        </form>
 
         <section className="analysis-source-note">
           <Database />
-          <p>
-            <b>Fonte oficial: API de Dados Abertos do TCE Ceará</b>
-            <span>
-              Dados demonstrativos inspirados no contrato real da API •
-              atualizados em {data.updatedAt}
-            </span>
-          </p>
-          <em>
-            <i /> Fonte operacional
-          </em>
+          <p><b>Fonte: API pública Compra Aberta</b><span>Consultas feitas ao abrir esta página; os dados não informam a data de atualização da base.</span></p>
+          <em><i /> Consulta pública</em>
         </section>
+        {municipalities.error && <p className="analysis-data-state" role="status">Lista de municípios: {municipalities.error}</p>}
+        {filters.municipalityIbge && !selectedMunicipality && <p className="analysis-data-state" role="alert">Não foi possível identificar o município selecionado. Selecione outro município para refazer a consulta.</p>}
 
-        <section
-          className={`analysis-results ${loading ? "is-loading" : ""}`}
-          aria-busy={loading}
-        >
+        <section className="analysis-results">
+          {micro.error && <p className="analysis-data-state" role="status">Indicadores de microempresas: {micro.error}</p>}
           <div className="analysis-kpis">
-            <AnalysisKpi
-              icon={<CircleDollarSign />}
-              label="Total empenhado"
-              value={formatMoney(data.totalCommitted)}
-              detail={`${data.records.toLocaleString("pt-BR")} registros processados`}
-            />
-            <AnalysisKpi
-              icon={<Building2 />}
-              label="Compras com fornecedores locais"
-              value={formatMoney(data.localValue)}
-              detail="Recursos que permanecem no município"
-            />
-            <AnalysisKpi
-              icon={<Store />}
-              label="Participação local"
-              value={`${data.localPercentage.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}%`}
-              detail="Percentual sobre o valor empenhado"
-              accent
-            />
-            <AnalysisKpi
-              icon={<Users />}
-              label="Fornecedores distintos"
-              value={String(data.suppliers)}
-              detail={`${data.localSuppliers} fornecedores locais`}
-            />
+            <AnalysisKpi icon={<CircleDollarSign />} label="Valor vencido por ME" value={money(micro.data?.data.valor_total_vencido)} detail="Valor vencido nas licitações filtradas" />
+            <AnalysisKpi icon={<Building2 />} label="Licitações com ME" value={count(micro.data?.data.quantidade_licitacoes)} detail="Licitações com participação de microempresas" />
+            <AnalysisKpi icon={<Store />} label="Participações de ME" value={count(micro.data?.data.quantidade_participacoes)} detail="Participações registradas" accent />
+            <AnalysisKpi icon={<Users />} label="Microempresas" value={count(micro.data?.data.quantidade_microempresas)} detail="Empresas identificadas na base" />
           </div>
 
-          <section className="analysis-insight">
-            <span>
-              <Info />
-            </span>
-            <div>
-              <small>LEITURA RÁPIDA</small>
-              <p>
-                <b>
-                  {data.localPercentage.toLocaleString("pt-BR", {
-                    maximumFractionDigits: 1,
-                  })}
-                  % do valor empenhado
-                </b>{" "}
-                foi destinado a fornecedores de {data.municipality}. O maior
-                volume está em <b>{data.natures[0].name.toLowerCase()}</b>.
-              </p>
-            </div>
-            <Link href="/me">
-              Encontrar oportunidades <ExternalLink />
-            </Link>
-          </section>
+          {highestNature && <section className="analysis-insight">
+            <span><Info /></span>
+            <div><small>LEITURA RÁPIDA</small><p>Entre todas as naturezas, a maior dotação registrada em {municipalityName} está em <b>{highestNature.nome_natureza.toLowerCase()}</b>, com <b>{money(highestNature.valor_total_dotacao)}</b>. Dotação não representa pagamento efetivo.</p></div>
+          </section>}
 
           <div className="analysis-chart-grid">
-            <AnalysisChartCard
-              title="Evolução do valor do seu setor"
-              description={`Valor empenhado em ${data.category.toLowerCase()} ao longo de 2026`}
-              legend="Meses sem registros permanecem como 'Sem dados'."
-            >
-              <SectorEvolutionChart data={data} />
+            <AnalysisChartCard title="Valor de dotações por natureza" description="Valor associado às contratações, sem representar pagamento efetivo." tone="blue">
+              {expenses.data?.data.length ? <ExpensesChart data={expenses.data.data} /> : <DataState error={expenses.error} />}
             </AnalysisChartCard>
-            <AnalysisChartCard
-              title="Origem territorial dos fornecedores"
-              description="Quantidade de fornecedores por localização"
-            >
-              <SupplierOriginChart data={data} />
+            <AnalysisChartCard title="Participação de ME por natureza" description="Percentual de participações de microempresas." tone="gold">
+              {participation.data?.data.length ? <ParticipationChart data={participation.data.data} /> : <DataState error={participation.error} />}
             </AnalysisChartCard>
-            <AnalysisChartCard
-              title="Valores por natureza da despesa"
-              description="Composição do total empenhado na competência"
-            >
-              <NatureValuesChart data={data} />
+            <AnalysisChartCard title="Valor vencido por ME por natureza" description="Compare os valores vencidos por ME entre as naturezas da despesa." tone="navy">
+              {participation.data?.data.length ? <MicroenterpriseValueChart data={participation.data.data} /> : <DataState error={participation.error} />}
             </AnalysisChartCard>
-            <AnalysisChartCard
-              title="Maiores fornecedores por valor empenhado"
-              description="Somente pessoas jurídicas, com identificação protegida"
-            >
-              <TopSuppliersChart data={data} />
+            <AnalysisChartCard title={selectedMunicipality ? `Valor vencido por ME locais em ${selectedMunicipality.name}` : "Valor vencido por ME locais"} description={`Percentual do valor total vencido que ficou com ME do próprio município em ${filters.year}, considerando todas as naturezas.`} tone="teal">
+              {local.data?.resumo.percentual_valor_vencido_me_local != null ? <div className="analysis-local-chart"><LocalShareChart percentage={local.data.resumo.percentual_valor_vencido_me_local} size={260} />
+                <p>{money(local.data.resumo.valor_vencido_me_local)} para ME locais de {money(local.data.resumo.valor_total_vencido)} no total · {percent(local.data.resumo.percentual_valor_vencido_me_local)}</p></div>
+                : <DataState error={local.error} fallback="Selecione um município para consultar a participação local." />}
             </AnalysisChartCard>
           </div>
 
           <section className="analysis-table-card">
-            <header>
-              <div>
-                <h2>Fornecedores identificados</h2>
-                <p>Pessoas jurídicas ordenadas pelo valor total empenhado</p>
-              </div>
-              <span>
-                <CheckCircle2 /> CNPJs mascarados
-              </span>
-            </header>
-            <div className="analysis-table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fornecedor</th>
-                    <th>CNPJ</th>
-                    <th>Município</th>
-                    <th>Origem</th>
-                    <th>Empenhos</th>
-                    <th>Valor empenhado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.topSuppliers.map((supplier) => (
-                    <tr key={supplier.cnpj}>
-                      <td>
-                        <b>{supplier.name}</b>
-                      </td>
-                      <td>{supplier.cnpj}</td>
-                      <td>{supplier.city}</td>
-                      <td>
-                        <em
-                          className={
-                            supplier.origin === "Local"
-                              ? "local"
-                              : supplier.origin === "Outros estados"
-                                ? "external"
-                                : "regional"
-                          }
-                        >
-                          {supplier.origin}
-                        </em>
-                      </td>
-                      <td>{supplier.commitments}</td>
-                      <td>
-                        <strong>{formatMoney(supplier.value)}</strong>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <header><div><h2>Licitações detalhadas</h2><p>Registros retornados para os filtros aplicados; a API não informa se ainda estão abertos.</p></div><span>CNPJs mascarados</span></header>
+            {rows.length ? <div className="analysis-table-scroll"><table>
+              <thead><tr><th>Licitação</th><th>Empresa</th><th>CNPJ</th><th>Município</th><th>Natureza</th><th>Ano</th><th>Valor vencido</th></tr></thead>
+              <tbody>{rows.map((bid, index) => <tr key={`${bid.codigo_municipio}-${bid.numero_licitacao}-${bid.cnpj}-${index}`}>
+                <td><b>{bid.numero_licitacao}</b></td><td>{bid.empresa ?? "Não informada"}</td><td>{maskCnpj(bid.cnpj)}</td><td>{bid.municipio}</td><td>{bid.nome_natureza}</td><td>{bid.ano_licitacao}</td><td><strong>{money(bid.valor_total_vencido)}</strong></td>
+              </tr>)}</tbody>
+            </table></div> : <DataState error={bids.error} fallback="Nenhuma licitação encontrada para estes filtros." />}
+            <div className="analysis-pagination">
+              <span>Página {filters.page} · {rows.length} {rows.length === 1 ? "registro" : "registros"} exibidos</span>
+              <form className="analysis-page-size" action="/analise" method="get">
+                {filters.municipalityIbge && <input type="hidden" name="municipio" value={filters.municipalityIbge} />}
+                {filters.natureCode && <input type="hidden" name="natureza" value={filters.natureCode} />}
+                <input type="hidden" name="ano" value={filters.year} />
+                <label htmlFor="analysis-page-size">Por página</label>
+                <select id="analysis-page-size" name="limite" defaultValue={filters.pageSize}>
+                  {[10, 20, 30].map((size) => <option key={size} value={size}>{size}</option>)}
+                </select>
+                <button className="ds-button secondary" type="submit">Aplicar</button>
+              </form>
+              {filters.page > 1 && <Link className="ds-button secondary" href={pageLink(filters.page - 1)}>Anterior</Link>}
+              {(bids.data?.data.length ?? 0) > filters.pageSize && <Link className="ds-button secondary" href={pageLink(filters.page + 1)}>Próxima</Link>}
             </div>
           </section>
-          <p className="analysis-footnote">
-            <Info /> Os valores desta demonstração são mockados. A estrutura dos
-            indicadores e gráficos segue o retorno real da API de análise.
-          </p>
+          <p className="analysis-footnote"><Info /> O CSV exporta apenas os registros visíveis nesta página, com CNPJs mascarados.</p>
         </section>
       </main>
     </div>
   );
 }
 
-function AnalysisKpi({
-  icon,
-  label,
-  value,
-  detail,
-  accent,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  detail: string;
-  accent?: boolean;
-}) {
-  return (
-    <article className={accent ? "accent" : ""}>
-      <div>
-        <span>{icon}</span>
-        <small>{label}</small>
-      </div>
-      <strong>{value}</strong>
-      <p>{detail}</p>
-    </article>
-  );
+function AnalysisKpi({ icon, label, value, detail, accent }: { icon: ReactNode; label: string; value: string; detail: string; accent?: boolean }) {
+  return <article className={accent ? "accent" : ""}><div><span>{icon}</span><small>{label}</small></div><strong>{value}</strong><p>{detail}</p></article>;
 }
 
-function AnalysisChartCard({
-  title,
-  description,
-  legend,
-  children,
-}: {
-  title: string;
-  description: string;
-  legend?: string;
-  children: ReactNode;
-}) {
-  return (
-    <article className="analysis-chart-card">
-      <header>
-        <div>
-          <h2>{title}</h2>
-          <p>{description}</p>
-        </div>
-      </header>
-      {children}
-      {legend && (
-        <small className="chart-legend-note">
-          <i /> {legend}
-        </small>
-      )}
-    </article>
-  );
+function AnalysisChartCard({ title, description, tone, children }: { title: string; description: string; tone: string; children: ReactNode }) {
+  return <article className={`analysis-chart-card analysis-chart-card--${tone}`}><header><div><h2>{title}</h2><p>{description}</p></div></header>{children}</article>;
+}
+
+function DataState({ error, fallback = "Sem dados para os filtros selecionados." }: { error: string | null; fallback?: string }) {
+  return <p className="analysis-data-state" role="status">{error ?? fallback}</p>;
 }
