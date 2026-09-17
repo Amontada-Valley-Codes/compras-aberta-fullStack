@@ -78,53 +78,13 @@
 }
 .analysis-filters {
   display: grid;
-  grid-template-columns: 1.1fr 1.35fr 0.72fr 0.82fr auto;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.35fr) minmax(0, 0.72fr) auto;
   gap: 7px;
   padding: 10px;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: var(--shadow-sm);
-}
-.analysis-filters label {
-  height: 55px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px;
-  border-right: 1px solid var(--line);
-  color: var(--brand-blue);
-}
-.analysis-filters label > svg {
-  width: 17px;
-}
-.analysis-filters label > svg:last-child {
-  width: 13px;
-  color: #85939c;
-}
-.analysis-filters label > span {
-  display: grid;
-  gap: 3px;
-  flex: 1;
-  min-width: 0;
-}
-.analysis-filters small {
-  font-size: 7px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #84929b;
-  font-weight: 800;
-}
-.analysis-filters select {
-  appearance: none;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--brand-navy);
-  font-size: 10px;
-  font-weight: 750;
-  min-width: 0;
-  width: 100%;
 }
 .analysis-filters button {
   align-self: center;
@@ -302,9 +262,20 @@
   border: 1px solid var(--line);
   border-radius: 13px;
   box-shadow: var(--shadow-sm);
-  padding: 20px 18px 12px;
+  padding: 20px 18px 18px;
   min-width: 0;
+  overflow: visible;
+  position: relative;
+  --chart-accent: var(--brand-blue);
+  --chart-tint: var(--brand-sky);
 }
+.analysis-chart-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; border-radius: 13px 13px 0 0; background: var(--chart-accent); }
+.analysis-chart-card--gold { --chart-accent: var(--brand-gold); --chart-tint: var(--brand-gold-soft); }
+.analysis-chart-card--navy { --chart-accent: var(--brand-navy); --chart-tint: #e7eef3; }
+.analysis-chart-card--teal { --chart-accent: #3c969d; --chart-tint: #e8f6f5; }
+.analysis-chart-card > header { display: flex; justify-content: space-between; align-items: flex-start; min-height: 52px; }
+.analysis-chart-card .apexcharts-tooltip { position: absolute !important; z-index: 20; max-width: min(360px, calc(100vw - 48px)); white-space: normal; }
+.analysis-chart-card .apexcharts-tooltip-title { white-space: normal; overflow-wrap: anywhere; }
 .analysis-chart-card > header h2 {
   font-size: 13px;
   color: var(--brand-navy);
@@ -315,6 +286,10 @@
   color: #82919a;
   margin: 0;
 }
+.nature-chart { min-width: 0; }
+.nature-chart-key { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; padding: 3px 4px 0; }
+.nature-chart-key span { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #637581; font-size: 9px; text-transform: capitalize; }
+.nature-chart-key b { flex: none; padding: 3px 5px; border-radius: 5px; color: var(--brand-navy); background: #edf3f7; font-size: 9px; }
 .chart-legend-note {
   display: flex;
   align-items: center;
@@ -425,13 +400,37 @@
 .analysis-footnote svg {
   width: 13px;
 }
+.analysis-filters {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.35fr) minmax(0, 0.72fr) auto;
+}
+.analysis-chart-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.analysis-data-state {
+  padding: 28px 18px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+}
+.analysis-local-chart { text-align: center; }
+.analysis-local-chart p { color: var(--brand-navy); font-size: 12px; font-weight: 700; }
+.analysis-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 16px;
+}
+.analysis-pagination span { margin-right: auto; color: var(--muted); font-size: 11px; }
+.analysis-pagination .ds-button { min-height: 34px; padding-inline: 12px; font-size: 11px; }
+.analysis-page-size { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
+.analysis-page-size select { height: 34px; min-width: 56px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--brand-navy); background: #fff; font: inherit; }
+.analysis-title-row button:disabled { opacity: 0.5; cursor: not-allowed; }
 @media (max-width: 1050px) {
   .analysis-filters {
     grid-template-columns: 1fr 1fr;
-  }
-  .analysis-filters label {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
   }
   .analysis-filters button {
     grid-column: 1/-1;
@@ -508,4 +507,6 @@
   .analysis-table-card header > span {
     white-space: nowrap;
   }
+  .analysis-pagination { flex-wrap: wrap; justify-content: flex-start; }
+  .analysis-pagination > span { width: 100%; }
 }
