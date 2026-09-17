@@ -5,6 +5,8 @@
 @import "./analysis.css";
 @import "./opportunity-detail.css";
 @import "./auth.css";
+@import "./layout-scale.css";
+@import "./public-filter-select.css";
 
 :root {
   --brand-navy: #123b5d;
@@ -99,12 +101,12 @@ img {
   opacity: 0.96;
 }
 .public-container {
-  width: min(1180px, calc(100% - 48px));
+  width: min(1660px, calc(100% - 64px));
   margin-inline: auto;
 }
 .button,
 .ds-button {
-  min-height: 46px;
+  min-height: 52px;
   border-radius: 10px;
   border: 1px solid transparent;
   padding: 0 20px;
@@ -152,7 +154,7 @@ img {
   background: transparent;
 }
 .button-sm {
-  min-height: 40px;
+  min-height: 46px;
   padding-inline: 17px;
 }
 .eyebrow {
@@ -174,5 +176,10 @@ img {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+@media (max-width: 680px) {
+  .public-container {
+    width: calc(100% - 32px);
   }
 }

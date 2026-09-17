@@ -1,0 +1,199 @@
+/* Espaçamento e legibilidade compartilhados pelas áreas do portal. */
+.analysis-container {
+  width: min(1660px, calc(100% - 64px));
+}
+
+.button,
+.ds-button {
+  min-height: 52px;
+  font-size: 16px;
+}
+
+.public-header { height: 84px; }
+.public-header .brand-logo,
+.public-header .brand-logo img { width: 174px; }
+.public-header .brand-logo { height: 60px; }
+.header-inner nav a { font-size: 17px; }
+.hero,
+.hero-grid { min-height: 720px; }
+.hero-grid { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 64px; }
+.hero h1 { font-size: clamp(48px, 4.5vw, 76px); }
+.hero-copy > p { max-width: 680px; font-size: 21px; }
+.hero-proof p,
+.hero-proof strong { font-size: 16px; }
+.avatar-stack span { width: 38px; height: 38px; font-size: 11px; }
+.hero-visual { min-width: 0; min-height: 520px; }
+.preview-window { width: min(690px, 100%); }
+.preview-body { height: 390px; }
+.preview-top { font-size: 11px; }
+.preview-heading b { font-size: 17px; }
+.preview-heading small { font-size: 11px; }
+.preview-metrics small,
+.preview-panels small { font-size: 10px; }
+.preview-metrics b { font-size: 18px; }
+.preview-panels article { min-height: 195px; }
+.preview-panels b { font-size: 12px; }
+.preview-donut-card .local-share-center b { font-size: 14px; }
+.preview-donut-card .local-share-center small { font-size: 9px; }
+.floating-card { padding: 15px 18px; }
+.floating-card small { font-size: 10px; }
+.floating-card b { font-size: 14px; }
+.floating-card em { font-size: 11px; }
+.section-heading { max-width: 780px; }
+.section-heading h2 { font-size: clamp(34px, 3.5vw, 50px); }
+.section-heading p { font-size: 20px; }
+.opportunity-search { max-width: 1180px; }
+.value-grid h3 { font-size: 25px; }
+.value-grid p,
+.value-grid li { font-size: 16px; }
+.value-grid article > small { font-size: 12px; }
+.impact-grid { gap: 72px; }
+.impact-grid h2 { font-size: clamp(36px, 3.6vw, 54px); }
+.impact-grid > div:first-child > p { font-size: 20px; }
+.impact-points b { font-size: 16px; }
+.impact-points small { font-size: 13px; }
+.impact-card-head b { font-size: 18px; }
+.impact-card-head small,
+.impact-legend small { font-size: 13px; }
+.impact-legend b { font-size: 15px; }
+.impact-highlight small { font-size: 12px; }
+.impact-highlight b { font-size: 16px; }
+.municipality-card h2 { font-size: 36px; }
+.municipality-card p { font-size: 18px; }
+.footer-grid p,
+.footer-grid a { font-size: 16px; }
+.footer-grid b { font-size: 17px; }
+.footer-grid { grid-template-columns: 2fr repeat(3, minmax(0, 1fr)); }
+
+.analysis-header { height: 80px; }
+.analysis-header .brand-logo,
+.analysis-header .brand-logo img { width: 174px; }
+.analysis-header .brand-logo { height: 60px; }
+.analysis-header nav a { font-size: 16px; }
+.analysis-back { font-size: 16px; }
+.analysis-title-row > div > span { font-size: 12px; }
+.analysis-title-row h1 { font-size: clamp(32px, 2.7vw, 44px); }
+.analysis-title-row p { font-size: 18px; line-height: 1.5; }
+.analysis-source-note { min-height: 68px; }
+.analysis-source-note p b { font-size: 15px; }
+.analysis-source-note p span { font-size: 13px; }
+.analysis-source-note > em { font-size: 13px; }
+.analysis-kpis { gap: 18px; }
+.analysis-kpis article { min-height: 164px; padding: 22px; }
+.analysis-kpis small { font-size: 14px; }
+.analysis-kpis strong { font-size: 30px; }
+.analysis-kpis p { font-size: 13px; }
+.analysis-insight small { font-size: 12px; }
+.analysis-insight p { font-size: 16px; }
+.analysis-chart-grid { gap: 20px; }
+.analysis-chart-card { padding: 24px; }
+.analysis-chart-card > header h2 { font-size: 21px; }
+.analysis-chart-card > header p { font-size: 15px; line-height: 1.5; }
+.nature-chart-key span,
+.nature-chart-key b { font-size: 12px; }
+.analysis-local-chart p { font-size: 16px; line-height: 1.5; }
+.analysis-table-card { padding: 24px; }
+.analysis-table-card header h2 { font-size: 22px; }
+.analysis-table-card header p { font-size: 15px; }
+.analysis-table-card header > span { font-size: 12px; }
+.analysis-table-card th { font-size: 12px; padding: 15px; }
+.analysis-table-card td { font-size: 15px; padding: 16px 15px; }
+.analysis-table-card td b,
+.analysis-table-card td strong { font-size: 15px; }
+.analysis-pagination span,
+.analysis-page-size { font-size: 15px; }
+.analysis-footnote { font-size: 14px; }
+
+.dashboard-content { padding-inline: 28px; }
+.dashboard-page { width: min(1600px, 100%); }
+.sidebar-nav button { height: 50px; font-size: 15px; }
+.workspace-switcher strong,
+.sidebar-user strong { font-size: 14px; }
+.workspace-switcher small,
+.sidebar-user small,
+.nav-group-label { font-size: 10px; }
+.topbar-search input,
+.portal-link { font-size: 14px; }
+.dashboard-heading span { font-size: 11px; }
+.dashboard-heading h1 { font-size: 34px; }
+.dashboard-heading p { font-size: 17px; }
+.app-shell .ds-button { font-size: 15px; min-height: 48px; }
+.metric-card { min-height: 165px; padding: 20px; }
+.metric-card > small { font-size: 15px; }
+.metric-card > b { font-size: 29px; }
+.metric-card > p { font-size: 13px; }
+.card-header h2 { font-size: 18px; }
+.card-header p { font-size: 14px; }
+.card-header button { font-size: 13px; }
+.recommendation-info strong,
+.recommendation-value strong { font-size: 15px; }
+.recommendation-info > small,
+.recommendation-info em,
+.recommendation-value small,
+.recommendation-value em { font-size: 12px; }
+.filter-bar input,
+.filter-bar select,
+.filter-button,
+.result-summary,
+.result-summary select { font-size: 15px; }
+.opportunity-results h2 { font-size: 20px; }
+.opportunity-results article > p { font-size: 15px; }
+.admin-table th { font-size: 12px; }
+.admin-table td { font-size: 15px; }
+.company-cell b { font-size: 15px; }
+.company-cell small,
+.admin-table td > small { font-size: 12px; }
+.table-status,
+.table-action { font-size: 11px; }
+.detail-card > header h2 { font-size: 17px; }
+.detail-card > header p { font-size: 11px; }
+.auth-shell { max-width: 1200px; }
+.auth-panel h1 { font-size: 28px; }
+.auth-field label { font-size: 15px; }
+.auth-input-wrap input { font-size: 16px; }
+
+@media (max-width: 900px) {
+  .hero,
+  .hero-grid { min-height: auto; }
+  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .impact-grid { gap: 44px; }
+  .analysis-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 680px) {
+  .analysis-container { width: calc(100% - 32px); }
+  .public-header { height: 68px; }
+  .public-header .brand-logo,
+  .public-header .brand-logo img { width: 132px; }
+  .public-header .brand-logo { height: 46px; }
+  .analysis-header .brand-logo,
+  .analysis-header .brand-logo img { width: 132px; }
+  .analysis-header .brand-logo { height: 46px; }
+  .analysis-header nav a:last-child { font-size: 11px; }
+  .hero h1 { font-size: clamp(36px, 10vw, 45px); }
+  .hero-copy > p { font-size: 16px; }
+  .hero-visual { min-height: 360px; }
+  .preview-body { height: 280px; }
+  .preview-panels article { min-height: 150px; }
+  .floating-card { padding: 9px; }
+  .floating-card small { font-size: 7px; }
+  .floating-card b { font-size: 10px; }
+  .floating-card em { font-size: 8px; }
+  .section-heading h2 { font-size: 34px; }
+  .section-heading p { font-size: 16px; }
+  .value-grid h3 { font-size: 23px; }
+  .value-grid p,
+  .value-grid li { font-size: 14px; }
+  .municipality-card h2 { font-size: 30px; }
+  .municipality-card p { font-size: 16px; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .analysis-title-row h1 { font-size: 30px; }
+  .analysis-title-row p { font-size: 14px; }
+  .analysis-kpis { gap: 10px; }
+  .analysis-kpis article { padding: 15px; }
+  .analysis-kpis strong { font-size: 25px; }
+  .analysis-chart-card,
+  .analysis-table-card { padding: 17px; }
+  .dashboard-content { padding-inline: 16px; }
+  .dashboard-heading h1 { font-size: 29px; }
+}

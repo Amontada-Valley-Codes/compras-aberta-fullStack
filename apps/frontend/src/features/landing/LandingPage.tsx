@@ -10,11 +10,8 @@ import {
   BellRing,
   Building2,
   Check,
-  ChevronDown,
   CircleDollarSign,
   ExternalLink,
-  FileSearch,
-  MapPin,
   Menu,
   Search,
   ShieldCheck,
@@ -25,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { ExpensesChart, LocalShareChart } from "@/features/public-data/PublicCharts";
 import { compactMoney, count, money, percent } from "@/features/public-data/format";
 import { landingData, landingYear } from "./landing-mock";
@@ -34,7 +32,6 @@ export function LandingPage() {
   const year = landingYear;
   const [menuOpen, setMenuOpen] = useState(false);
   const localSummary = data.local.data?.resumo;
-  const totalDotacao = data.expenses.data?.data.reduce((sum, item) => sum + Number(item.valor_total_dotacao), 0);
 
   return (
     <div className="public-site">
@@ -201,26 +198,6 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="trust-strip">
-          <div className="public-container trust-grid">
-            <p>
-              <ShieldCheck size={20} /> Indicadores demonstrativos
-            </p>
-            <div>
-              <strong>{money(totalDotacao)}</strong>
-              <small>em dotações associadas a contratações</small>
-            </div>
-            <div>
-              <strong>{count(data.micro.data?.data.quantidade_participacoes)}</strong>
-              <small>participações de ME</small>
-            </div>
-            <div>
-              <strong>{count(data.micro.data?.data.quantidade_microempresas)}</strong>
-              <small>microempresas identificadas</small>
-            </div>
-          </div>
-        </section>
-
         <section className="opportunities-section" id="oportunidades">
           <div className="public-container">
             <div className="section-heading centered">
@@ -233,34 +210,8 @@ export function LandingPage() {
               action="/analise"
               method="get"
             >
-              <label>
-                <MapPin size={18} />
-                <span>
-                  <small>Município</small>
-                  <select
-                    name="municipio"
-                    defaultValue=""
-                  >
-                    <option value="">Todos os municípios</option>
-                    {data.municipalities.data?.map((item) => <option key={item.ibgeCode} value={item.ibgeCode}>{item.name}</option>)}
-                  </select>
-                </span>
-                <ChevronDown size={16} />
-              </label>
-              <label>
-                <FileSearch size={18} />
-                <span>
-                  <small>Natureza da despesa</small>
-                  <select
-                    name="natureza"
-                    defaultValue=""
-                  >
-                    <option value="">Todas as naturezas</option>
-                    {data.expenses.data?.data.map((item) => <option key={item.codigo_natureza} value={item.codigo_natureza}>{item.nome_natureza}</option>)}
-                  </select>
-                </span>
-                <ChevronDown size={16} />
-              </label>
+              <PublicFilterSelect name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="landing" options={data.municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []} />
+              <PublicFilterSelect name="natureza" label="Natureza da despesa" allLabel="Todas as naturezas" icon="nature" variant="landing" options={data.expenses.data?.data.map((item) => ({ value: item.codigo_natureza, label: item.nome_natureza })) ?? []} />
               <button className="button button-primary" type="submit">
                 <Search size={18} /> Consultar dados
               </button>

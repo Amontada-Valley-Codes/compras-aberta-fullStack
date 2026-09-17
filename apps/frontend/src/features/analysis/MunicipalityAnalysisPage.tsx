@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  ArrowLeft, Building2, CalendarDays, ChevronDown, CircleDollarSign,
-  Database, FileBarChart, Info, MapPin, Search, Store, Users,
+  ArrowLeft, Building2, CircleDollarSign,
+  Database, Info, Search, Store, Users,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { ExpensesChart, LocalShareChart, MicroenterpriseValueChart, ParticipationChart } from "@/features/public-data/PublicCharts";
 import { count, maskCnpj, money, percent } from "@/features/public-data/format";
 import type { AnalysisData } from "@/features/public-data/public-data";
@@ -56,25 +57,18 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
 
         <form className="analysis-filters" action="/analise" method="get">
           <input type="hidden" name="limite" value={filters.pageSize} />
-          <label><MapPin /><span><small>Município</small>
-            <select name="municipio" defaultValue={filters.municipalityIbge ?? ""}>
-              <option value="">Todos os municípios</option>
-              {municipalities.data?.map((item) => <option key={item.ibgeCode} value={item.ibgeCode}>{item.name}</option>)}
-            </select>
-          </span><ChevronDown /></label>
-          <label><FileBarChart /><span><small>Natureza da despesa</small>
-            <select name="natureza" defaultValue={filters.natureCode ?? ""}>
-              <option value="">Todas as naturezas</option>
-              {expenses.data?.data.map((item) => <option key={item.codigo_natureza} value={item.codigo_natureza}>{item.nome_natureza}</option>)}
-              {filters.natureCode && !expenses.data?.data.some((item) => item.codigo_natureza === filters.natureCode) && <option value={filters.natureCode}>Natureza {filters.natureCode}</option>}
-            </select>
-          </span><ChevronDown /></label>
-          <label><CalendarDays /><span><small>Exercício</small>
-            <select name="ano" defaultValue={String(filters.year)}>
-              {Array.from({ length: 7 }, (_, index) => new Date().getUTCFullYear() - index).map((year) => <option key={year} value={year}>{year}</option>)}
-              {filters.year < new Date().getUTCFullYear() - 6 && <option value={filters.year}>{filters.year}</option>}
-            </select>
-          </span><ChevronDown /></label>
+          <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
+            ...(municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []),
+            ...(filters.municipalityIbge && !municipalities.data?.some((item) => item.ibgeCode === filters.municipalityIbge) ? [{ value: filters.municipalityIbge, label: `Município ${filters.municipalityIbge}` }] : []),
+          ]} />
+          <PublicFilterSelect key={`natureza-${filters.natureCode ?? ""}`} name="natureza" label="Natureza da despesa" allLabel="Todas as naturezas" icon="nature" variant="analysis" defaultValue={filters.natureCode} options={[
+            ...(expenses.data?.data.map((item) => ({ value: item.codigo_natureza, label: item.nome_natureza })) ?? []),
+            ...(filters.natureCode && !expenses.data?.data.some((item) => item.codigo_natureza === filters.natureCode) ? [{ value: filters.natureCode, label: `Natureza ${filters.natureCode}` }] : []),
+          ]} />
+          <PublicFilterSelect key={`ano-${filters.year}`} name="ano" label="Exercício" icon="year" variant="analysis" defaultValue={String(filters.year)} options={[
+            ...Array.from({ length: 7 }, (_, index) => new Date().getUTCFullYear() - index).map((year) => ({ value: String(year), label: String(year) })),
+            ...(filters.year < new Date().getUTCFullYear() - 6 ? [{ value: String(filters.year), label: String(filters.year) }] : []),
+          ]} />
           <button className="ds-button primary" type="submit"><Search size={17} /> Atualizar análise</button>
         </form>
 
@@ -101,13 +95,13 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
           </section>}
 
           <div className="analysis-chart-grid">
-            <AnalysisChartCard title="Valor de dotações por natureza" description="Valor associado às contratações, sem representar pagamento efetivo." tone="blue">
+            <AnalysisChartCard title="Valor de dotações por natureza" description="Valor associado às contratações, sem representar pagamento efetivo. Naturezas sem valor positivo não aparecem." tone="blue">
               {expenses.data?.data.length ? <ExpensesChart data={expenses.data.data} /> : <DataState error={expenses.error} />}
             </AnalysisChartCard>
-            <AnalysisChartCard title="Participação de ME por natureza" description="Percentual de participações de microempresas." tone="gold">
+            <AnalysisChartCard title="Participação de ME por natureza" description="Percentual de participações de microempresas. Naturezas com 0% não aparecem." tone="gold">
               {participation.data?.data.length ? <ParticipationChart data={participation.data.data} /> : <DataState error={participation.error} />}
             </AnalysisChartCard>
-            <AnalysisChartCard title="Valor vencido por ME por natureza" description="Compare os valores vencidos por ME entre as naturezas da despesa." tone="navy">
+            <AnalysisChartCard title="Valor vencido por ME por natureza" description="Compare os valores vencidos por ME entre as naturezas da despesa. Naturezas sem valor positivo não aparecem." tone="navy">
               {participation.data?.data.length ? <MicroenterpriseValueChart data={participation.data.data} /> : <DataState error={participation.error} />}
             </AnalysisChartCard>
             <AnalysisChartCard title={selectedMunicipality ? `Valor vencido por ME locais em ${selectedMunicipality.name}` : "Valor vencido por ME locais"} description={`Percentual do valor total vencido que ficou com ME do próprio município em ${filters.year}, considerando todas as naturezas.`} tone="teal">

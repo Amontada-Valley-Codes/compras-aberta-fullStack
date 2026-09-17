@@ -461,48 +461,6 @@
   bottom: 43px;
   right: 42px;
 }
-.trust-strip {
-  border-block: 1px solid #e3ebf0;
-  background: white;
-}
-.trust-grid {
-  min-height: 100px;
-  display: grid;
-  grid-template-columns: 1.5fr repeat(3, 1fr);
-  align-items: center;
-}
-.trust-grid > * {
-  padding-inline: 28px;
-  border-right: 1px solid #e2e9ed;
-}
-.trust-grid > *:first-child {
-  padding-left: 0;
-}
-.trust-grid > *:last-child {
-  border: 0;
-}
-.trust-grid p {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #647580;
-  font-size: 12px;
-}
-.trust-grid p svg {
-  color: var(--brand-blue);
-}
-.trust-grid div {
-  display: grid;
-  gap: 3px;
-}
-.trust-grid strong {
-  font-size: 21px;
-  color: var(--brand-navy);
-}
-.trust-grid small {
-  font-size: 10px;
-  color: #7a8993;
-}
 .opportunities-section,
 .value-section,
 .impact-section {
@@ -537,37 +495,8 @@
   background: white;
   box-shadow: var(--shadow-md);
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   gap: 4px;
-}
-.opportunity-search label {
-  height: 58px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-right: 1px solid #e1e8ec;
-  color: var(--brand-blue);
-}
-.opportunity-search label > span {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-}
-.opportunity-search label small {
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  font-weight: 800;
-  color: #81909a;
-}
-.opportunity-search select {
-  appearance: none;
-  border: 0;
-  outline: 0;
-  color: var(--brand-navy);
-  font-weight: 700;
-  background: transparent;
-  padding: 0;
 }
 .value-section {
   background: var(--surface-soft);
@@ -922,19 +851,6 @@
   .opportunity-search {
     grid-template-columns: minmax(0, 1fr);
   }
-  .opportunity-search label,
-  .opportunity-search label > span { min-width: 0; }
-  .opportunity-search select { width: 100%; min-width: 0; text-overflow: ellipsis; }
-  .trust-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .trust-grid > p {
-    grid-column: 1/-1;
-    justify-content: center;
-    border: 0;
-    border-bottom: 1px solid var(--line);
-    padding: 15px;
-  }
   .value-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1012,15 +928,8 @@
   .floating-trend {
     bottom: 10px;
   }
-  .trust-grid,
   .value-grid {
     grid-template-columns: 1fr;
-  }
-  .trust-grid > div {
-    border: 0;
-    border-bottom: 1px solid var(--line);
-    text-align: center;
-    padding: 14px;
   }
   .opportunities-section,
   .value-section,
@@ -1030,13 +939,6 @@
   .opportunity-search {
     grid-template-columns: minmax(0, 1fr);
     width: 100%;
-  }
-  .opportunity-search label,
-  .opportunity-search label > span { min-width: 0; }
-  .opportunity-search select { width: 100%; min-width: 0; text-overflow: ellipsis; }
-  .opportunity-search label {
-    border: 0;
-    border-bottom: 1px solid var(--line);
   }
   .impact-points {
     flex-direction: column;

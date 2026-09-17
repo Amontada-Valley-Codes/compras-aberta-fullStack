@@ -19,7 +19,9 @@ const base: ApexOptions = {
 };
 
 export function ExpensesChart({ data, compactView = false }: { data: ExpensesByNatureResponse["data"]; compactView?: boolean }) {
-  const rows = compactView ? [...data].sort((a, b) => Number(b.valor_total_dotacao) - Number(a.valor_total_dotacao)).slice(0, 4) : data;
+  const positiveRows = data.filter((item) => Number(item.valor_total_dotacao) > 0);
+  const rows = compactView ? [...positiveRows].sort((a, b) => Number(b.valor_total_dotacao) - Number(a.valor_total_dotacao)).slice(0, 4) : positiveRows;
+  if (!rows.length) return <p className="analysis-data-state">Nenhuma dotação com valor positivo para estes filtros.</p>;
   const options: ApexOptions = {
     ...base,
     chart: { ...base.chart, type: "bar" },
@@ -38,8 +40,10 @@ export function ExpensesChart({ data, compactView = false }: { data: ExpensesByN
 
 export function ParticipationChart({ data, compactView = false }: { data: ParticipationByNatureResponse["data"]; compactView?: boolean }) {
   const rows = [...data]
+    .filter((item) => (item.percentual_participacoes_me ?? 0) > 0)
     .sort((a, b) => (b.percentual_participacoes_me ?? 0) - (a.percentual_participacoes_me ?? 0))
     .slice(0, compactView ? 4 : 8);
+  if (!rows.length) return <p className="analysis-data-state">Nenhuma participação de ME acima de 0% para estes filtros.</p>;
   const names = new Map(rows.map((item) => [item.codigo_natureza, item.nome_natureza]));
   const options: ApexOptions = {
     ...base,
@@ -55,7 +59,7 @@ export function ParticipationChart({ data, compactView = false }: { data: Partic
 }
 
 export function MicroenterpriseValueChart({ data }: { data: ParticipationByNatureResponse["data"] }) {
-  const rows = [...data].sort((a, b) => Number(b.valor_vencido_me) - Number(a.valor_vencido_me)).slice(0, 8);
+  const rows = [...data].filter((item) => Number(item.valor_vencido_me) > 0).sort((a, b) => Number(b.valor_vencido_me) - Number(a.valor_vencido_me)).slice(0, 8);
   if (!rows.length) return <p className="analysis-data-state">Nenhum valor vencido por ME para estes filtros.</p>;
   const names = new Map(rows.map((item) => [item.codigo_natureza, item.nome_natureza]));
   const options: ApexOptions = {
