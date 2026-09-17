@@ -4,6 +4,7 @@
 @import "./dashboard-admin.css";
 @import "./analysis.css";
 @import "./opportunity-detail.css";
+@import "./auth.css";
 
 :root {
   --brand-navy: #123b5d;
