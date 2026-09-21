@@ -56,20 +56,27 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         </section>
 
         <form className="analysis-filters" action="/analise" method="get">
-          <input type="hidden" name="limite" value={filters.pageSize} />
-          <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
-            ...(municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []),
-            ...(filters.municipalityIbge && !municipalities.data?.some((item) => item.ibgeCode === filters.municipalityIbge) ? [{ value: filters.municipalityIbge, label: `Município ${filters.municipalityIbge}` }] : []),
-          ]} />
-          <PublicFilterSelect key={`natureza-${filters.natureCode ?? ""}`} name="natureza" label="Natureza da despesa" allLabel="Todas as naturezas" icon="nature" variant="analysis" defaultValue={filters.natureCode} options={[
-            ...(expenses.data?.data.map((item) => ({ value: item.codigo_natureza, label: item.nome_natureza })) ?? []),
-            ...(filters.natureCode && !expenses.data?.data.some((item) => item.codigo_natureza === filters.natureCode) ? [{ value: filters.natureCode, label: `Natureza ${filters.natureCode}` }] : []),
-          ]} />
-          <PublicFilterSelect key={`ano-${filters.year}`} name="ano" label="Exercício" icon="year" variant="analysis" defaultValue={String(filters.year)} options={[
-            ...Array.from({ length: 7 }, (_, index) => new Date().getUTCFullYear() - index).map((year) => ({ value: String(year), label: String(year) })),
-            ...(filters.year < new Date().getUTCFullYear() - 6 ? [{ value: String(filters.year), label: String(filters.year) }] : []),
-          ]} />
-          <button className="ds-button primary" type="submit"><Search size={17} /> Atualizar análise</button>
+          <div className="analysis-filter-heading">
+            <span>CONSULTA PERSONALIZADA</span>
+            <h2>Pesquisa de compras públicas</h2>
+            <p>Combine os filtros para analisar licitações e a participação de microempresas.</p>
+          </div>
+          <div className="analysis-filter-fields">
+            <input type="hidden" name="limite" value={filters.pageSize} />
+            <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
+              ...(municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []),
+              ...(filters.municipalityIbge && !municipalities.data?.some((item) => item.ibgeCode === filters.municipalityIbge) ? [{ value: filters.municipalityIbge, label: `Município ${filters.municipalityIbge}` }] : []),
+            ]} />
+            <PublicFilterSelect key={`natureza-${filters.natureCode ?? ""}`} name="natureza" label="Natureza da despesa" allLabel="Todas as naturezas" icon="nature" variant="analysis" defaultValue={filters.natureCode} options={[
+              ...(expenses.data?.data.map((item) => ({ value: item.codigo_natureza, label: item.nome_natureza })) ?? []),
+              ...(filters.natureCode && !expenses.data?.data.some((item) => item.codigo_natureza === filters.natureCode) ? [{ value: filters.natureCode, label: `Natureza ${filters.natureCode}` }] : []),
+            ]} />
+            <PublicFilterSelect key={`ano-${filters.year}`} name="ano" label="Exercício" icon="year" variant="analysis" defaultValue={String(filters.year)} options={[
+              ...Array.from({ length: 7 }, (_, index) => new Date().getUTCFullYear() - index).map((year) => ({ value: String(year), label: String(year) })),
+              ...(filters.year < new Date().getUTCFullYear() - 6 ? [{ value: String(filters.year), label: String(filters.year) }] : []),
+            ]} />
+            <button className="analysis-search-button" type="submit" aria-label="Atualizar análise"><Search size={23} /><span>Atualizar análise</span></button>
+          </div>
         </form>
 
         <section className="analysis-source-note">

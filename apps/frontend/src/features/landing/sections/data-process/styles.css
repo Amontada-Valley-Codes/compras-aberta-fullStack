@@ -1,0 +1,117 @@
+.data-process-section {
+  padding: 100px 0;
+}
+.data-process-section {
+  position: relative;
+  overflow: hidden;
+  padding-block: 48px;
+  background:
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(32, 189, 212, 0.08),
+      transparent 36%
+    ),
+    #fff;
+}
+.data-process-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.data-process-heading {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.data-process-heading h2 {
+  width: 100%;
+  margin: 0 auto 20px;
+  font-size: clamp(32px, 3vw, 46px);
+  line-height: 1.16;
+  text-align: center;
+  white-space: nowrap;
+}
+.data-process-heading p {
+  max-width: 740px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.75;
+  text-align: center;
+}
+.data-process-picture {
+  width: min(92%, 1320px);
+  display: block;
+  margin-top: 18px;
+}
+.data-process-picture img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+.data-process-action {
+  min-width: 230px;
+  min-height: 56px;
+  gap: 10px;
+  margin-top: 34px;
+  border-radius: 12px;
+  background: var(--brand-blue);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(18, 59, 93, 0.2);
+}
+.data-process-action:hover {
+  background: var(--brand-navy);
+  transform: translateY(-2px);
+}
+.data-process-action svg {
+  width: 19px;
+}
+@media (max-width: 680px) {
+  .data-process-section {
+    padding-block: 72px;
+  }
+  .data-process-heading h2 {
+    max-width: 360px;
+    margin-bottom: 20px;
+    font-size: 29px;
+    white-space: normal;
+  }
+  .data-process-heading p {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .data-process-section {
+    padding-block: 36px;
+  }
+  .data-process-picture {
+    width: min(92%, 430px);
+    margin-top: 16px;
+  }
+  .data-process-action {
+    width: 100%;
+    margin-top: 28px;
+  }
+}
+.section-heading {
+  max-width: 650px;
+}
+.section-heading.centered {
+  margin-inline: auto;
+  text-align: center;
+}
+.section-heading h2 {
+  font-size: clamp(30px, 3.5vw, 43px);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  color: var(--brand-navy);
+  margin: 15px 0 14px;
+}
+.section-heading p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #6a7b86;
+  margin: 0;
+}
