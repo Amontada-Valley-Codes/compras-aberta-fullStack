@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./public-site.css";
 @import "../../features/landing/sections/header/styles.css";
 @import "../../features/landing/sections/hero/styles.css";
 @import "../../features/landing/sections/data-explorer/styles.css";
