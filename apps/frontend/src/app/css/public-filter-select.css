@@ -11,20 +11,56 @@
   gap: 10px;
   padding: 0 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 999px;
   background: transparent;
   color: var(--brand-navy);
   text-align: left;
   cursor: pointer;
 }
-.public-filter-trigger:hover { background: #f6fafe; }
-.public-filter-trigger:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: -2px; }
-.public-filter-leading { width: 17px; height: 17px; color: var(--brand-blue); flex: none; }
-.public-filter-copy { display: grid; flex: 1; min-width: 0; gap: 3px; }
-.public-filter-copy small { color: #768692; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-.public-filter-value { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; font-weight: 700; }
-.public-filter-chevron { width: 16px; height: 16px; color: var(--brand-blue); flex: none; transition: transform .18s; }
-.public-filter-trigger[data-state="open"] .public-filter-chevron { transform: rotate(180deg); }
+.public-filter-trigger:hover {
+  background: #f6fafe;
+}
+.public-filter-trigger:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: -2px;
+}
+.public-filter-leading {
+  width: 24px;
+  height: 24px;
+  color: var(--brand-blue);
+  flex: none;
+  stroke-width: 2.2;
+}
+.public-filter-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+}
+.public-filter-copy small {
+  color: #768692;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.public-filter-value {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  font-weight: 700;
+}
+.public-filter-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--brand-blue);
+  flex: none;
+  transition: transform 0.18s;
+}
+.public-filter-trigger[data-state="open"] .public-filter-chevron {
+  transform: rotate(180deg);
+}
 
 .public-filter-content {
   z-index: 80;
@@ -34,11 +70,40 @@
   max-height: min(320px, var(--radix-select-content-available-height));
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 18px;
   background: white;
   box-shadow: var(--shadow-md);
 }
-.public-filter-viewport { flex: 1; min-height: 0; overflow-y: auto; padding: 5px; }
+.public-filter-search-wrap {
+  padding: 10px 12px;
+  border-bottom: 1px solid #edf1f3;
+  background: white;
+}
+.public-filter-search {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1.5px solid #22b8cf;
+  border-radius: 999px;
+  background: white;
+  color: var(--brand-navy);
+  font-size: 15px;
+  outline: none;
+}
+.public-filter-search::placeholder {
+  color: #aeb8be;
+  font-style: italic;
+}
+.public-filter-search:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 166, 0.1);
+}
+.public-filter-viewport {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 5px;
+}
 .public-filter-item {
   position: relative;
   display: flex;
@@ -53,13 +118,44 @@
   outline: none;
   white-space: normal;
 }
-.public-filter-item[data-highlighted] { background: var(--brand-sky); color: var(--brand-blue); }
-.public-filter-check { position: absolute; right: 10px; color: var(--brand-blue); }
-.public-filter-scroll { display: grid; place-items: center; height: 25px; flex: none; background: white; color: var(--brand-blue); }
+.public-filter-item[data-highlighted] {
+  background: var(--brand-sky);
+  color: var(--brand-blue);
+}
+.public-filter-item[data-state="checked"] {
+  background: #e4f5f7;
+  color: #096b78;
+}
+.public-filter-check {
+  position: absolute;
+  right: 10px;
+  color: var(--brand-blue);
+}
+.public-filter-scroll {
+  display: grid;
+  place-items: center;
+  height: 25px;
+  flex: none;
+  background: white;
+  color: var(--brand-blue);
+}
+.public-filter-empty {
+  margin: 0;
+  padding: 18px 12px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
 
 @media (max-width: 900px) {
-  .opportunity-search .public-filter-select { border-right: 0; border-bottom: 1px solid var(--line); }
+  .opportunity-search .public-filter-select {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
 }
 @media (max-width: 1050px) {
-  .analysis-filters .public-filter-select { border-right: 0; border-bottom: 1px solid var(--line); }
+  .analysis-filters .public-filter-select {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
 }
