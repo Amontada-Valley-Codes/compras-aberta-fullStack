@@ -1,9 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
-import { Bell, ChevronDown, Menu, Search, X } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { Bell, ChevronDown, LogOut, Menu, Search, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+
+// Renova o token de acesso (validade de 15 min) um pouco antes de expirar,
+// enquanto o painel estiver aberto, para a sessão não cair no meio do uso.
+// Se o refresh falhar (ex.: sessão revogada), a próxima navegação já esbarra
+// no proxy.ts e volta para o login.
+const SESSION_REFRESH_INTERVAL_MS = 12 * 60 * 1000;
+
+function useSessionKeepAlive() {
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      fetch("/api/auth/refresh", { method: "POST" }).catch(() => undefined);
+    }, SESSION_REFRESH_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, []);
+}
 
 export type NavItem = {
   id: string;
@@ -29,11 +45,24 @@ export function AppShell({
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const isAdmin = role === "admin";
+  const router = useRouter();
+
+  useSessionKeepAlive();
 
   const navigate = (id: string) => {
     onNavigate(id);
     setMobileOpen(false);
+  };
+
+  const logout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      router.push("/auth/login");
+    }
   };
 
   return (
@@ -167,6 +196,15 @@ export function AppShell({
             <Link className="portal-link" href="/">
               Portal público
             </Link>
+            <button
+              className="icon-button logout-button"
+              onClick={logout}
+              disabled={loggingOut}
+              aria-label="Sair"
+              title="Sair"
+            >
+              <LogOut size={19} />
+            </button>
             <span className="topbar-avatar">{isAdmin ? "CM" : "AR"}</span>
           </div>
         </header>

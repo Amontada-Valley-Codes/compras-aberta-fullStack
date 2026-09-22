@@ -7,10 +7,22 @@ import {
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { ExpensesChart, LocalShareChart, MicroenterpriseValueChart, ParticipationChart } from "@/features/public-data/PublicCharts";
+import { selectMicroenterpriseValueRows, selectParticipationRows, selectPositiveExpenses } from "@/features/public-data/chart-selectors";
 import { count, formatCnpj, money, percent } from "@/features/public-data/format";
 import type { AnalysisData } from "@/features/public-data/public-data";
 import { AnalysisExportLinks } from "./AnalysisExportLinks";
+import type { AnalysisExportSummary } from "./export-charts-pdf";
 import { AnalysisPagination } from "./AnalysisPagination";
+
+const EXPENSES_TITLE = "Valor de dotações por natureza";
+const EXPENSES_DESCRIPTION = "Valor associado às contratações, sem representar pagamento efetivo. Naturezas sem valor positivo não aparecem.";
+const EXPENSES_EMPTY = "Nenhuma dotação com valor positivo para estes filtros.";
+const PARTICIPATION_TITLE = "Participação de ME por natureza";
+const PARTICIPATION_DESCRIPTION = "Percentual de participações de microempresas. Naturezas com 0% não aparecem.";
+const PARTICIPATION_EMPTY = "Nenhuma participação de ME acima de 0% para estes filtros.";
+const MICRO_VALUE_TITLE = "Valor vencido por ME por natureza";
+const MICRO_VALUE_DESCRIPTION = "Compare os valores vencidos por ME entre as naturezas da despesa. Naturezas sem valor positivo não aparecem.";
+const MICRO_VALUE_EMPTY = "Nenhum valor vencido por ME para estes filtros.";
 
 export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
   const { filters, selectedMunicipality, municipalities, micro, expenses, participation, local, bids } = data;
@@ -21,6 +33,49 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
     (best, item) => !best || Number(item.valor_total_dotacao) > Number(best.valor_total_dotacao) ? item : best,
     null,
   );
+  const localShareTitle = selectedMunicipality ? `Valor vencido por ME locais em ${selectedMunicipality.name}` : "Valor vencido por ME locais";
+  const localShareDescription = `Percentual do valor total vencido que ficou com ME do próprio município em ${filters.year}, considerando todas as naturezas.`;
+
+  // Os mesmos filtros/ordenações usados para desenhar os gráficos na tela
+  // decidem o que entra no PDF (se o gráfico existe e a legenda de naturezas).
+  const expensesRows = selectPositiveExpenses(expenses.data?.data ?? []);
+  const participationRows = selectParticipationRows(participation.data?.data ?? []);
+  const microValueRows = selectMicroenterpriseValueRows(participation.data?.data ?? []);
+  const natureLegend = (rows: Array<{ codigo_natureza: string; nome_natureza: string }>) =>
+    rows.map((item) => ({ code: item.codigo_natureza, name: item.nome_natureza }));
+
+  const exportSummary: AnalysisExportSummary = {
+    eyebrow: "Análise municipal",
+    municipalityName,
+    year: filters.year,
+    natureName,
+    intro: `Indicadores e registros de ${natureName.toLowerCase()} em ${filters.year}. Os gráficos por natureza comparam todas as naturezas.`,
+    kpis: [
+      { label: "Valor vencido por ME", value: money(micro.data?.data.valor_total_vencido), detail: "Valor vencido nas licitações filtradas" },
+      { label: "Licitações com ME", value: count(micro.data?.data.quantidade_licitacoes), detail: "Licitações com participação de microempresas" },
+      { label: "Participações de ME", value: count(micro.data?.data.quantidade_participacoes), detail: "Participações registradas" },
+      { label: "Microempresas", value: count(micro.data?.data.quantidade_microempresas), detail: "Empresas identificadas na base" },
+    ],
+    highestNatureText: highestNature
+      ? `Em ${municipalityName}, a maior dotação é para ${highestNature.nome_natureza.toLowerCase()}: ${money(highestNature.valor_total_dotacao)}. Esse valor não indica quanto foi pago.`
+      : null,
+    chartSections: [
+      { id: "export-expenses-chart", title: EXPENSES_TITLE, description: EXPENSES_DESCRIPTION, hasChart: expensesRows.length > 0, emptyText: EXPENSES_EMPTY },
+      { id: "export-participation-chart", title: PARTICIPATION_TITLE, description: PARTICIPATION_DESCRIPTION, hasChart: participationRows.length > 0, emptyText: PARTICIPATION_EMPTY, natureLegend: natureLegend(participationRows) },
+      { id: "export-microenterprise-chart", title: MICRO_VALUE_TITLE, description: MICRO_VALUE_DESCRIPTION, hasChart: microValueRows.length > 0, emptyText: MICRO_VALUE_EMPTY, natureLegend: natureLegend(microValueRows) },
+    ],
+    localShareTitle,
+    localShareDescription,
+    localShare: local.data?.resumo.percentual_valor_vencido_me_local != null
+      ? {
+        meLabel: "ME locais",
+        meValue: money(local.data.resumo.valor_vencido_me_local),
+        othersLabel: "Demais fornecedores",
+        othersValue: money(Math.max(0, Number(local.data.resumo.valor_total_vencido) - Number(local.data.resumo.valor_vencido_me_local))),
+        note: `De ${money(local.data.resumo.valor_total_vencido)} no total, ME locais receberam ${percent(local.data.resumo.percentual_valor_vencido_me_local)}.`,
+      }
+      : null,
+  };
   return (
     <div className="analysis-page">
       <header className="analysis-header">
@@ -37,7 +92,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
             <h1>Licitações e participação de ME em {municipalityName}</h1>
             <p>Indicadores e registros de <b>{natureName.toLowerCase()}</b> em {filters.year}. Os gráficos por natureza comparam todas as naturezas.</p>
           </div>
-          <AnalysisExportLinks filters={filters} />
+          <AnalysisExportLinks filters={filters} summary={exportSummary} />
         </section>
 
         <form className="analysis-filters" action="/analise" method="get">
@@ -76,16 +131,16 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
           </section>}
 
           <div className="analysis-chart-grid">
-            <AnalysisChartCard title="Valor de dotações por natureza" description="Valor associado às contratações, sem representar pagamento efetivo. Naturezas sem valor positivo não aparecem." tone="blue">
-              {expenses.data?.data.length ? <ExpensesChart data={expenses.data.data} /> : <DataState error={expenses.error} />}
+            <AnalysisChartCard title={EXPENSES_TITLE} description={EXPENSES_DESCRIPTION} tone="blue">
+              {expensesRows.length ? <ExpensesChart data={expenses.data?.data ?? []} /> : <DataState error={expenses.error} fallback={EXPENSES_EMPTY} />}
             </AnalysisChartCard>
-            <AnalysisChartCard title="Participação de ME por natureza" description="Percentual de participações de microempresas. Naturezas com 0% não aparecem." tone="gold">
-              {participation.data?.data.length ? <ParticipationChart data={participation.data.data} /> : <DataState error={participation.error} />}
+            <AnalysisChartCard title={PARTICIPATION_TITLE} description={PARTICIPATION_DESCRIPTION} tone="gold">
+              {participationRows.length ? <ParticipationChart data={participation.data?.data ?? []} /> : <DataState error={participation.error} fallback={PARTICIPATION_EMPTY} />}
             </AnalysisChartCard>
-            <AnalysisChartCard title="Valor vencido por ME por natureza" description="Compare os valores vencidos por ME entre as naturezas da despesa. Naturezas sem valor positivo não aparecem." tone="navy">
-              {participation.data?.data.length ? <MicroenterpriseValueChart data={participation.data.data} /> : <DataState error={participation.error} />}
+            <AnalysisChartCard title={MICRO_VALUE_TITLE} description={MICRO_VALUE_DESCRIPTION} tone="navy">
+              {microValueRows.length ? <MicroenterpriseValueChart data={participation.data?.data ?? []} /> : <DataState error={participation.error} fallback={MICRO_VALUE_EMPTY} />}
             </AnalysisChartCard>
-            <AnalysisChartCard title={selectedMunicipality ? `Valor vencido por ME locais em ${selectedMunicipality.name}` : "Valor vencido por ME locais"} description={`Percentual do valor total vencido que ficou com ME do próprio município em ${filters.year}, considerando todas as naturezas.`} tone="teal">
+            <AnalysisChartCard title={localShareTitle} description={localShareDescription} tone="teal">
               {local.data?.resumo.percentual_valor_vencido_me_local != null ? <div className="analysis-local-chart">
                 <LocalShareChart percentage={local.data.resumo.percentual_valor_vencido_me_local} size={230} />
                 <div className="analysis-local-metrics">
@@ -108,7 +163,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
             </table></div> : <DataState error={bids.error} fallback="Nenhuma licitação encontrada para estes filtros." />}
             <AnalysisPagination filters={filters} rowCount={rows.length} hasNext={(bids.data?.data.length ?? 0) > filters.pageSize} />
           </section>
-          <p className="analysis-footnote"><Info /> Os arquivos CSV incluem todos os registros dos filtros e os dados usados nos gráficos.</p>
+          <p className="analysis-footnote"><Info /> O CSV traz todas as licitações dos filtros aplicados; o PDF traz os gráficos exibidos nesta página.</p>
         </section>
       </main>
     </div>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, Eye, EyeOff, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ChevronLeft, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 
 import { BrandLogo } from '@/components/brand/BrandLogo'
 
@@ -43,8 +44,51 @@ const LoginIllustration = () => (
   </svg>
 )
 
-export const Login = () => {
+// Só aceita um destino relativo dentro do próprio site (nunca "//host" ou
+// "/\host", que o navegador trata como um redirecionamento para outro
+// domínio) — o "next" vem da URL, então nunca é confiável por si só.
+function safeNextPath(value?: string): string | null {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) {
+    return null
+  }
+  return value
+}
+
+export const Login = ({ next }: { next?: string }) => {
   const [showPassword, setShowPassword] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError(null)
+    setPending(true)
+
+    const formData = new FormData(event.currentTarget)
+    const email = String(formData.get('email') ?? '')
+    const password = String(formData.get('password') ?? '')
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setError(data?.message ?? 'Não foi possível entrar. Tente novamente.')
+        setPending(false)
+        return
+      }
+
+      router.push(safeNextPath(next) ?? data?.home ?? '/')
+    } catch {
+      setError('Não foi possível conectar ao servidor. Verifique sua conexão.')
+      setPending(false)
+    }
+  }
 
   return (
     <div className='auth-page'>
@@ -64,17 +108,18 @@ export const Login = () => {
 
           <h1>Faça login na nossa plataforma</h1>
 
-          <form className='auth-form'>
+          <form className='auth-form' onSubmit={handleSubmit}>
             <div className='auth-field'>
-              <label htmlFor='username'>Usuário</label>
+              <label htmlFor='email'>E-mail</label>
               <div className='auth-input-wrap'>
                 <input
-                  id='username'
-                  type='text'
-                  autoComplete='username'
+                  id='email'
+                  name='email'
+                  type='email'
+                  autoComplete='email'
                   required
                 />
-                <User size={18} />
+                <Mail size={18} />
               </div>
             </div>
 
@@ -83,6 +128,7 @@ export const Login = () => {
               <div className='auth-input-wrap'>
                 <input
                   id='password'
+                  name='password'
                   type={showPassword ? 'text' : 'password'}
                   autoComplete='current-password'
                   required
@@ -96,6 +142,12 @@ export const Login = () => {
               </div>
             </div>
 
+            {error && (
+              <p className='auth-error' role='alert'>
+                {error}
+              </p>
+            )}
+
             <div className='auth-row'>
               <label className='auth-remember'>
                 <input type='checkbox' />
@@ -106,9 +158,13 @@ export const Login = () => {
               </Link>
             </div>
 
-            <Link href='/' className='button button-primary auth-submit'>
-              Entrar
-            </Link>
+            <button
+              type='submit'
+              className='button button-primary auth-submit'
+              disabled={pending}>
+              {pending && <Loader2 className='auth-submit-spinner' size={18} />}
+              {pending ? 'Entrando…' : 'Entrar'}
+            </button>
           </form>
         </div>
       </div>

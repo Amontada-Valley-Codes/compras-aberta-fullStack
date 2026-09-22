@@ -175,4 +175,27 @@
   width: 100%;
   margin-top: 4px;
   border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.auth-submit:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+.auth-submit-spinner {
+  animation: auth-spin 0.8s linear infinite;
+}
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.auth-error {
+  margin: -4px 0 0;
+  color: #b3261e;
+  font-size: 13px;
+  font-weight: 600;
 }

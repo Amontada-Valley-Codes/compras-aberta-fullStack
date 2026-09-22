@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
 import { brandTokens } from "@/design-system/tokens";
 import type { ExpensesByNatureResponse, ParticipationByNatureResponse } from "@/services/analytics/analytics.types";
+import { selectMicroenterpriseValueRows, selectParticipationRows, selectPositiveExpenses } from "./chart-selectors";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 const colors = brandTokens.colors;
@@ -27,12 +28,12 @@ const base: ApexOptions = {
 };
 
 export function ExpensesChart({ data, compactView = false }: { data: ExpensesByNatureResponse["data"]; compactView?: boolean }) {
-  const positiveRows = data.filter((item) => Number(item.valor_total_dotacao) > 0);
+  const positiveRows = selectPositiveExpenses(data);
   const rows = compactView ? [...positiveRows].sort((a, b) => Number(b.valor_total_dotacao) - Number(a.valor_total_dotacao)).slice(0, 4) : positiveRows;
   if (!rows.length) return <p className="analysis-data-state">Nenhuma dotação com valor positivo para estes filtros.</p>;
   const options: ApexOptions = {
     ...base,
-    chart: { ...base.chart, type: "bar" },
+    chart: { ...base.chart, id: "export-expenses-chart", type: "bar" },
     colors: [chartColors.expenses],
     plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: "50%" } },
     xaxis: {
@@ -47,15 +48,12 @@ export function ExpensesChart({ data, compactView = false }: { data: ExpensesByN
 }
 
 export function ParticipationChart({ data, compactView = false }: { data: ParticipationByNatureResponse["data"]; compactView?: boolean }) {
-  const rows = [...data]
-    .filter((item) => (item.percentual_participacoes_me ?? 0) > 0)
-    .sort((a, b) => (b.percentual_participacoes_me ?? 0) - (a.percentual_participacoes_me ?? 0))
-    .slice(0, compactView ? 4 : 8);
+  const rows = selectParticipationRows(data, compactView);
   if (!rows.length) return <p className="analysis-data-state">Nenhuma participação de ME acima de 0% para estes filtros.</p>;
   const names = new Map(rows.map((item) => [item.codigo_natureza, item.nome_natureza]));
   const options: ApexOptions = {
     ...base,
-    chart: { ...base.chart, type: "bar" },
+    chart: { ...base.chart, id: "export-participation-chart", type: "bar" },
     colors: [chartColors.participation],
     plotOptions: { bar: { horizontal: false, borderRadius: 7, columnWidth: "54%" } },
     xaxis: { categories: rows.map((item) => item.codigo_natureza), labels: { style: { colors: colors.graphite, fontSize: "12px", fontWeight: 700 } }, axisBorder: { show: false }, axisTicks: { show: false } },
@@ -66,12 +64,12 @@ export function ParticipationChart({ data, compactView = false }: { data: Partic
 }
 
 export function MicroenterpriseValueChart({ data }: { data: ParticipationByNatureResponse["data"] }) {
-  const rows = [...data].filter((item) => Number(item.valor_vencido_me) > 0).sort((a, b) => Number(b.valor_vencido_me) - Number(a.valor_vencido_me)).slice(0, 8);
+  const rows = selectMicroenterpriseValueRows(data);
   if (!rows.length) return <p className="analysis-data-state">Nenhum valor vencido por ME para estes filtros.</p>;
   const names = new Map(rows.map((item) => [item.codigo_natureza, item.nome_natureza]));
   const options: ApexOptions = {
     ...base,
-    chart: { ...base.chart, type: "bar" },
+    chart: { ...base.chart, id: "export-microenterprise-chart", type: "bar" },
     colors: [chartColors.microenterprise],
     plotOptions: { bar: { horizontal: false, borderRadius: 7, columnWidth: "54%" } },
     xaxis: { categories: rows.map((item) => item.codigo_natureza), labels: { style: { colors: colors.graphite, fontSize: "12px", fontWeight: 700 } }, axisBorder: { show: false }, axisTicks: { show: false } },
@@ -92,7 +90,7 @@ export function LocalShareChart({ percentage, size = 210 }: { percentage: number
   const label = `${safe.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
   const options: ApexOptions = {
     ...base,
-    chart: { ...base.chart, type: "donut" },
+    chart: { ...base.chart, id: "export-local-share-chart", type: "donut" },
     labels: ["ME locais", "Demais fornecedores"],
     colors: [chartColors.local, chartColors.remaining],
     stroke: { colors: [colors.white], width: 2 },

@@ -17,3 +17,12 @@ export const catalogApi = attachInterceptors(
     baseURL: process.env.ANALYTICS_API_BASE_URL ?? "https://compra-aberta-api.onrender.com",
   }),
 );
+
+// Sem attachInterceptors: as rotas de sessão (/sessions, /sessions/refresh,
+// /sessions/logout) já devolvem mensagens em pt-BR prontas para o usuário
+// (ex.: "E-mail ou senha inválidos"), e o normalizeApiError as substituiria
+// por textos genéricos pensados para as rotas de analytics.
+export const authApi = axios.create({
+  ...common,
+  baseURL: process.env.API_BASE_URL ?? process.env.BACKEND_URL ?? "http://localhost:3333",
+});

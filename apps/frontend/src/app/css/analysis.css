@@ -109,17 +109,46 @@
   background: #fff;
   box-shadow: var(--shadow-md);
 }
-.analysis-export-options a {
-  display: block;
+.analysis-export-options a,
+.analysis-export-options button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
   padding: 11px 12px;
   border-radius: 8px;
   color: var(--brand-navy);
   font-size: 13px;
   font-weight: 650;
+  text-align: left;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
 }
 .analysis-export-options a:hover,
-.analysis-export-options a:focus-visible {
+.analysis-export-options a:focus-visible,
+.analysis-export-options button:hover:not(:disabled),
+.analysis-export-options button:focus-visible {
   background: var(--brand-sky);
+}
+.analysis-export-options button:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+.analysis-export-spinner {
+  width: 16px;
+  animation: analysis-export-spin 0.8s linear infinite;
+}
+@keyframes analysis-export-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.analysis-export-error {
+  padding: 6px 12px 2px;
+  color: var(--brand-danger, #b3261e);
+  font-size: 12px;
 }
 .analysis-filters {
   margin-bottom: 20px;

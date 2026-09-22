@@ -234,6 +234,10 @@
   background: var(--brand-sky);
   color: var(--brand-blue);
 }
+.icon-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
 .notification-wrap {
   position: relative;
 }
