@@ -17,6 +17,14 @@ const userRepository = {
     });
   },
 
+  async findById(id: string) {
+    return prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+  },
+
   async create(data: CreateUserData) {
     return prisma.user.create({
       data,

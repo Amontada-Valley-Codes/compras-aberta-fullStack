@@ -8,4 +8,11 @@ const createSessionSchema = z.object({
     .describe("Senha do usuário."),
 });
 
-export { createSessionSchema };
+const refreshSessionSchema = z.object({
+  refreshToken: z
+    .string()
+    .min(1, "Refresh token é obrigatório")
+    .describe("Refresh token recebido no login ou no último refresh."),
+});
+
+export { createSessionSchema, refreshSessionSchema };
