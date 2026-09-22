@@ -14,7 +14,9 @@ export const count = (value: number | null | undefined) =>
 export const percent = (value: number | null | undefined) =>
   value == null ? "Sem dados" : `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 
-export function maskCnpj(value: string | null): string {
+export function formatCnpj(value: string | null): string {
   const digits = value?.replace(/\D/g, "") ?? "";
-  return digits.length === 14 ? `${digits.slice(0, 2)}.${digits.slice(2, 5)}.***/****-${digits.slice(-2)}` : "Não informado";
+  return digits.length === 14
+    ? `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`
+    : value || "Não informado";
 }

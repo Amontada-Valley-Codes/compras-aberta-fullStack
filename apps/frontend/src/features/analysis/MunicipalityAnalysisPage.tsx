@@ -2,14 +2,15 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   ArrowLeft, Building2, CircleDollarSign,
-  Database, Info, Search, Store, Users,
+  Info, Search, Store, Users,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { ExpensesChart, LocalShareChart, MicroenterpriseValueChart, ParticipationChart } from "@/features/public-data/PublicCharts";
-import { count, maskCnpj, money, percent } from "@/features/public-data/format";
+import { count, formatCnpj, money, percent } from "@/features/public-data/format";
 import type { AnalysisData } from "@/features/public-data/public-data";
-import { ExportBidsButton } from "./ExportBidsButton";
+import { AnalysisExportLinks } from "./AnalysisExportLinks";
+import { AnalysisPagination } from "./AnalysisPagination";
 
 export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
   const { filters, selectedMunicipality, municipalities, micro, expenses, participation, local, bids } = data;
@@ -20,19 +21,12 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
     (best, item) => !best || Number(item.valor_total_dotacao) > Number(best.valor_total_dotacao) ? item : best,
     null,
   );
-  const pageLink = (page: number) => {
-    const params = new URLSearchParams({ ano: String(filters.year), pagina: String(page), limite: String(filters.pageSize) });
-    if (filters.municipalityIbge) params.set("municipio", filters.municipalityIbge);
-    if (filters.natureCode) params.set("natureza", filters.natureCode);
-    return `/analise?${params.toString()}`;
-  };
-
   return (
     <div className="analysis-page">
       <header className="analysis-header">
         <div className="analysis-container">
           <BrandLogo />
-          <nav><Link href="/">Portal público</Link><Link href="/me">Área da microempresa</Link></nav>
+          <nav><Link href="/me">Área da microempresa</Link></nav>
         </div>
       </header>
 
@@ -40,27 +34,13 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a busca</Link>
         <section className="analysis-title-row">
           <div>
-            <span>PAINEL DE COMPRAS PÚBLICAS</span>
             <h1>Licitações e participação de ME em {municipalityName}</h1>
             <p>Indicadores e registros de <b>{natureName.toLowerCase()}</b> em {filters.year}. Os gráficos por natureza comparam todas as naturezas.</p>
           </div>
-          <ExportBidsButton bids={rows.map((bid) => ({
-            numero_licitacao: bid.numero_licitacao,
-            empresa: bid.empresa,
-            cnpjMascarado: maskCnpj(bid.cnpj),
-            municipio: bid.municipio,
-            nome_natureza: bid.nome_natureza,
-            ano_licitacao: bid.ano_licitacao,
-            valor_total_vencido: bid.valor_total_vencido,
-          }))} />
+          <AnalysisExportLinks filters={filters} />
         </section>
 
         <form className="analysis-filters" action="/analise" method="get">
-          <div className="analysis-filter-heading">
-            <span>CONSULTA PERSONALIZADA</span>
-            <h2>Pesquisa de compras públicas</h2>
-            <p>Combine os filtros para analisar licitações e a participação de microempresas.</p>
-          </div>
           <div className="analysis-filter-fields">
             <input type="hidden" name="limite" value={filters.pageSize} />
             <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
@@ -72,18 +52,13 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
               ...(filters.natureCode && !expenses.data?.data.some((item) => item.codigo_natureza === filters.natureCode) ? [{ value: filters.natureCode, label: `Natureza ${filters.natureCode}` }] : []),
             ]} />
             <PublicFilterSelect key={`ano-${filters.year}`} name="ano" label="Exercício" icon="year" variant="analysis" defaultValue={String(filters.year)} options={[
-              ...Array.from({ length: 7 }, (_, index) => new Date().getUTCFullYear() - index).map((year) => ({ value: String(year), label: String(year) })),
-              ...(filters.year < new Date().getUTCFullYear() - 6 ? [{ value: String(filters.year), label: String(filters.year) }] : []),
+              { value: "2026", label: "2026" },
+              { value: "2025", label: "2025" },
             ]} />
             <button className="analysis-search-button" type="submit" aria-label="Atualizar análise"><Search size={23} /><span>Atualizar análise</span></button>
           </div>
         </form>
 
-        <section className="analysis-source-note">
-          <Database />
-          <p><b>Fonte: API pública Compra Aberta</b><span>Consultas feitas ao abrir esta página; os dados não informam a data de atualização da base.</span></p>
-          <em><i /> Consulta pública</em>
-        </section>
         {municipalities.error && <p className="analysis-data-state" role="status">Lista de municípios: {municipalities.error}</p>}
         {filters.municipalityIbge && !selectedMunicipality && <p className="analysis-data-state" role="alert">Não foi possível identificar o município selecionado. Selecione outro município para refazer a consulta.</p>}
 
@@ -97,8 +72,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
           </div>
 
           {highestNature && <section className="analysis-insight">
-            <span><Info /></span>
-            <div><small>LEITURA RÁPIDA</small><p>Entre todas as naturezas, a maior dotação registrada em {municipalityName} está em <b>{highestNature.nome_natureza.toLowerCase()}</b>, com <b>{money(highestNature.valor_total_dotacao)}</b>. Dotação não representa pagamento efetivo.</p></div>
+            <p>Em {municipalityName}, a maior dotação é para <strong>{highestNature.nome_natureza.toLowerCase()}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>. <span>Esse valor não indica quanto foi pago.</span></p>
           </section>}
 
           <div className="analysis-chart-grid">
@@ -112,37 +86,29 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
               {participation.data?.data.length ? <MicroenterpriseValueChart data={participation.data.data} /> : <DataState error={participation.error} />}
             </AnalysisChartCard>
             <AnalysisChartCard title={selectedMunicipality ? `Valor vencido por ME locais em ${selectedMunicipality.name}` : "Valor vencido por ME locais"} description={`Percentual do valor total vencido que ficou com ME do próprio município em ${filters.year}, considerando todas as naturezas.`} tone="teal">
-              {local.data?.resumo.percentual_valor_vencido_me_local != null ? <div className="analysis-local-chart"><LocalShareChart percentage={local.data.resumo.percentual_valor_vencido_me_local} size={260} />
-                <p>{money(local.data.resumo.valor_vencido_me_local)} para ME locais de {money(local.data.resumo.valor_total_vencido)} no total · {percent(local.data.resumo.percentual_valor_vencido_me_local)}</p></div>
+              {local.data?.resumo.percentual_valor_vencido_me_local != null ? <div className="analysis-local-chart">
+                <LocalShareChart percentage={local.data.resumo.percentual_valor_vencido_me_local} size={230} />
+                <div className="analysis-local-metrics">
+                  <div><span><i className="analysis-local-dot analysis-local-dot--me" />ME locais</span><strong>{money(local.data.resumo.valor_vencido_me_local)}</strong></div>
+                  <div><span><i className="analysis-local-dot analysis-local-dot--total" />Demais fornecedores</span><strong>{money(Math.max(0, Number(local.data.resumo.valor_total_vencido) - Number(local.data.resumo.valor_vencido_me_local)))}</strong></div>
+                </div>
+                <p>De {money(local.data.resumo.valor_total_vencido)} no total, ME locais receberam {percent(local.data.resumo.percentual_valor_vencido_me_local)}.</p>
+              </div>
                 : <DataState error={local.error} fallback="Selecione um município para consultar a participação local." />}
             </AnalysisChartCard>
           </div>
 
-          <section className="analysis-table-card">
-            <header><div><h2>Licitações detalhadas</h2><p>Registros retornados para os filtros aplicados; a API não informa se ainda estão abertos.</p></div><span>CNPJs mascarados</span></header>
+          <section className="analysis-table-card" id="licitacoes">
+            <header><div><h2>Licitações detalhadas</h2><p>Registros retornados para os filtros aplicados; a API não informa se ainda estão abertos.</p></div></header>
             {rows.length ? <div className="analysis-table-scroll"><table>
               <thead><tr><th>Licitação</th><th>Empresa</th><th>CNPJ</th><th>Município</th><th>Natureza</th><th>Ano</th><th>Valor vencido</th></tr></thead>
               <tbody>{rows.map((bid, index) => <tr key={`${bid.codigo_municipio}-${bid.numero_licitacao}-${bid.cnpj}-${index}`}>
-                <td><b>{bid.numero_licitacao}</b></td><td>{bid.empresa ?? "Não informada"}</td><td>{maskCnpj(bid.cnpj)}</td><td>{bid.municipio}</td><td>{bid.nome_natureza}</td><td>{bid.ano_licitacao}</td><td><strong>{money(bid.valor_total_vencido)}</strong></td>
+                <td><b>{bid.numero_licitacao}</b></td><td><span className="analysis-table-ellipsis" title={bid.empresa ?? "Não informada"}>{bid.empresa ?? "Não informada"}</span></td><td>{formatCnpj(bid.cnpj)}</td><td>{bid.municipio}</td><td><span className="analysis-table-ellipsis" title={bid.nome_natureza}>{bid.nome_natureza}</span></td><td>{bid.ano_licitacao}</td><td><strong>{money(bid.valor_total_vencido)}</strong></td>
               </tr>)}</tbody>
             </table></div> : <DataState error={bids.error} fallback="Nenhuma licitação encontrada para estes filtros." />}
-            <div className="analysis-pagination">
-              <span>Página {filters.page} · {rows.length} {rows.length === 1 ? "registro" : "registros"} exibidos</span>
-              <form className="analysis-page-size" action="/analise" method="get">
-                {filters.municipalityIbge && <input type="hidden" name="municipio" value={filters.municipalityIbge} />}
-                {filters.natureCode && <input type="hidden" name="natureza" value={filters.natureCode} />}
-                <input type="hidden" name="ano" value={filters.year} />
-                <label htmlFor="analysis-page-size">Por página</label>
-                <select id="analysis-page-size" name="limite" defaultValue={filters.pageSize}>
-                  {[10, 20, 30].map((size) => <option key={size} value={size}>{size}</option>)}
-                </select>
-                <button className="ds-button secondary" type="submit">Aplicar</button>
-              </form>
-              {filters.page > 1 && <Link className="ds-button secondary" href={pageLink(filters.page - 1)}>Anterior</Link>}
-              {(bids.data?.data.length ?? 0) > filters.pageSize && <Link className="ds-button secondary" href={pageLink(filters.page + 1)}>Próxima</Link>}
-            </div>
+            <AnalysisPagination filters={filters} rowCount={rows.length} hasNext={(bids.data?.data.length ?? 0) > filters.pageSize} />
           </section>
-          <p className="analysis-footnote"><Info /> O CSV exporta apenas os registros visíveis nesta página, com CNPJs mascarados.</p>
+          <p className="analysis-footnote"><Info /> Os arquivos CSV incluem todos os registros dos filtros e os dados usados nos gráficos.</p>
         </section>
       </main>
     </div>
