@@ -55,7 +55,7 @@ export function DataExplorerSection() {
         </div>
         <div className="opportunity-person" aria-hidden="true">
           <Image
-            src="/sections/imagem-sara.png"
+            src="/sections/imagem-sara.png?v=6"
             alt=""
             fill
             sizes="(max-width: 900px) 100vw, 48vw"

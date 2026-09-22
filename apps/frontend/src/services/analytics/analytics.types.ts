@@ -23,6 +23,7 @@ export interface DetailedBid {
   cnpj: string | null;
   empresa: string | null;
   porte_empresa: string | null;
+  endereco: string | null;
   valor_total_vencido: string;
   quantidade_itens_vencidos: number;
 }

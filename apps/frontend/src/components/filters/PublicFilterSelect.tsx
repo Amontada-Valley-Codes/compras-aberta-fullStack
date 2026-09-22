@@ -42,6 +42,7 @@ export function PublicFilterSelect({
 }: PublicFilterSelectProps) {
   const [value, setValue] = useState(defaultValue || allValue);
   const [search, setSearch] = useState("");
+  const showSearch = options.length > 5;
   const Icon =
     icon === "municipality"
       ? MapPinned
@@ -96,7 +97,7 @@ export function PublicFilterSelect({
             sideOffset={6}
             collisionPadding={12}
           >
-            <div className="public-filter-search-wrap">
+            {showSearch && <div className="public-filter-search-wrap">
               <input
                 className="public-filter-search"
                 value={search}
@@ -109,10 +110,10 @@ export function PublicFilterSelect({
                 placeholder="Buscar"
                 aria-label={`Buscar em ${label.toLowerCase()}`}
               />
-            </div>
-            <Select.ScrollUpButton className="public-filter-scroll">
+            </div>}
+            {showSearch && <Select.ScrollUpButton className="public-filter-scroll">
               <ChevronUp size={16} />
-            </Select.ScrollUpButton>
+            </Select.ScrollUpButton>}
             <Select.Viewport className="public-filter-viewport">
               {allLabel && <FilterItem value={allValue} label={allLabel} />}
               {visibleOptions.map((item) => (
@@ -128,9 +129,9 @@ export function PublicFilterSelect({
                 </p>
               )}
             </Select.Viewport>
-            <Select.ScrollDownButton className="public-filter-scroll">
+            {showSearch && <Select.ScrollDownButton className="public-filter-scroll">
               <ChevronDown size={16} />
-            </Select.ScrollDownButton>
+            </Select.ScrollDownButton>}
           </Select.Content>
         </Select.Portal>
       </Select.Root>

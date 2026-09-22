@@ -67,7 +67,7 @@ export function HeroSection() {
               aria-label="Dashboard com radar de oportunidades e notificações"
             >
               <Image
-                src="/images/hero/dashboard-oportunidades.png"
+                src="/images/hero/dashboard-oportunidades.png?v=2"
                 alt="Dashboard da plataforma com radar de oportunidades, notificações e licitações recomendadas"
                 fill
                 priority
@@ -101,10 +101,10 @@ export function HeroSection() {
                 </Link>
               </div>
             </div>
-            <div className="hero-people" aria-label="Jovens empreendedores">
+            <div className="hero-people" aria-label="Profissionais empreendedores">
               <Image
                 src="/images/hero/foto-hero.png"
-                alt="Dois jovens empreendedores"
+                alt="Três profissionais empreendedores de diferentes perfis"
                 fill
                 priority
                 sizes="(max-width: 900px) 100vw, 58vw"
