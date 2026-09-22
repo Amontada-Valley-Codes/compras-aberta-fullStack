@@ -18,7 +18,9 @@ const envSchema = z.object({
     )
     .pipe(
       z
-        .array(z.url("CORS_ORIGIN deve conter URLs válidas separadas por vírgula"))
+        .array(
+          z.url("CORS_ORIGIN deve conter URLs válidas separadas por vírgula"),
+        )
         .min(1, "CORS_ORIGIN não pode ficar vazio"),
     ),
   TRUST_PROXY: z
@@ -29,6 +31,8 @@ const envSchema = z.object({
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
     .default("info"),
+
+  PORT: z.coerce.number()
 });
 
 const env = envSchema.parse(process.env);

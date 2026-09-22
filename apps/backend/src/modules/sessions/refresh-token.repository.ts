@@ -15,8 +15,7 @@ const refreshTokenRepository = {
     return prisma.refreshToken.findUnique({ where: { tokenHash } });
   },
 
-  // Só revoga se ainda estiver ativo; o retorno indica se esta chamada venceu
-  // a corrida (dois refresh simultâneos com o mesmo token).
+  
   async revoke(id: string) {
     const { count } = await prisma.refreshToken.updateMany({
       where: { id, revokedAt: null },

@@ -73,8 +73,6 @@ const sessionService = {
       throw new AppError("Refresh token inválido", 401);
     }
 
-    // Token já usado ou revogado sendo reapresentado: pode ter vazado, então
-    // derruba todas as sessões do usuário.
     if (stored.revokedAt) {
       await refreshTokenRepository.revokeAllByUser(stored.userId);
       throw new AppError("Refresh token inválido", 401);
