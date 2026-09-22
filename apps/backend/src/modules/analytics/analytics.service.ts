@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { env } from "../../env";
+import { createMemoryCache } from "../../lib/cache/memory-cache";
 import { analyticsApi } from "../../lib/axios/analytics-api";
 import { AppError } from "../../utils/AppError";
 
@@ -47,7 +49,25 @@ interface AnalyticsQuery {
   offset?: number;
 }
 
-async function getAnalyticsData(
+const analyticsCache = createMemoryCache<unknown>({
+  ttlMs: env.ANALYTICS_CACHE_TTL_SECONDS * 1000,
+});
+
+function buildCacheKey(pathname: string, query: AnalyticsQuery) {
+  const sortedQuery = Object.entries(query)
+    .filter(([, value]) => value !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  return `${pathname}?${JSON.stringify(sortedQuery)}`;
+}
+
+function getAnalyticsData(pathname: string, query: AnalyticsQuery) {
+  return analyticsCache.getOrLoad(buildCacheKey(pathname, query), () =>
+    fetchAnalyticsData(pathname, query),
+  );
+}
+
+async function fetchAnalyticsData(
   pathname: string,
   query: AnalyticsQuery,
 ) {
@@ -62,12 +82,24 @@ async function getAnalyticsData(
       throw new AppError(
         "A API de análise de dados não conseguiu atender a consulta.",
         502,
+        {
+          upstreamUrl: error.config?.url,
+          upstreamStatus: error.response.status,
+          upstreamBody: error.response.data,
+          params: query,
+        },
       );
     }
 
     throw new AppError(
       "Não foi possível conectar à API de análise de dados.",
       502,
+      {
+        upstreamUrl: pathname,
+        code: axios.isAxiosError(error) ? error.code : undefined,
+        cause: error instanceof Error ? error.message : String(error),
+        params: query,
+      },
     );
   }
 }

@@ -24,6 +24,10 @@ const sessionService = {
       throw new AppError("E-mail ou senha inválidos", 401);
     }
 
+    if (!user.isActive) {
+      throw new AppError("Usuário desativado", 403);
+    }
+
     const token = sign({ role: user.role }, authConfig.jwt.secret, {
       subject: user.id,
       expiresIn: authConfig.jwt.expiresIn,
