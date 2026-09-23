@@ -1,5 +1,5 @@
 import type {
-  DetailedBidsResponse, ExpensesByNatureResponse, LocalParticipationsResponse,
+  DetailedBidsResponse, ExpensesByNatureResponse, GeneralParticipationsResponse, LocalParticipationsResponse,
   MicroenterpriseResponse, ParticipationByNatureResponse,
 } from "@/services/analytics/analytics.types";
 import type { MunicipalityOption } from "@/services/municipalities/municipalities.types";
@@ -7,6 +7,7 @@ import { listMunicipalitiesService } from "@/services/municipalities/list-munici
 import { listMunicipalityCodesService } from "@/services/municipalities/list-municipality-codes.service";
 import { listDetailedBidsService } from "@/services/analytics/list-detailed-bids.service";
 import { listLocalParticipationsService } from "@/services/analytics/list-local-participations.service";
+import { listGeneralParticipationsService } from "@/services/analytics/list-general-participations.service";
 import { listExpensesByNatureService } from "@/services/analytics/list-expenses-by-nature.service";
 import { getMicroenterpriseIndicatorService } from "@/services/analytics/get-microenterprise-indicator.service";
 import { listParticipationByNatureService } from "@/services/analytics/list-participation-by-nature.service";
@@ -47,6 +48,7 @@ export interface PublicData {
   municipalities: DataResult<MunicipalityOption[]>;
   bids: DataResult<DetailedBidsResponse>;
   local: DataResult<LocalParticipationsResponse>;
+  general: DataResult<GeneralParticipationsResponse>;
   expenses: DataResult<ExpensesByNatureResponse>;
   micro: DataResult<MicroenterpriseResponse>;
   participation: DataResult<ParticipationByNatureResponse>;
@@ -76,14 +78,17 @@ export async function loadAnalysisData(filters: AnalysisFilters): Promise<Analys
     data_fim: `${filters.year}-12-31`,
   };
   const unavailable = { data: null, error: "Não foi possível aplicar o filtro de município." };
-  const [bids, expenses, micro, participation, local] = await Promise.all([
+  const [bids, expenses, micro, participation, local, general] = await Promise.all([
     unresolvedMunicipality ? Promise.resolve(unavailable) : result(listDetailedBidsService({ codigo_municipio, codigo_natureza: filters.natureCode, ano: filters.year, limit: filters.pageSize + 1, offset: (filters.page - 1) * filters.pageSize })),
     unresolvedMunicipality ? Promise.resolve(unavailable) : result(listExpensesByNatureService(period)),
     unresolvedMunicipality ? Promise.resolve(unavailable) : result(getMicroenterpriseIndicatorService({ ...period, codigo_natureza: filters.natureCode })),
     unresolvedMunicipality ? Promise.resolve(unavailable) : result(listParticipationByNatureService(period)),
     selectedMunicipality
-      ? result(listLocalParticipationsService({ codigo_municipio: selectedMunicipality.tceCode, ano: filters.year, limit: 1 }))
+      ? result(listLocalParticipationsService({ codigo_municipio: selectedMunicipality.tceCode, codigo_natureza: filters.natureCode, ano: filters.year, limit: 1 }))
+      : Promise.resolve({ data: null, error: null }),
+    selectedMunicipality
+      ? result(listGeneralParticipationsService({ codigo_municipio: selectedMunicipality.tceCode, codigo_natureza: filters.natureCode, ano: filters.year, limit: 1 }))
       : Promise.resolve({ data: null, error: null }),
   ]);
-  return { municipalities, selectedMunicipality, filters, bids, expenses, micro, participation, local };
+  return { municipalities, selectedMunicipality, filters, bids, expenses, micro, participation, local, general };
 }

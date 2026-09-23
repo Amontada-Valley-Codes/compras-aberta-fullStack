@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { municipalityCodeSchema, yearSchema } from "./shared.schema";
+import { municipalityCodeSchema, natureCodeSchema, yearSchema } from "./shared.schema";
 
 export const localParticipationsQuerySchema = z.object({
   codigo_municipio: municipalityCodeSchema,
+  codigo_natureza: natureCodeSchema.optional(),
   ano: yearSchema.optional(),
   limit: z.number().int().min(1).max(100).optional(),
   offset: z.number().int().min(0).optional(),

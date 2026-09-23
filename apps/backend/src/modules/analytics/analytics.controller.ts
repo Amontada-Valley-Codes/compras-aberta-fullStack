@@ -4,6 +4,7 @@ import {
   getMicroenterpriseIndicatorQuerySchema,
   listDetailedBidsQuerySchema,
   listExpensesByNatureQuerySchema,
+  listGeneralMicroenterpriseParticipationsQuerySchema,
   listLocalMicroenterpriseParticipationsQuerySchema,
   listMicroenterpriseParticipationByNatureQuerySchema,
 } from "./analytics.schema";
@@ -27,6 +28,19 @@ const analyticsController = {
     const data = await analyticsService.listLocalMicroenterpriseParticipations(
       filters,
     );
+
+    return reply.status(200).send(data);
+  },
+
+  async listGeneralMicroenterpriseParticipations(
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ) {
+    const filters = listGeneralMicroenterpriseParticipationsQuerySchema.parse(
+      request.query,
+    );
+    const data =
+      await analyticsService.listGeneralMicroenterpriseParticipations(filters);
 
     return reply.status(200).send(data);
   },

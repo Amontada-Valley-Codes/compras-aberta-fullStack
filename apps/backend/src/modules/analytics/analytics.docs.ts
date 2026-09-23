@@ -9,6 +9,7 @@ import {
   getMicroenterpriseIndicatorQuerySchema,
   listDetailedBidsQuerySchema,
   listExpensesByNatureQuerySchema,
+  listGeneralMicroenterpriseParticipationsQuerySchema,
   listLocalMicroenterpriseParticipationsQuerySchema,
   listMicroenterpriseParticipationByNatureQuerySchema,
 } from "./analytics.schema";
@@ -76,13 +77,38 @@ const listDetailedBidsDocs = {
   },
 };
 
+const participacaoItemFields = {
+  codigo_municipio: field.string("Código TCE-CE do município.", "1"),
+  municipio_consultado: field.string("Nome do município consultado."),
+  numero_licitacao: field.string("Número da licitação.", "2024.0001"),
+  data_realizacao_licitacao: field.nullableString(
+    "Data de realização da licitação.",
+    "2024-05-10",
+  ),
+  cnpj: field.string("CNPJ da empresa.", "12345678000190"),
+  empresa: field.nullableString("Razão social da empresa."),
+  porte_empresa: field.nullableString(
+    "Porte da empresa (ex.: microempresa), quando informado.",
+  ),
+  municipio_empresa: field.nullableString("Município onde a empresa é sediada."),
+  uf_empresa: field.nullableString("UF onde a empresa é sediada.", "CE"),
+  endereco: field.nullableString("Endereço cadastrado da empresa."),
+  valor_total_vencido: field.money("Valor vencido pela empresa."),
+  quantidade_itens_vencidos: field.integer(
+    "Quantidade de itens vencidos por essa empresa.",
+    3,
+  ),
+};
+
 const listLocalMicroenterpriseParticipationsDocs = {
   tags,
   summary: "Participações de microempresas locais",
   description: [
     "Lista as participações de **microempresas locais** (sediadas no próprio município) nas licitações do município informado, com um **resumo** de percentuais.",
     "",
-    "`codigo_municipio` é **obrigatório**. O objeto `resumo` responde à pergunta: *quanto das compras do município fica com empresas da própria cidade?*",
+    "`codigo_municipio` é **obrigatório**. `codigo_natureza` é opcional. O objeto `resumo` responde à pergunta: *quanto das compras do município fica com empresas da própria cidade?*",
+    "",
+    "Veja também `GET /analytics/participacoes-me-gerais`, que traz todas as ME vencedoras no município (locais ou não).",
     upstreamNote,
   ].join("\n"),
   querystring: toJsonSchema(listLocalMicroenterpriseParticipationsQuerySchema),
@@ -92,18 +118,7 @@ const listLocalMicroenterpriseParticipationsDocs = {
       data: {
         type: "array",
         description: "Participações de ME locais na página atual.",
-        items: object("Participação de uma ME local.", {
-          codigo_municipio: field.string("Código TCE-CE do município.", "1"),
-          municipio_consultado: field.string("Nome do município consultado."),
-          numero_licitacao: field.string("Número da licitação.", "2024.0001"),
-          data_realizacao_licitacao: field.string(
-            "Data de realização da licitação.",
-            "2024-05-10",
-          ),
-          cnpj: field.nullableString("CNPJ da empresa.", "12345678000190"),
-          empresa: field.nullableString("Razão social da empresa."),
-          valor_total_vencido: field.money("Valor vencido pela empresa."),
-        }),
+        items: object("Participação de uma ME local.", participacaoItemFields),
       },
       resumo: object("Totais e percentuais do município no período.", {
         total_licitacoes: field.integer("Total de licitações do município.", 120),
@@ -126,6 +141,60 @@ const listLocalMicroenterpriseParticipationsDocs = {
         valor_vencido_me_local: field.money("Parte do valor vencida por ME locais."),
         percentual_valor_vencido_me_local: percentual(
           "Parcela do valor vencida por ME locais.",
+        ),
+        itens_vencidos: field.integer("Total de itens vencidos no município.", 500),
+        itens_vencidos_me_locais: field.integer(
+          "Itens vencidos por ME locais.",
+          90,
+        ),
+        percentual_itens_vencidos_me_locais: percentual(
+          "Parcela dos itens vencidos por ME locais.",
+        ),
+      }),
+    }),
+    ...errors,
+  },
+};
+
+const listGeneralMicroenterpriseParticipationsDocs = {
+  tags,
+  summary: "Participações de microempresas (geral)",
+  description: [
+    "Lista **todas** as microempresas vencedoras em licitações do município informado, sejam elas locais ou de fora, com um **resumo** de percentuais.",
+    "",
+    "`codigo_municipio` é **obrigatório**. `codigo_natureza` é opcional. Diferente de `GET /analytics/participacoes-me-locais`, aqui não importa onde a empresa está sediada.",
+    upstreamNote,
+  ].join("\n"),
+  querystring: toJsonSchema(listGeneralMicroenterpriseParticipationsQuerySchema),
+  response: {
+    200: object("Participações e resumo do município.", {
+      ...pagination,
+      data: {
+        type: "array",
+        description: "Participações de ME (locais ou não) na página atual.",
+        items: object("Participação de uma ME.", participacaoItemFields),
+      },
+      resumo: object("Totais e percentuais do município no período.", {
+        total_licitacoes: field.integer("Total de licitações do município.", 120),
+        licitacoes_com_me: field.integer(
+          "Licitações com ao menos uma ME participando.",
+          45,
+        ),
+        percentual_licitacoes_com_me: percentual("Parcela das licitações com ME."),
+        total_participacoes: field.integer("Total de participações.", 400),
+        participacoes_me: field.integer("Participações de ME.", 120),
+        percentual_participacoes_me: percentual(
+          "Parcela das participações que são de ME.",
+        ),
+        valor_total_vencido: field.money("Valor total vencido no município."),
+        valor_vencido_me: field.money("Parte do valor vencida por ME."),
+        percentual_valor_vencido_me: percentual(
+          "Parcela do valor vencida por ME.",
+        ),
+        itens_vencidos: field.integer("Total de itens vencidos no município.", 500),
+        itens_vencidos_me: field.integer("Itens vencidos por ME.", 140),
+        percentual_itens_vencidos_me: percentual(
+          "Parcela dos itens vencidos por ME.",
         ),
       }),
     }),
@@ -248,6 +317,7 @@ export {
   getMicroenterpriseIndicatorDocs,
   listDetailedBidsDocs,
   listExpensesByNatureDocs,
+  listGeneralMicroenterpriseParticipationsDocs,
   listLocalMicroenterpriseParticipationsDocs,
   listMicroenterpriseParticipationByNatureDocs,
 };

@@ -32,7 +32,7 @@ const envSchema = z.object({
     .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
     .default("info"),
 
-  PORT: z.coerce.number()
+  PORT: z.coerce.number().int().min(1).default(3333),
 });
 
 const env = envSchema.parse(process.env);

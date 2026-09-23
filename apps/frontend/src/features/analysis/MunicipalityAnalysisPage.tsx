@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
-import { ExpensesChart, LocalShareChart, MicroenterpriseValueChart, ParticipationChart } from "@/features/public-data/PublicCharts";
+import { ExpensesChart, GeneralShareChart, LocalShareChart, MicroenterpriseValueChart, ParticipationChart } from "@/features/public-data/PublicCharts";
 import { selectMicroenterpriseValueRows, selectParticipationRows, selectPositiveExpenses } from "@/features/public-data/chart-selectors";
 import { count, formatCnpj, money, percent } from "@/features/public-data/format";
 import type { AnalysisData } from "@/features/public-data/public-data";
@@ -25,7 +25,7 @@ const MICRO_VALUE_DESCRIPTION = "Compare os valores vencidos por ME entre as nat
 const MICRO_VALUE_EMPTY = "Nenhum valor vencido por ME para estes filtros.";
 
 export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
-  const { filters, selectedMunicipality, municipalities, micro, expenses, participation, local, bids } = data;
+  const { filters, selectedMunicipality, municipalities, micro, expenses, participation, local, general, bids } = data;
   const municipalityName = selectedMunicipality?.name ?? "Ceará";
   const natureName = expenses.data?.data.find((item) => item.codigo_natureza === filters.natureCode)?.nome_natureza ?? "todas as naturezas";
   const rows = bids.data?.data.slice(0, filters.pageSize) ?? [];
@@ -34,7 +34,9 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
     null,
   );
   const localShareTitle = selectedMunicipality ? `Valor vencido por ME locais em ${selectedMunicipality.name}` : "Valor vencido por ME locais";
-  const localShareDescription = `Percentual do valor total vencido que ficou com ME do próprio município em ${filters.year}, considerando todas as naturezas.`;
+  const localShareDescription = `Percentual do valor total vencido que ficou com ME do próprio município em ${filters.year}, em ${natureName.toLowerCase()}.`;
+  const generalShareTitle = selectedMunicipality ? `Valor vencido por microempresas em ${selectedMunicipality.name}` : "Valor vencido por microempresas";
+  const generalShareDescription = `Percentual do valor total vencido que ficou com microempresas de qualquer origem (locais ou não) em ${filters.year}, em ${natureName.toLowerCase()}. Compare com o card de ME locais ao lado.`;
 
   // Os mesmos filtros/ordenações usados para desenhar os gráficos na tela
   // decidem o que entra no PDF (se o gráfico existe e a legenda de naturezas).
@@ -64,17 +66,38 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
       { id: "export-participation-chart", title: PARTICIPATION_TITLE, description: PARTICIPATION_DESCRIPTION, hasChart: participationRows.length > 0, emptyText: PARTICIPATION_EMPTY, natureLegend: natureLegend(participationRows) },
       { id: "export-microenterprise-chart", title: MICRO_VALUE_TITLE, description: MICRO_VALUE_DESCRIPTION, hasChart: microValueRows.length > 0, emptyText: MICRO_VALUE_EMPTY, natureLegend: natureLegend(microValueRows) },
     ],
-    localShareTitle,
-    localShareDescription,
-    localShare: local.data?.resumo.percentual_valor_vencido_me_local != null
-      ? {
-        meLabel: "ME locais",
-        meValue: money(local.data.resumo.valor_vencido_me_local),
-        othersLabel: "Demais fornecedores",
-        othersValue: money(Math.max(0, Number(local.data.resumo.valor_total_vencido) - Number(local.data.resumo.valor_vencido_me_local))),
-        note: `De ${money(local.data.resumo.valor_total_vencido)} no total, ME locais receberam ${percent(local.data.resumo.percentual_valor_vencido_me_local)}.`,
-      }
-      : null,
+    shareCharts: [
+      {
+        id: "export-local-share-chart",
+        title: localShareTitle,
+        description: localShareDescription,
+        emptyText: "Selecione um município para consultar a participação local.",
+        data: local.data?.resumo.percentual_valor_vencido_me_local != null
+          ? {
+            meLabel: "ME locais",
+            meValue: money(local.data.resumo.valor_vencido_me_local),
+            othersLabel: "Demais fornecedores",
+            othersValue: money(Math.max(0, Number(local.data.resumo.valor_total_vencido) - Number(local.data.resumo.valor_vencido_me_local))),
+            note: `De ${money(local.data.resumo.valor_total_vencido)} no total, ME locais receberam ${percent(local.data.resumo.percentual_valor_vencido_me_local)}.`,
+          }
+          : null,
+      },
+      {
+        id: "export-general-share-chart",
+        title: generalShareTitle,
+        description: generalShareDescription,
+        emptyText: "Selecione um município para consultar a participação de microempresas.",
+        data: general.data?.resumo.percentual_valor_vencido_me != null
+          ? {
+            meLabel: "Microempresas",
+            meValue: money(general.data.resumo.valor_vencido_me),
+            othersLabel: "Demais fornecedores",
+            othersValue: money(Math.max(0, Number(general.data.resumo.valor_total_vencido) - Number(general.data.resumo.valor_vencido_me))),
+            note: `De ${money(general.data.resumo.valor_total_vencido)} no total, microempresas (locais ou não) receberam ${percent(general.data.resumo.percentual_valor_vencido_me)}.`,
+          }
+          : null,
+      },
+    ],
   };
   return (
     <div className="analysis-page">
@@ -150,6 +173,17 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
                 <p>De {money(local.data.resumo.valor_total_vencido)} no total, ME locais receberam {percent(local.data.resumo.percentual_valor_vencido_me_local)}.</p>
               </div>
                 : <DataState error={local.error} fallback="Selecione um município para consultar a participação local." />}
+            </AnalysisChartCard>
+            <AnalysisChartCard title={generalShareTitle} description={generalShareDescription} tone="slate">
+              {general.data?.resumo.percentual_valor_vencido_me != null ? <div className="analysis-local-chart">
+                <GeneralShareChart percentage={general.data.resumo.percentual_valor_vencido_me} size={230} />
+                <div className="analysis-local-metrics">
+                  <div><span><i className="analysis-local-dot analysis-local-dot--general-me" />Microempresas</span><strong>{money(general.data.resumo.valor_vencido_me)}</strong></div>
+                  <div><span><i className="analysis-local-dot analysis-local-dot--general-total" />Demais fornecedores</span><strong>{money(Math.max(0, Number(general.data.resumo.valor_total_vencido) - Number(general.data.resumo.valor_vencido_me)))}</strong></div>
+                </div>
+                <p>De {money(general.data.resumo.valor_total_vencido)} no total, microempresas (locais ou não) receberam {percent(general.data.resumo.percentual_valor_vencido_me)}.</p>
+              </div>
+                : <DataState error={general.error} fallback="Selecione um município para consultar a participação de microempresas." />}
             </AnalysisChartCard>
           </div>
 

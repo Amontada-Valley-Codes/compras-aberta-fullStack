@@ -305,6 +305,10 @@
   --chart-accent: #3c969d;
   --chart-tint: #e8f6f5;
 }
+.analysis-chart-card--slate {
+  --chart-accent: #185a98;
+  --chart-tint: #e3ecf3;
+}
 .analysis-chart-card > header {
   display: flex;
   justify-content: space-between;
@@ -552,6 +556,12 @@
 }
 .analysis-local-dot--total {
   background: #7fb5d7;
+}
+.analysis-local-dot--general-me {
+  background: #185a98;
+}
+.analysis-local-dot--general-total {
+  background: #b9cedd;
 }
 .analysis-local-chart p {
   color: #53697a;
@@ -813,6 +823,12 @@
 }
 .local-share-tooltip-marker--others {
   background: #7fb5d7;
+}
+.local-share-tooltip-marker--general-me {
+  background: #185a98;
+}
+.local-share-tooltip-marker--general-others {
+  background: #b9cedd;
 }
 .local-share-center {
   position: absolute;

@@ -14,6 +14,8 @@ const chartColors = {
   microenterprise: "#185A98",
   local: "#E5A629",
   remaining: "#7FB5D7",
+  general: "#185A98",
+  generalRemaining: "#B9CEDD",
 };
 const compact = (value: number) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 const currency = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(value);
@@ -85,14 +87,31 @@ function NatureKey({ rows }: { rows: Array<{ codigo_natureza: string; nome_natur
   </div>;
 }
 
-export function LocalShareChart({ percentage, size = 210 }: { percentage: number; size?: number }) {
+interface ShareDonutChartProps {
+  percentage: number;
+  size: number;
+  chartId: string;
+  meLabel: string;
+  othersLabel: string;
+  meColor: string;
+  othersColor: string;
+  meMarkerClass: string;
+  othersMarkerClass: string;
+  centerLabel: string;
+  ariaLabel: string;
+}
+
+function ShareDonutChart({
+  percentage, size, chartId, meLabel, othersLabel, meColor, othersColor,
+  meMarkerClass, othersMarkerClass, centerLabel, ariaLabel,
+}: ShareDonutChartProps) {
   const safe = Math.min(100, Math.max(0, percentage));
   const label = `${safe.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
   const options: ApexOptions = {
     ...base,
-    chart: { ...base.chart, id: "export-local-share-chart", type: "donut" },
-    labels: ["ME locais", "Demais fornecedores"],
-    colors: [chartColors.local, chartColors.remaining],
+    chart: { ...base.chart, id: chartId, type: "donut" },
+    labels: [meLabel, othersLabel],
+    colors: [meColor, othersColor],
     stroke: { colors: [colors.white], width: 2 },
     legend: { show: false },
     plotOptions: { pie: { donut: { size: "73%", labels: { show: false } } } },
@@ -107,24 +126,62 @@ export function LocalShareChart({ percentage, size = 210 }: { percentage: number
 
         const title = document.createElement("div");
         title.className = "local-share-tooltip-title";
-        title.textContent = index === 0 ? "ME LOCAIS" : "DEMAIS FORNECEDORES";
+        title.textContent = (index === 0 ? meLabel : othersLabel).toUpperCase();
 
         const detail = document.createElement("div");
         detail.className = "local-share-tooltip-detail";
         const marker = document.createElement("span");
-        marker.className = `local-share-tooltip-marker local-share-tooltip-marker--${index === 0 ? "me" : "others"}`;
-        const label = document.createElement("span");
-        label.textContent = "Participação: ";
+        marker.className = `local-share-tooltip-marker ${index === 0 ? meMarkerClass : othersMarkerClass}`;
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = "Participação: ";
         const value = document.createElement("strong");
         value.textContent = `${(index === 0 ? safe : 100 - safe).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
-        detail.append(marker, label, value);
+        detail.append(marker, labelSpan, value);
         tooltip.append(title, detail);
         return tooltip;
       },
     },
   };
-  return <div className="local-share-chart" style={{ width: size, height: size }} role="img" aria-label={`${label} do valor vencido por microempresas locais`}>
+  return <div className="local-share-chart" style={{ width: size, height: size }} role="img" aria-label={ariaLabel}>
     <Chart type="donut" height={size} options={options} series={[safe, 100 - safe]} />
-    <span className="local-share-center"><b>{label}</b><small>ME locais</small></span>
+    <span className="local-share-center"><b>{label}</b><small>{centerLabel}</small></span>
   </div>;
+}
+
+export function LocalShareChart({ percentage, size = 210 }: { percentage: number; size?: number }) {
+  return (
+    <ShareDonutChart
+      percentage={percentage}
+      size={size}
+      chartId="export-local-share-chart"
+      meLabel="ME locais"
+      othersLabel="Demais fornecedores"
+      meColor={chartColors.local}
+      othersColor={chartColors.remaining}
+      meMarkerClass="local-share-tooltip-marker--me"
+      othersMarkerClass="local-share-tooltip-marker--others"
+      centerLabel="ME locais"
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% do valor vencido por microempresas locais`}
+    />
+  );
+}
+
+// Mesma peça visual do LocalShareChart, mas para a base "geral": todas as ME
+// vencedoras no município, de qualquer origem (não só as sediadas ali).
+export function GeneralShareChart({ percentage, size = 210 }: { percentage: number; size?: number }) {
+  return (
+    <ShareDonutChart
+      percentage={percentage}
+      size={size}
+      chartId="export-general-share-chart"
+      meLabel="Microempresas"
+      othersLabel="Demais fornecedores"
+      meColor={chartColors.general}
+      othersColor={chartColors.generalRemaining}
+      meMarkerClass="local-share-tooltip-marker--general-me"
+      othersMarkerClass="local-share-tooltip-marker--general-others"
+      centerLabel="Microempresas"
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% do valor vencido por microempresas, de qualquer origem`}
+    />
+  );
 }

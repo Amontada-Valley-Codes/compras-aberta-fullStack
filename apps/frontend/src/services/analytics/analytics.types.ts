@@ -36,6 +36,7 @@ export interface DetailedBidsResponse {
 
 export interface LocalParticipationsQuery {
   codigo_municipio: string;
+  codigo_natureza?: string;
   ano?: number;
   limit?: number;
   offset?: number;
@@ -45,10 +46,15 @@ export interface LocalParticipation {
   codigo_municipio: string;
   municipio_consultado: string;
   numero_licitacao: string;
-  data_realizacao_licitacao: string;
-  cnpj: string | null;
+  data_realizacao_licitacao: string | null;
+  cnpj: string;
   empresa: string | null;
+  porte_empresa: string | null;
+  municipio_empresa: string | null;
+  uf_empresa: string | null;
+  endereco: string | null;
   valor_total_vencido: string;
+  quantidade_itens_vencidos: number;
 }
 
 export interface LocalParticipationsResponse {
@@ -65,6 +71,39 @@ export interface LocalParticipationsResponse {
     valor_total_vencido: string;
     valor_vencido_me_local: string;
     percentual_valor_vencido_me_local: number | null;
+    itens_vencidos: number;
+    itens_vencidos_me_locais: number;
+    percentual_itens_vencidos_me_locais: number | null;
+  };
+}
+
+// Mesmo formato de item de LocalParticipation, mas sem o recorte "só locais":
+// traz toda ME vencedora no município, de qualquer origem.
+export interface GeneralParticipationsQuery {
+  codigo_municipio: string;
+  codigo_natureza?: string;
+  ano?: number;
+  limit?: number;
+  offset?: number;
+}
+
+export interface GeneralParticipationsResponse {
+  limit: number;
+  offset: number;
+  data: LocalParticipation[];
+  resumo: {
+    total_licitacoes: number;
+    licitacoes_com_me: number;
+    percentual_licitacoes_com_me: number | null;
+    total_participacoes: number;
+    participacoes_me: number;
+    percentual_participacoes_me: number | null;
+    valor_total_vencido: string;
+    valor_vencido_me: string;
+    percentual_valor_vencido_me: number | null;
+    itens_vencidos: number;
+    itens_vencidos_me: number;
+    percentual_itens_vencidos_me: number | null;
   };
 }
 

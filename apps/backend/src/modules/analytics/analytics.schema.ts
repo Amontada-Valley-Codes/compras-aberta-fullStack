@@ -59,6 +59,15 @@ const listDetailedBidsQuerySchema = z.object({
 
 const listLocalMicroenterpriseParticipationsQuerySchema = z.object({
   codigo_municipio: codigoMunicipio,
+  codigo_natureza: codigoNatureza.optional(),
+  ano: ano.optional(),
+  limit,
+  offset,
+});
+
+const listGeneralMicroenterpriseParticipationsQuerySchema = z.object({
+  codigo_municipio: codigoMunicipio,
+  codigo_natureza: codigoNatureza.optional(),
   ano: ano.optional(),
   limit,
   offset,
@@ -87,6 +96,7 @@ export {
   getMicroenterpriseIndicatorQuerySchema,
   listDetailedBidsQuerySchema,
   listExpensesByNatureQuerySchema,
+  listGeneralMicroenterpriseParticipationsQuerySchema,
   listLocalMicroenterpriseParticipationsQuerySchema,
   listMicroenterpriseParticipationByNatureQuerySchema,
 };

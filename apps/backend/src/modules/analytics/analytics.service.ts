@@ -15,6 +15,15 @@ interface ListDetailedBidsDTO {
 
 interface ListLocalMicroenterpriseParticipationsDTO {
   codigo_municipio: string;
+  codigo_natureza?: string;
+  ano?: number;
+  limit: number;
+  offset: number;
+}
+
+interface ListGeneralMicroenterpriseParticipationsDTO {
+  codigo_municipio: string;
+  codigo_natureza?: string;
   ano?: number;
   limit: number;
   offset: number;
@@ -117,6 +126,15 @@ const analyticsService = {
   ) {
     return getAnalyticsData(
       "/analytics/participacoes-me-locais",
+      filters,
+    );
+  },
+
+  async listGeneralMicroenterpriseParticipations(
+    filters: ListGeneralMicroenterpriseParticipationsDTO,
+  ) {
+    return getAnalyticsData(
+      "/analytics/participacoes-me-gerais",
       filters,
     );
   },

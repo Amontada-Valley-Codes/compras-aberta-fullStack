@@ -5,6 +5,7 @@ import {
   getMicroenterpriseIndicatorDocs,
   listDetailedBidsDocs,
   listExpensesByNatureDocs,
+  listGeneralMicroenterpriseParticipationsDocs,
   listLocalMicroenterpriseParticipationsDocs,
   listMicroenterpriseParticipationByNatureDocs,
 } from "./analytics.docs";
@@ -19,6 +20,11 @@ async function analyticsRoutes(app: FastifyInstance) {
     "/analytics/participacoes-me-locais",
     { schema: listLocalMicroenterpriseParticipationsDocs },
     analyticsController.listLocalMicroenterpriseParticipations,
+  );
+  app.get(
+    "/analytics/participacoes-me-gerais",
+    { schema: listGeneralMicroenterpriseParticipationsDocs },
+    analyticsController.listGeneralMicroenterpriseParticipations,
   );
   app.get(
     "/analytics/gastos-por-natureza",

@@ -20,12 +20,20 @@ export interface AnalysisExportChartSection {
   natureLegend?: AnalysisExportNatureLegendItem[];
 }
 
-export interface AnalysisExportLocalShare {
+export interface AnalysisExportShareData {
   meLabel: string;
   meValue: string;
   othersLabel: string;
   othersValue: string;
   note: string;
+}
+
+export interface AnalysisExportShareChart {
+  id: string;
+  title: string;
+  description: string;
+  emptyText: string;
+  data: AnalysisExportShareData | null;
 }
 
 export interface AnalysisExportSummary {
@@ -37,9 +45,7 @@ export interface AnalysisExportSummary {
   kpis: AnalysisExportKpi[];
   highestNatureText: string | null;
   chartSections: AnalysisExportChartSection[];
-  localShareTitle: string;
-  localShareDescription: string;
-  localShare: AnalysisExportLocalShare | null;
+  shareCharts: AnalysisExportShareChart[];
 }
 
 const PAGE_MARGIN = 15;
@@ -195,52 +201,60 @@ export async function exportChartsToPdf(summary: AnalysisExportSummary): Promise
     await addChartSection(section);
   }
 
-  ensureSpace(12);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12.5);
-  doc.setTextColor(BODY_TEXT);
-  doc.text(summary.localShareTitle, PAGE_MARGIN, y);
-  y += 5.5;
-  doc.setFont("helvetica", "normal");
-  paragraph(summary.localShareDescription, 9.5, MUTED_TEXT, 4.3);
-  y += 3;
+  async function addShareChart(section: AnalysisExportShareChart) {
+    ensureSpace(12);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12.5);
+    doc.setTextColor(BODY_TEXT);
+    doc.text(section.title, PAGE_MARGIN, y);
+    y += 5.5;
+    doc.setFont("helvetica", "normal");
+    paragraph(section.description, 9.5, MUTED_TEXT, 4.3);
+    y += 3;
 
-  if (!summary.localShare) {
-    doc.setFontSize(10);
-    doc.setTextColor(MUTED_TEXT);
-    doc.text("Selecione um município para consultar a participação local.", PAGE_MARGIN, y);
-    y += 10;
-  } else {
-    const imgURI = await captureChart("export-local-share-chart");
+    if (!section.data) {
+      doc.setFontSize(10);
+      doc.setTextColor(MUTED_TEXT);
+      doc.text(section.emptyText, PAGE_MARGIN, y);
+      y += 10;
+      return;
+    }
+
+    const imgURI = await captureChart(section.id);
     if (!imgURI) {
       doc.setFontSize(10);
       doc.setTextColor(MUTED_TEXT);
       doc.text("Não foi possível capturar este gráfico.", PAGE_MARGIN, y);
       y += 10;
-    } else {
-      const { width, height } = await loadImageSize(imgURI);
-      const renderWidth = 65;
-      const renderHeight = (height / width) * renderWidth;
-      ensureSpace(renderHeight + 6);
-      doc.addImage(imgURI, "PNG", PAGE_MARGIN, y, renderWidth, renderHeight);
-
-      const textX = PAGE_MARGIN + renderWidth + 8;
-      const textWidth = CONTENT_WIDTH - renderWidth - 8;
-      const noteLines = doc.splitTextToSize(summary.localShare.note, textWidth);
-      doc.setFontSize(10.5);
-      doc.setTextColor(BODY_TEXT);
-      doc.text(
-        [
-          `${summary.localShare.meLabel}: ${summary.localShare.meValue}`,
-          `${summary.localShare.othersLabel}: ${summary.localShare.othersValue}`,
-          "",
-          ...noteLines,
-        ],
-        textX,
-        y + 6,
-      );
-      y += renderHeight + 8;
+      return;
     }
+
+    const { width, height } = await loadImageSize(imgURI);
+    const renderWidth = 65;
+    const renderHeight = (height / width) * renderWidth;
+    ensureSpace(renderHeight + 6);
+    doc.addImage(imgURI, "PNG", PAGE_MARGIN, y, renderWidth, renderHeight);
+
+    const textX = PAGE_MARGIN + renderWidth + 8;
+    const textWidth = CONTENT_WIDTH - renderWidth - 8;
+    const noteLines = doc.splitTextToSize(section.data.note, textWidth);
+    doc.setFontSize(10.5);
+    doc.setTextColor(BODY_TEXT);
+    doc.text(
+      [
+        `${section.data.meLabel}: ${section.data.meValue}`,
+        `${section.data.othersLabel}: ${section.data.othersValue}`,
+        "",
+        ...noteLines,
+      ],
+      textX,
+      y + 6,
+    );
+    y += renderHeight + 8;
+  }
+
+  for (const section of summary.shareCharts) {
+    await addShareChart(section);
   }
 
   const pageCount = doc.getNumberOfPages();
