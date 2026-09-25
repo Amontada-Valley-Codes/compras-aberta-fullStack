@@ -41,7 +41,6 @@ export interface AnalysisExportSummary {
   municipalityName: string;
   year: number;
   natureName: string;
-  intro: string;
   kpis: AnalysisExportKpi[];
   highestNatureText: string | null;
   chartSections: AnalysisExportChartSection[];
@@ -100,8 +99,8 @@ export async function exportChartsToPdf(summary: AnalysisExportSummary): Promise
     y += lines.length * lineHeight;
   };
 
-  // Cabeçalho: eyebrow + título + descrição, no mesmo padrão de título e
-  // subtítulo usado nos cards do painel (dashboard).
+  // Cabeçalho: eyebrow + título, no mesmo padrão de título e subtítulo usado
+  // nos cards do painel (dashboard).
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   doc.setTextColor(MUTED_TEXT);
@@ -117,10 +116,7 @@ export async function exportChartsToPdf(summary: AnalysisExportSummary): Promise
   doc.setFontSize(10.5);
   doc.setTextColor(MUTED_TEXT);
   doc.text(`Exercício ${summary.year} · Natureza: ${summary.natureName}`, PAGE_MARGIN, y);
-  y += 7;
-
-  paragraph(summary.intro, 10.5, MUTED_TEXT, 5);
-  y += 4;
+  y += 10;
 
   // KPIs
   doc.setFontSize(9.5);

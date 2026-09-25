@@ -14,13 +14,13 @@ import { AnalysisExportLinks } from "./AnalysisExportLinks";
 import type { AnalysisExportSummary } from "./export-charts-pdf";
 import { AnalysisPagination } from "./AnalysisPagination";
 
-const EXPENSES_TITLE = "Valor de dotações por natureza";
+const EXPENSES_TITLE = "Valor da compra por natureza";
 const EXPENSES_DESCRIPTION = "Valor associado às contratações, sem representar pagamento efetivo. Naturezas sem valor positivo não aparecem.";
 const EXPENSES_EMPTY = "Nenhuma dotação com valor positivo para estes filtros.";
 const PARTICIPATION_TITLE = "Participação de ME por natureza";
 const PARTICIPATION_DESCRIPTION = "Percentual de participações de microempresas. Naturezas com 0% não aparecem.";
 const PARTICIPATION_EMPTY = "Nenhuma participação de ME acima de 0% para estes filtros.";
-const MICRO_VALUE_TITLE = "Valor vencido por ME por natureza";
+const MICRO_VALUE_TITLE = "Compras por ME por natureza";
 const MICRO_VALUE_DESCRIPTION = "Compare os valores vencidos por ME entre as naturezas da despesa. Naturezas sem valor positivo não aparecem.";
 const MICRO_VALUE_EMPTY = "Nenhum valor vencido por ME para estes filtros.";
 
@@ -33,9 +33,9 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
     (best, item) => !best || Number(item.valor_total_dotacao) > Number(best.valor_total_dotacao) ? item : best,
     null,
   );
-  const localShareTitle = selectedMunicipality ? `Valor vencido por ME locais em ${selectedMunicipality.name}` : "Valor vencido por ME locais";
+  const localShareTitle = selectedMunicipality ? `Compras por microempresas de ${selectedMunicipality.name}` : "Compras por microempresas";
   const localShareDescription = `Percentual do valor total vencido que ficou com ME do próprio município em ${filters.year}, em ${natureName.toLowerCase()}.`;
-  const generalShareTitle = selectedMunicipality ? `Valor vencido por microempresas em ${selectedMunicipality.name}` : "Valor vencido por microempresas";
+  const generalShareTitle = "Compras por microempresa em geral";
   const generalShareDescription = `Percentual do valor total vencido que ficou com microempresas de qualquer origem (locais ou não) em ${filters.year}, em ${natureName.toLowerCase()}. Compare com o card de ME locais ao lado.`;
 
   // Os mesmos filtros/ordenações usados para desenhar os gráficos na tela
@@ -51,7 +51,6 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
     municipalityName,
     year: filters.year,
     natureName,
-    intro: `Indicadores e registros de ${natureName.toLowerCase()} em ${filters.year}. Os gráficos por natureza comparam todas as naturezas.`,
     kpis: [
       { label: "Valor vencido por ME", value: money(micro.data?.data.valor_total_vencido), detail: "Valor vencido nas licitações filtradas" },
       { label: "Licitações com ME", value: count(micro.data?.data.quantidade_licitacoes), detail: "Licitações com participação de microempresas" },
@@ -113,7 +112,6 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         <section className="analysis-title-row">
           <div>
             <h1>Licitações e participação de ME em {municipalityName}</h1>
-            <p>Indicadores e registros de <b>{natureName.toLowerCase()}</b> em {filters.year}. Os gráficos por natureza comparam todas as naturezas.</p>
           </div>
           <AnalysisExportLinks filters={filters} summary={exportSummary} />
         </section>
@@ -150,7 +148,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
           </div>
 
           {highestNature && <section className="analysis-insight">
-            <p>Em {municipalityName}, a maior dotação é para <strong>{highestNature.nome_natureza.toLowerCase()}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>. <span>Esse valor não indica quanto foi pago.</span></p>
+            <p>Em {municipalityName}, a maior dotação é para <strong>{highestNature.nome_natureza.toLowerCase()}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>.</p>
           </section>}
 
           <div className="analysis-chart-grid">
