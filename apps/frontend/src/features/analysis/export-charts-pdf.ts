@@ -4,20 +4,12 @@ export interface AnalysisExportKpi {
   detail: string;
 }
 
-export interface AnalysisExportNatureLegendItem {
-  code: string;
-  name: string;
-}
-
 export interface AnalysisExportChartSection {
   id: string;
   title: string;
   description: string;
   hasChart: boolean;
   emptyText: string;
-  // Só para gráficos cujo eixo mostra o código da natureza (a tela usa uma
-  // legenda separada, "NatureKey", para explicar cada código).
-  natureLegend?: AnalysisExportNatureLegendItem[];
 }
 
 export interface AnalysisExportShareData {
@@ -109,20 +101,20 @@ export async function exportChartsToPdf(summary: AnalysisExportSummary): Promise
 
   doc.setFontSize(17);
   doc.setTextColor(BODY_TEXT);
-  doc.text(`Licitações e participação de ME em ${summary.municipalityName}`, PAGE_MARGIN, y);
+  doc.text(`Licitações e microempresas em ${summary.municipalityName}`, PAGE_MARGIN, y);
   y += 7;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10.5);
   doc.setTextColor(MUTED_TEXT);
-  doc.text(`Exercício ${summary.year} · Natureza: ${summary.natureName}`, PAGE_MARGIN, y);
+  doc.text(`Ano ${summary.year} · Tipo de compra: ${summary.natureName}`, PAGE_MARGIN, y);
   y += 10;
 
   // KPIs
   doc.setFontSize(9.5);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(MUTED_TEXT);
-  doc.text("INDICADORES-CHAVE", PAGE_MARGIN, y);
+  doc.text("PRINCIPAIS NÚMEROS", PAGE_MARGIN, y);
   y += 6;
 
   for (const kpi of summary.kpis) {
@@ -180,17 +172,7 @@ export async function exportChartsToPdf(summary: AnalysisExportSummary): Promise
     const renderHeight = (height / width) * renderWidth;
     ensureSpace(renderHeight + 6);
     doc.addImage(imgURI, "PNG", PAGE_MARGIN, y, renderWidth, renderHeight);
-    y += renderHeight + 5;
-
-    // O eixo do gráfico mostra só o código da natureza; sem esta legenda o
-    // PDF fica ilegível para quem não decorou os códigos.
-    if (section.natureLegend?.length) {
-      const legendText = `Legenda das naturezas: ${section.natureLegend
-        .map((item) => `${item.code} — ${item.name}`)
-        .join("; ")}.`;
-      paragraph(legendText, 9, MUTED_TEXT, 4);
-    }
-    y += 5;
+    y += renderHeight + 10;
   }
 
   for (const section of summary.chartSections) {

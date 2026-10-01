@@ -6,11 +6,7 @@ import { authConfig } from "../../configs/auth";
 import { AppError } from "../../utils/AppError";
 import { userRepository } from "../users/user.repository";
 import { refreshTokenRepository } from "./refresh-token.repository";
-
-interface CreateSessionDTO {
-  email: string;
-  password: string;
-}
+import type { CreateSessionDTO } from "./session.schema";
 
 interface UserSessionData {
   id: string;
@@ -45,7 +41,7 @@ async function issueTokens(user: UserSessionData) {
 
 const sessionService = {
   async create({ email, password }: CreateSessionDTO) {
-    const user = await userRepository.findByEmail(email.trim().toLowerCase());
+    const user = await userRepository.findByEmail(email);
 
     if (!user) {
       throw new AppError("E-mail ou senha inválidos", 401);

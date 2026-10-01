@@ -4,49 +4,14 @@ import { env } from "../../env";
 import { createMemoryCache } from "../../lib/cache/memory-cache";
 import { analyticsApi } from "../../lib/axios/analytics-api";
 import { AppError } from "../../utils/AppError";
-
-interface ListDetailedBidsDTO {
-  codigo_municipio?: string;
-  codigo_natureza?: string;
-  ano?: number;
-  limit: number;
-  offset: number;
-}
-
-interface ListLocalMicroenterpriseParticipationsDTO {
-  codigo_municipio: string;
-  codigo_natureza?: string;
-  ano?: number;
-  limit: number;
-  offset: number;
-}
-
-interface ListGeneralMicroenterpriseParticipationsDTO {
-  codigo_municipio: string;
-  codigo_natureza?: string;
-  ano?: number;
-  limit: number;
-  offset: number;
-}
-
-interface ListExpensesByNatureDTO {
-  codigo_municipio?: string;
-  data_inicio?: string;
-  data_fim?: string;
-}
-
-interface GetMicroenterpriseIndicatorDTO {
-  codigo_municipio?: string;
-  codigo_natureza?: string;
-  data_inicio?: string;
-  data_fim?: string;
-}
-
-interface ListMicroenterpriseParticipationByNatureDTO {
-  codigo_municipio?: string;
-  data_inicio?: string;
-  data_fim?: string;
-}
+import type {
+  GetMicroenterpriseIndicatorDTO,
+  ListDetailedBidsDTO,
+  ListExpensesByNatureDTO,
+  ListGeneralMicroenterpriseParticipationsDTO,
+  ListLocalMicroenterpriseParticipationsDTO,
+  ListMicroenterpriseParticipationByNatureDTO,
+} from "./analytics.schema";
 
 interface AnalyticsQuery {
   codigo_municipio?: string;

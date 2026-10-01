@@ -1,5 +1,6 @@
 import { analysisPageSchema } from "@/schemas/analytics/analysis-page.schema";
 import { formatCnpj } from "@/features/public-data/format";
+import { natureLabel, officialNatureName } from "@/features/public-data/plain-language";
 import { loadMunicipalityOptions } from "@/features/public-data/public-data";
 import { listDetailedBidsService } from "@/services/analytics/list-detailed-bids.service";
 import type { DetailedBid, DetailedBidsQuery, DetailedBidsResponse } from "@/services/analytics/analytics.types";
@@ -30,7 +31,8 @@ function bidRow(bid: DetailedBid): CsvValue[] {
     bid.codigo_municipio,
     bid.municipio,
     bid.codigo_natureza,
-    bid.nome_natureza,
+    natureLabel(bid.codigo_natureza, bid.nome_natureza),
+    officialNatureName(bid.nome_natureza),
     bid.empresa,
     formatCnpj(bid.cnpj),
     bid.porte_empresa,
@@ -80,7 +82,7 @@ export async function GET(request: Request) {
       try {
         const page = firstPending ? firstPage : await listDetailedBidsService({ ...query, offset: nextOffset });
         if (firstPending) {
-          controller.enqueue(encoder.encode(`\uFEFF${csvLine(["Licitação", "Ano", "Código do município", "Município", "Código da natureza", "Natureza", "Empresa", "CNPJ", "Porte", "Endereço", "Valor total da licitação (R$)", "Valor vencido (R$)", "Itens vencidos"])}`));
+          controller.enqueue(encoder.encode(`\uFEFF${csvLine(["Licitação", "Ano", "Código do município", "Município", "Código do tipo de compra", "Tipo de compra", "Natureza da despesa (nome oficial)", "Empresa vencedora", "CNPJ", "Porte", "Endereço", "Valor total da licitação (R$)", "Valor ganho (R$)", "Itens ganhos"])}`));
           firstPending = false;
         }
         if (page.data.length) controller.enqueue(encoder.encode(page.data.map((bid) => csvLine(bidRow(bid))).join("")));

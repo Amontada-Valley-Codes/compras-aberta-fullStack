@@ -1,13 +1,11 @@
-"use client";
-
 import { Fragment } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import type { AnalysisFilters } from "@/features/public-data/public-data";
 
+const PAGE_SIZES = [10, 20, 30];
+
 export function AnalysisPagination({ filters, rowCount, hasNext }: { filters: AnalysisFilters; rowCount: number; hasNext: boolean }) {
-  const router = useRouter();
   const pageLink = (page: number, pageSize = filters.pageSize) => {
     const params = new URLSearchParams({ ano: String(filters.year), pagina: String(page), limite: String(pageSize) });
     if (filters.municipalityIbge) params.set("municipio", filters.municipalityIbge);
@@ -18,20 +16,26 @@ export function AnalysisPagination({ filters, rowCount, hasNext }: { filters: An
   const pages = [...new Set([1, filters.page - 1, filters.page, ...(canGoNext ? [filters.page + 1] : [])])]
     .filter((page) => page >= 1)
     .sort((a, b) => a - b);
+  const firstRow = (filters.page - 1) * filters.pageSize + 1;
+  const lastRow = firstRow + rowCount - 1;
 
   return <div className="analysis-pagination">
-    <span className="analysis-pagination-count">{rowCount} {rowCount === 1 ? "registro" : "registros"} nesta página</span>
-    <label className="analysis-page-size" htmlFor="analysis-page-size">
-      Por página
-      <select
-        key={filters.pageSize}
-        id="analysis-page-size"
-        defaultValue={filters.pageSize}
-        onChange={(event) => router.push(pageLink(1, Number(event.target.value)), { scroll: false })}
-      >
-        {[10, 20, 30].map((size) => <option key={size} value={size}>{size}</option>)}
-      </select>
-    </label>
+    <p className="analysis-pagination-count">
+      {rowCount ? <>Mostrando <b>{firstRow.toLocaleString("pt-BR")}</b> a <b>{lastRow.toLocaleString("pt-BR")}</b></> : "Nenhum resultado nesta página"}
+    </p>
+
+    {/* Links em vez de <select>: as três opções ficam visíveis, um clique troca
+        e funciona mesmo antes do JavaScript carregar. Trocar o tamanho volta
+        para a página 1, porque a página atual pode deixar de existir. */}
+    <div className="analysis-page-size" role="group" aria-labelledby="analysis-page-size-label">
+      <span id="analysis-page-size-label">Linhas por página</span>
+      <div className="analysis-page-size-options">
+        {PAGE_SIZES.map((size) => size === filters.pageSize
+          ? <span key={size} className="is-active" aria-current="true">{size}</span>
+          : <Link key={size} href={pageLink(1, size)} scroll={false} prefetch={false} aria-label={`Mostrar ${size} linhas por página`}>{size}</Link>)}
+      </div>
+    </div>
+
     <nav className="analysis-pagination-nav" aria-label="Paginação das licitações">
       <ul className="analysis-pagination-content">
         <li>{filters.page > 1

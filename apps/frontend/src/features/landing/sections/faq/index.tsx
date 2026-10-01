@@ -12,8 +12,8 @@ const questions = [
     "A plataforma cruza empresas e licitações, remove duplicidades e organiza os registros para apresentar os indicadores conforme os filtros escolhidos.",
   ],
   [
-    "Posso filtrar os dados por município e natureza da despesa?",
-    "Sim. Escolha o município e a natureza na busca da página inicial ou use os filtros completos na página de análise.",
+    "Posso filtrar os dados por município e tipo de compra?",
+    "Sim. Escolha o município e o tipo de compra (como materiais, obras ou serviços) na busca da página inicial ou na página de análise. O tipo de compra segue a classificação oficial do orçamento público, chamada de “natureza da despesa”.",
   ],
   [
     "A consulta dos dados públicos é gratuita?",

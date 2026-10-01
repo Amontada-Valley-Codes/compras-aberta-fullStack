@@ -73,24 +73,56 @@ const listGeneralMicroenterpriseParticipationsQuerySchema = z.object({
   offset,
 });
 
-const listExpensesByNatureQuerySchema = z.object({
-  codigo_municipio: optionalString,
-  data_inicio: dataInicio.optional(),
-  data_fim: dataFim.optional(),
-});
+// data_inicio/data_fim chegam como AAAA-MM-DD, então a comparação de
+// strings já respeita a ordem cronológica.
+function validPeriod(value: { data_inicio?: string; data_fim?: string }) {
+  return !value.data_inicio || !value.data_fim || value.data_inicio <= value.data_fim;
+}
 
-const getMicroenterpriseIndicatorQuerySchema = z.object({
-  codigo_municipio: optionalString,
-  codigo_natureza: codigoNatureza.optional(),
-  data_inicio: dataInicio.optional(),
-  data_fim: dataFim.optional(),
-});
+const invalidPeriodError = {
+  message: "data_inicio deve ser anterior ou igual a data_fim",
+  path: ["data_fim"],
+};
 
-const listMicroenterpriseParticipationByNatureQuerySchema = z.object({
-  codigo_municipio: optionalString,
-  data_inicio: dataInicio.optional(),
-  data_fim: dataFim.optional(),
-});
+const listExpensesByNatureQuerySchema = z
+  .object({
+    codigo_municipio: optionalString,
+    data_inicio: dataInicio.optional(),
+    data_fim: dataFim.optional(),
+  })
+  .refine(validPeriod, invalidPeriodError);
+
+const getMicroenterpriseIndicatorQuerySchema = z
+  .object({
+    codigo_municipio: optionalString,
+    codigo_natureza: codigoNatureza.optional(),
+    data_inicio: dataInicio.optional(),
+    data_fim: dataFim.optional(),
+  })
+  .refine(validPeriod, invalidPeriodError);
+
+const listMicroenterpriseParticipationByNatureQuerySchema = z
+  .object({
+    codigo_municipio: optionalString,
+    data_inicio: dataInicio.optional(),
+    data_fim: dataFim.optional(),
+  })
+  .refine(validPeriod, invalidPeriodError);
+
+type ListDetailedBidsDTO = z.infer<typeof listDetailedBidsQuerySchema>;
+type ListLocalMicroenterpriseParticipationsDTO = z.infer<
+  typeof listLocalMicroenterpriseParticipationsQuerySchema
+>;
+type ListGeneralMicroenterpriseParticipationsDTO = z.infer<
+  typeof listGeneralMicroenterpriseParticipationsQuerySchema
+>;
+type ListExpensesByNatureDTO = z.infer<typeof listExpensesByNatureQuerySchema>;
+type GetMicroenterpriseIndicatorDTO = z.infer<
+  typeof getMicroenterpriseIndicatorQuerySchema
+>;
+type ListMicroenterpriseParticipationByNatureDTO = z.infer<
+  typeof listMicroenterpriseParticipationByNatureQuerySchema
+>;
 
 export {
   getMicroenterpriseIndicatorQuerySchema,
@@ -99,4 +131,12 @@ export {
   listGeneralMicroenterpriseParticipationsQuerySchema,
   listLocalMicroenterpriseParticipationsQuerySchema,
   listMicroenterpriseParticipationByNatureQuerySchema,
+};
+export type {
+  GetMicroenterpriseIndicatorDTO,
+  ListDetailedBidsDTO,
+  ListExpensesByNatureDTO,
+  ListGeneralMicroenterpriseParticipationsDTO,
+  ListLocalMicroenterpriseParticipationsDTO,
+  ListMicroenterpriseParticipationByNatureDTO,
 };

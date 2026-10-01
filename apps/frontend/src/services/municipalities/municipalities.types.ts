@@ -1,11 +1,12 @@
+import type { z } from "zod";
+import type { listMunicipalitiesSchema } from "@/schemas/municipalities/list-municipalities.schema";
+
 export interface Municipality {
   id: number;
   nome: string;
 }
 
-export interface MunicipalityQuery {
-  search?: string;
-}
+export type MunicipalityQuery = z.input<typeof listMunicipalitiesSchema>;
 
 export interface CatalogMunicipality {
   codigo_municipio: string;

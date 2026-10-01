@@ -3,6 +3,7 @@ import "dotenv/config";
 import { z } from "zod";
 
 const envSchema = z.object({
+  DATABASE_URL: z.string().min(1, "DATABASE_URL é obrigatória"),
   JWT_SECRET: z
     .string()
     .min(32, "JWT_SECRET deve ter pelo menos 32 caracteres"),
@@ -35,6 +36,15 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).default(3333),
 });
 
-const env = envSchema.parse(process.env);
+const parsedEnv = envSchema.safeParse(process.env);
+
+if (!parsedEnv.success) {
+  console.error(
+    `Variáveis de ambiente inválidas:\n${z.prettifyError(parsedEnv.error)}`,
+  );
+  process.exit(1);
+}
+
+const env = parsedEnv.data;
 
 export { env };

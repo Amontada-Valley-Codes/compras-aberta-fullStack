@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
+import { natureLabel } from "@/features/public-data/plain-language";
 import { landingData } from "../../landing-mock";
 
 export function DataExplorerSection() {
@@ -77,14 +78,14 @@ export function DataExplorerSection() {
           />
           <PublicFilterSelect
             name="natureza"
-            label="Natureza da despesa"
-            allLabel="Todas as naturezas"
+            label="Tipo de compra"
+            allLabel="Todos os tipos"
             icon="nature"
             variant="landing"
             options={
               data.expenses.data?.data.map((item) => ({
                 value: item.codigo_natureza,
-                label: item.nome_natureza,
+                label: natureLabel(item.codigo_natureza, item.nome_natureza),
               })) ?? []
             }
           />

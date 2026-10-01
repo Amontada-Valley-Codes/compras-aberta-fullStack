@@ -1,16 +1,17 @@
-export interface PeriodQuery {
-  codigo_municipio?: string;
-  data_inicio?: string;
-  data_fim?: string;
-}
+import type { z } from "zod";
+import type { microenterpriseQuerySchema } from "@/schemas/analytics/get-microenterprise-indicator.schema";
+import type { detailedBidsQuerySchema } from "@/schemas/analytics/list-detailed-bids.schema";
+import type { expensesByNatureQuerySchema } from "@/schemas/analytics/list-expenses-by-nature.schema";
+import type { generalParticipationsQuerySchema } from "@/schemas/analytics/list-general-participations.schema";
+import type { localParticipationsQuerySchema } from "@/schemas/analytics/list-local-participations.schema";
 
-export interface DetailedBidsQuery {
-  codigo_municipio?: string;
-  codigo_natureza?: string;
-  ano?: number;
-  limit?: number;
-  offset?: number;
-}
+// Os tipos de consulta vêm dos schemas Zod, que são a fonte da verdade: mudar
+// uma regra de validação já atualiza o tipo usado pelos services.
+export type PeriodQuery = z.input<typeof expensesByNatureQuerySchema>;
+export type DetailedBidsQuery = z.input<typeof detailedBidsQuerySchema>;
+export type LocalParticipationsQuery = z.input<typeof localParticipationsQuerySchema>;
+export type GeneralParticipationsQuery = z.input<typeof generalParticipationsQuerySchema>;
+export type MicroenterpriseQuery = z.input<typeof microenterpriseQuerySchema>;
 
 export interface DetailedBid {
   codigo_municipio: string;
@@ -32,14 +33,6 @@ export interface DetailedBidsResponse {
   limit: number;
   offset: number;
   data: DetailedBid[];
-}
-
-export interface LocalParticipationsQuery {
-  codigo_municipio: string;
-  codigo_natureza?: string;
-  ano?: number;
-  limit?: number;
-  offset?: number;
 }
 
 export interface LocalParticipation {
@@ -79,14 +72,6 @@ export interface LocalParticipationsResponse {
 
 // Mesmo formato de item de LocalParticipation, mas sem o recorte "só locais":
 // traz toda ME vencedora no município, de qualquer origem.
-export interface GeneralParticipationsQuery {
-  codigo_municipio: string;
-  codigo_natureza?: string;
-  ano?: number;
-  limit?: number;
-  offset?: number;
-}
-
 export interface GeneralParticipationsResponse {
   limit: number;
   offset: number;
@@ -117,10 +102,6 @@ export interface ExpensesByNatureResponse {
   }>;
   metrica: string;
   observacao: string;
-}
-
-export interface MicroenterpriseQuery extends PeriodQuery {
-  codigo_natureza?: string;
 }
 
 export interface MicroenterpriseResponse {

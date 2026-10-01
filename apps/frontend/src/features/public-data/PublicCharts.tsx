@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
 import { brandTokens } from "@/design-system/tokens";
 import type { ExpensesByNatureResponse, ParticipationByNatureResponse } from "@/services/analytics/analytics.types";
-import { selectMicroenterpriseValueRows, selectParticipationRows, selectPositiveExpenses } from "./chart-selectors";
+import { selectExpenseRows, selectMicroenterpriseValueRows, selectParticipationRows } from "./chart-selectors";
+import { natureLabel } from "./plain-language";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 const colors = brandTokens.colors;
@@ -29,62 +30,97 @@ const base: ApexOptions = {
   noData: { text: "Sem dados para os filtros selecionados" },
 };
 
-export function ExpensesChart({ data, compactView = false }: { data: ExpensesByNatureResponse["data"]; compactView?: boolean }) {
-  const positiveRows = selectPositiveExpenses(data);
-  const rows = compactView ? [...positiveRows].sort((a, b) => Number(b.valor_total_dotacao) - Number(a.valor_total_dotacao)).slice(0, 4) : positiveRows;
-  if (!rows.length) return <p className="analysis-data-state">Nenhuma dotação com valor positivo para estes filtros.</p>;
+// Quebra nomes longos em duas linhas no eixo, em vez de deixar o ApexCharts
+// cortar com "…" (ex.: "Itens distribuídos / à população").
+function wrapLabel(label: string, maxLine = 20): string[] {
+  if (label.length <= maxLine) return [label];
+  const middle = label.length / 2;
+  let breakAt = -1;
+  for (let index = label.indexOf(" "); index !== -1; index = label.indexOf(" ", index + 1)) {
+    if (breakAt === -1 || Math.abs(index - middle) < Math.abs(breakAt - middle)) breakAt = index;
+  }
+  return breakAt === -1 ? [label] : [label.slice(0, breakAt), label.slice(breakAt + 1)];
+}
+
+interface NatureBarChartProps {
+  id: string;
+  color: string;
+  seriesName: string;
+  labels: string[];
+  values: number[];
+  axisFormatter: (value: number) => string;
+  tooltipFormatter: (value: number) => string;
+  compactView?: boolean;
+}
+
+function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, tooltipFormatter, compactView = false }: NatureBarChartProps) {
   const options: ApexOptions = {
     ...base,
-    chart: { ...base.chart, id: "export-expenses-chart", type: "bar" },
-    colors: [chartColors.expenses],
-    plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: "50%" } },
+    chart: { ...base.chart, id, type: "bar" },
+    colors: [color],
+    plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: "58%" } },
     xaxis: {
-      categories: rows.map((item) => item.nome_natureza),
-      tickAmount: 3,
-      labels: { formatter: compact, style: { colors: "#3D586D", fontSize: compactView ? "10px" : "12px" } },
+      categories: labels.map((label) => wrapLabel(label)),
+      tickAmount: compactView ? 3 : 4,
+      labels: { formatter: (value) => axisFormatter(Number(value)), style: { colors: "#3D586D", fontSize: compactView ? "10px" : "12px" } },
     },
-    yaxis: { labels: { maxWidth: compactView ? 95 : 180, style: { colors: colors.graphite, fontSize: compactView ? "10px" : "12px" } } },
-    tooltip: { shared: true, intersect: false, y: { formatter: (value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value) } },
+    yaxis: { labels: { maxWidth: compactView ? 110 : 170, style: { colors: colors.graphite, fontSize: compactView ? "10px" : "13px" } } },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      x: { formatter: (_value, opts) => labels[opts?.dataPointIndex ?? 0] ?? "" },
+      y: { formatter: tooltipFormatter },
+    },
   };
-  return <Chart type="bar" height={compactView ? 130 : 350} options={options} series={[{ name: "Valor de dotações", data: rows.map((item) => Number(item.valor_total_dotacao)) }]} />;
+  const height = compactView ? 130 : Math.max(230, 60 + labels.length * 46);
+  return <Chart type="bar" height={height} options={options} series={[{ name: seriesName, data: values }]} />;
+}
+
+const percentLabel = (value: number) => `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+
+export function ExpensesChart({ data, compactView = false }: { data: ExpensesByNatureResponse["data"]; compactView?: boolean }) {
+  const allRows = selectExpenseRows(data);
+  const rows = compactView ? allRows.slice(0, 4) : allRows;
+  if (!rows.length) return <p className="analysis-data-state">Nenhum valor previsto no orçamento para estes filtros.</p>;
+  return <NatureBarChart
+    id="export-expenses-chart"
+    color={chartColors.expenses}
+    seriesName="Orçamento previsto"
+    labels={rows.map((item) => natureLabel(item.codigo_natureza, item.nome_natureza))}
+    values={rows.map((item) => Number(item.valor_total_dotacao))}
+    axisFormatter={compact}
+    tooltipFormatter={(value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)}
+    compactView={compactView}
+  />;
 }
 
 export function ParticipationChart({ data, compactView = false }: { data: ParticipationByNatureResponse["data"]; compactView?: boolean }) {
   const rows = selectParticipationRows(data, compactView);
-  if (!rows.length) return <p className="analysis-data-state">Nenhuma participação de ME acima de 0% para estes filtros.</p>;
-  const names = new Map(rows.map((item) => [item.codigo_natureza, item.nome_natureza]));
-  const options: ApexOptions = {
-    ...base,
-    chart: { ...base.chart, id: "export-participation-chart", type: "bar" },
-    colors: [chartColors.participation],
-    plotOptions: { bar: { horizontal: false, borderRadius: 7, columnWidth: "54%" } },
-    xaxis: { categories: rows.map((item) => item.codigo_natureza), labels: { style: { colors: colors.graphite, fontSize: "12px", fontWeight: 700 } }, axisBorder: { show: false }, axisTicks: { show: false } },
-    yaxis: { min: 0, max: 100, tickAmount: 4, labels: { formatter: (value) => `${value}%`, style: { colors: "#3D586D", fontSize: "12px" } } },
-    tooltip: { shared: true, intersect: false, x: { formatter: (code) => names.get(String(code)) ?? String(code) }, y: { formatter: (value) => `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% das participações` } },
-  };
-  return <div className="nature-chart"><Chart type="bar" height={compactView ? 215 : 285} options={options} series={[{ name: "Participação de ME", data: rows.map((item) => item.percentual_participacoes_me ?? 0) }]} /><NatureKey rows={rows} /></div>;
+  if (!rows.length) return <p className="analysis-data-state">Nenhuma microempresa participou de licitações com estes filtros.</p>;
+  return <NatureBarChart
+    id="export-participation-chart"
+    color={chartColors.participation}
+    seriesName="Participações de microempresas"
+    labels={rows.map((item) => natureLabel(item.codigo_natureza, item.nome_natureza))}
+    values={rows.map((item) => item.percentual_participacoes_me ?? 0)}
+    axisFormatter={(value) => `${Math.round(value)}%`}
+    tooltipFormatter={(value) => `${percentLabel(value)} das participações`}
+    compactView={compactView}
+  />;
 }
 
 export function MicroenterpriseValueChart({ data }: { data: ParticipationByNatureResponse["data"] }) {
   const rows = selectMicroenterpriseValueRows(data);
-  if (!rows.length) return <p className="analysis-data-state">Nenhum valor vencido por ME para estes filtros.</p>;
-  const names = new Map(rows.map((item) => [item.codigo_natureza, item.nome_natureza]));
-  const options: ApexOptions = {
-    ...base,
-    chart: { ...base.chart, id: "export-microenterprise-chart", type: "bar" },
-    colors: [chartColors.microenterprise],
-    plotOptions: { bar: { horizontal: false, borderRadius: 7, columnWidth: "54%" } },
-    xaxis: { categories: rows.map((item) => item.codigo_natureza), labels: { style: { colors: colors.graphite, fontSize: "12px", fontWeight: 700 } }, axisBorder: { show: false }, axisTicks: { show: false } },
-    yaxis: { min: 0, labels: { formatter: compact, style: { colors: "#3D586D", fontSize: "12px" } } },
-    tooltip: { shared: true, intersect: false, x: { formatter: (code) => names.get(String(code)) ?? String(code) }, y: { formatter: currency } },
-  };
-  return <div className="nature-chart"><Chart type="bar" height={285} options={options} series={[{ name: "Valor vencido por ME", data: rows.map((item) => Number(item.valor_vencido_me)) }]} /><NatureKey rows={rows} /></div>;
-}
-
-function NatureKey({ rows }: { rows: Array<{ codigo_natureza: string; nome_natureza: string }> }) {
-  return <div className="nature-chart-key" aria-label="Legenda das naturezas da despesa">
-    {rows.map((item) => <span key={item.codigo_natureza} title={item.nome_natureza}><b>{item.codigo_natureza}</b>{item.nome_natureza.toLocaleLowerCase("pt-BR")}</span>)}
-  </div>;
+  if (!rows.length) return <p className="analysis-data-state">Nenhum valor ganho por microempresas para estes filtros.</p>;
+  return <NatureBarChart
+    id="export-microenterprise-chart"
+    color={chartColors.microenterprise}
+    seriesName="Valor ganho por microempresas"
+    labels={rows.map((item) => natureLabel(item.codigo_natureza, item.nome_natureza))}
+    values={rows.map((item) => Number(item.valor_vencido_me))}
+    axisFormatter={compact}
+    tooltipFormatter={currency}
+  />;
 }
 
 interface ShareDonutChartProps {
@@ -133,7 +169,7 @@ function ShareDonutChart({
         const marker = document.createElement("span");
         marker.className = `local-share-tooltip-marker ${index === 0 ? meMarkerClass : othersMarkerClass}`;
         const labelSpan = document.createElement("span");
-        labelSpan.textContent = "Participação: ";
+        labelSpan.textContent = "Fatia do valor: ";
         const value = document.createElement("strong");
         value.textContent = `${(index === 0 ? safe : 100 - safe).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
         detail.append(marker, labelSpan, value);
@@ -154,20 +190,20 @@ export function LocalShareChart({ percentage, size = 210 }: { percentage: number
       percentage={percentage}
       size={size}
       chartId="export-local-share-chart"
-      meLabel="ME locais"
-      othersLabel="Demais fornecedores"
+      meLabel="Microempresas locais"
+      othersLabel="Outras empresas"
       meColor={chartColors.local}
       othersColor={chartColors.remaining}
       meMarkerClass="local-share-tooltip-marker--me"
       othersMarkerClass="local-share-tooltip-marker--others"
-      centerLabel="ME locais"
-      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% do valor vencido por microempresas locais`}
+      centerLabel="microempresas locais"
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% do valor ganho ficou com microempresas locais`}
     />
   );
 }
 
-// Mesma peça visual do LocalShareChart, mas para a base "geral": todas as ME
-// vencedoras no município, de qualquer origem (não só as sediadas ali).
+// Mesma peça visual do LocalShareChart, mas para a base "geral": todas as
+// microempresas vencedoras no município, de qualquer cidade (não só as sediadas ali).
 export function GeneralShareChart({ percentage, size = 210 }: { percentage: number; size?: number }) {
   return (
     <ShareDonutChart
@@ -175,13 +211,13 @@ export function GeneralShareChart({ percentage, size = 210 }: { percentage: numb
       size={size}
       chartId="export-general-share-chart"
       meLabel="Microempresas"
-      othersLabel="Demais fornecedores"
+      othersLabel="Outras empresas"
       meColor={chartColors.general}
       othersColor={chartColors.generalRemaining}
       meMarkerClass="local-share-tooltip-marker--general-me"
       othersMarkerClass="local-share-tooltip-marker--general-others"
-      centerLabel="Microempresas"
-      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% do valor vencido por microempresas, de qualquer origem`}
+      centerLabel="microempresas"
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% do valor ganho ficou com microempresas, de qualquer cidade`}
     />
   );
 }

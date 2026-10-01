@@ -1,0 +1,141 @@
+/* Toasts (sonner) — componente em components/ui/sonner.tsx.
+   O sonner injeta o próprio CSS em runtime, depois desta folha; por isso os
+   seletores começam em .app-toaster[data-sonner-toaster] para ter
+   especificidade maior que os padrões dele. */
+
+.app-toaster[data-sonner-toaster] {
+  font-family: inherit;
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  --toast-accent: var(--brand-blue);
+  --toast-accent-soft: var(--brand-sky);
+
+  align-items: center;
+  gap: 12px;
+  padding: 14px 44px 16px 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  color: var(--graphite);
+  font-size: 13px;
+
+  /* Barra de progresso: gradiente no fundo em vez de ::before/::after, que o
+     sonner usa para o gesto de arrastar e para o espaço entre toasts. */
+  background:
+    linear-gradient(var(--toast-accent), var(--toast-accent)) left bottom / 100% 3px no-repeat,
+    var(--surface);
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
+  --toast-accent: var(--success);
+  --toast-accent-soft: var(--success-soft);
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+  --toast-accent: var(--danger);
+  --toast-accent-soft: var(--danger-soft);
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-type="warning"] {
+  --toast-accent: var(--brand-gold);
+  --toast-accent-soft: var(--brand-gold-soft);
+}
+
+/* Especificidade zero de propósito: a animação de saída por swipe do sonner
+   precisa continuar vencendo esta. */
+:where(.app-toaster [data-sonner-toast]) {
+  animation: app-toast-progress var(--toast-duration) linear forwards;
+}
+
+/* Espelha as pausas do timer do sonner (mouse sobre a pilha de toasts). */
+:where(.app-toaster [data-sonner-toast][data-expanded="true"]) {
+  animation-play-state: paused;
+}
+
+/* Carregando não tem prazo; ao virar sucesso/erro a animação começa do zero,
+   junto com o timer do sonner. */
+:where(.app-toaster [data-sonner-toast][data-type="loading"]) {
+  animation: none;
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-type="loading"] {
+  background-size: 0 0, auto;
+}
+
+@keyframes app-toast-progress {
+  to {
+    background-size: 0% 3px, auto;
+  }
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon] {
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--toast-accent-soft);
+  color: var(--toast-accent);
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon] svg {
+  margin: 0;
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-title] {
+  color: var(--brand-navy);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-description] {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button] {
+  top: 10px;
+  right: 10px;
+  left: auto;
+  width: 26px;
+  height: 26px;
+  transform: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+
+.app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"]:hover [data-close-button]:hover {
+  border: 0;
+  background: var(--surface-soft);
+  color: var(--brand-navy);
+}
+
+/* Em telas com mouse o X só aparece ao passar sobre o toast; no toque ele
+   fica sempre visível (lá também dá para arrastar para fechar). */
+@media (hover: hover) {
+  .app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button] {
+    opacity: 0;
+  }
+
+  .app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"]:hover [data-close-button],
+  .app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button]:focus-visible {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.app-toaster [data-sonner-toast]) {
+    animation: none;
+  }
+
+  .app-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+    background-size: 0 0, auto;
+  }
+}

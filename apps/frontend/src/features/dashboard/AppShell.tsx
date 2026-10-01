@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, ChevronDown, LogOut, Menu, Search, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { toast } from "@/components/ui/sonner";
 
 // Renova o token de acesso (validade de 15 min) um pouco antes de expirar,
 // enquanto o painel estiver aberto, para a sessão não cair no meio do uso.
@@ -58,11 +59,28 @@ export function AppShell({
 
   const logout = async () => {
     setLoggingOut(true);
+    const toastId = toast.loading("Encerrando sua sessão…");
+
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } finally {
-      router.push("/auth/login");
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error(`Logout falhou (${response.status})`);
+    } catch {
+      // Sem resposta do servidor os cookies não foram apagados; mandar para o
+      // login faria o proxy.ts devolver a pessoa ao painel.
+      toast.error("Não foi possível sair", {
+        id: toastId,
+        description: "Verifique sua conexão e tente novamente.",
+      });
+      setLoggingOut(false);
+      return;
     }
+
+    toast.info("Você saiu da sua conta", {
+      id: toastId,
+      description: "Até logo! Sua sessão foi encerrada com segurança.",
+      icon: <LogOut size={18} strokeWidth={2.25} />,
+    });
+    router.push("/auth/login");
   };
 
   return (

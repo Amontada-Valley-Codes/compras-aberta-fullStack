@@ -14,7 +14,7 @@ app.setValidatorCompiler(() => () => true);
 app.setSerializerCompiler(() => (data) => JSON.stringify(data));
 
 app.setErrorHandler(errorHandling);
-app.register(cors, { origin: "*" });
+app.register(cors, { origin: env.CORS_ORIGIN });
 app.register(rateLimit, {
   global: false,
   errorResponseBuilder: (_request, context) => ({

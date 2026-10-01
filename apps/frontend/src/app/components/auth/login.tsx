@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronLeft, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 
 import { BrandLogo } from '@/components/brand/BrandLogo'
+import { toast } from '@/components/ui/sonner'
 
 const LoginIllustration = () => (
   <svg
@@ -83,6 +84,14 @@ export const Login = ({ next }: { next?: string }) => {
         return
       }
 
+      // O Toaster fica no layout raiz, então o toast continua na tela depois
+      // do redirecionamento para o painel.
+      toast.success('Bem-vindo(a) de volta!', {
+        description:
+          data?.role === 'ADMIN'
+            ? 'Você entrou no painel de administração.'
+            : 'Você entrou no painel da sua empresa.',
+      })
       router.push(safeNextPath(next) ?? data?.home ?? '/')
     } catch {
       setError('Não foi possível conectar ao servidor. Verifique sua conexão.')

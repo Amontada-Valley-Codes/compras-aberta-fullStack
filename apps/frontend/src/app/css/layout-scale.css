@@ -230,10 +230,6 @@
   font-size: 15px;
   line-height: 1.5;
 }
-.nature-chart-key span,
-.nature-chart-key b {
-  font-size: 12px;
-}
 .analysis-local-chart p {
   font-size: 16px;
   line-height: 1.5;
@@ -260,10 +256,6 @@
 }
 .analysis-table-card td b,
 .analysis-table-card td strong {
-  font-size: 15px;
-}
-.analysis-pagination span,
-.analysis-page-size {
   font-size: 15px;
 }
 .analysis-footnote {
