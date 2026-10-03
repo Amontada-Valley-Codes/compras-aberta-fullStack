@@ -29,6 +29,8 @@ import {
 import { AppShell, type NavItem } from "./AppShell";
 import { OpportunityDonut, SpendingAreaChart } from "./DashboardCharts";
 import { formatMoney, opportunities, type Opportunity } from "@/lib/mock-data";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { openDocumentInNewTab } from "@/utils/openInNewTab";
 
 const navItems: NavItem[] = [
   { id: "overview", label: "Visão geral", icon: <LayoutDashboard size={19} /> },
@@ -127,12 +129,17 @@ function MeOverview({
   onOpenOpportunity: (item: Opportunity) => void;
   favoriteCount: number;
 }) {
+  const { profile } = useUserProfile();
+
+  const userFirstName = profile?.name?.trim().split(" ")[0] || "Empresário(a)";
+  const companyName = profile?.business?.nome_empresa || "sua empresa";
+
   return (
     <div className="dashboard-page">
       <PageHeading
         eyebrow="PAINEL DA MICROEMPRESA"
-        title="Bom dia, Ana!"
-        description="Veja o que merece sua atenção hoje e encontre novas oportunidades para o Mercado São José."
+        title={`Bom dia, ${userFirstName}!`}
+        description={`Veja o que merece sua atenção hoje e encontre novas oportunidades para ${companyName}.`}
         action={
           <button
             className="ds-button primary"
@@ -787,7 +794,16 @@ function Documents() {
             <em className={doc[1] === "Aprovado" ? "approved" : "analysis"}>
               {doc[1]}
             </em>
-            <button>Visualizar</button>
+            <button
+              type="button"
+              onClick={() => {
+                const docName = doc[0];
+                const sampleDocUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%230f172a"/><rect x="40" y="40" width="720" height="520" rx="12" fill="%231e293b" stroke="%233b82f6" stroke-width="2"/><text x="400" y="150" font-size="24" font-weight="bold" fill="%2338bdf8" text-anchor="middle">DOCUMENTO DA MICROEMPRESA</text><text x="400" y="210" font-size="22" font-weight="bold" fill="%23f8fafc" text-anchor="middle">${encodeURIComponent(docName.toUpperCase())}</text><line x1="100" y1="250" x2="700" y2="250" stroke="%23334155" stroke-width="2"/><text x="400" y="310" font-size="16" fill="%23cbd5e1" text-anchor="middle">Status: ${encodeURIComponent(doc[1])}</text><text x="400" y="350" font-size="14" fill="%2394a3b8" text-anchor="middle">${encodeURIComponent(doc[2])}</text><rect x="250" y="420" width="300" height="50" rx="8" fill="%2316a34a"/><text x="400" y="452" font-size="16" font-weight="bold" fill="%23ffffff" text-anchor="middle">DOCUMENTO CONFERIDO</text></svg>`;
+                openDocumentInNewTab(sampleDocUrl, docName);
+              }}
+            >
+              Visualizar
+            </button>
             <label>
               <Upload /> Substituir
               <input type="file" onChange={() => setUploaded(true)} />
@@ -868,10 +884,18 @@ function Alerts() {
 
 function CompanyProfile() {
   const [saved, setSaved] = useState(false);
+  const { profile } = useUserProfile();
+
+  const cnpj = profile?.business?.cnpj || profile?.cnpj || "";
+  const nomeEmpresa = profile?.business?.nome_empresa || "";
+  const email = profile?.email || "";
+  const porte = profile?.business?.porte_empresa || "ME";
+  const responsavel = profile?.name || "";
+
   return (
     <div className="dashboard-page">
       <PageHeading
-        eyebrow="DADOS DA MICROEMPRESA"
+        eyebrow={`DADOS DA MICROEMPRESA (${porte})`}
         title="Perfil empresarial"
         description="Dados completos melhoram a qualidade das recomendações."
         action={
@@ -881,31 +905,31 @@ function CompanyProfile() {
           </button>
         }
       />
-      <form className="profile-grid">
+      <form className="profile-grid" onSubmit={(e) => e.preventDefault()}>
         <section className="dashboard-card">
           <h2>Identificação</h2>
           <label>
             CNPJ
-            <input defaultValue="12.345.678/0001-95" />
+            <input key={`cnpj-${cnpj}`} defaultValue={cnpj} readOnly />
           </label>
           <label>
-            Razão social
-            <input defaultValue="Mercado São José LTDA" />
+            Razão social / Nome da empresa
+            <input key={`nome-${nomeEmpresa}`} defaultValue={nomeEmpresa} />
           </label>
           <label>
-            Nome fantasia
-            <input defaultValue="Mercado São José" />
+            Porte da empresa
+            <input key={`porte-${porte}`} defaultValue={porte} readOnly />
           </label>
           <label>
-            CNAE principal
-            <input defaultValue="4712-1/00" />
+            Responsável legal
+            <input key={`resp-${responsavel}`} defaultValue={responsavel} />
           </label>
         </section>
         <section className="dashboard-card">
           <h2>Contato e atuação</h2>
           <label>
-            E-mail
-            <input defaultValue="contato@mercadosaojose.example" />
+            E-mail de contato
+            <input key={`email-${email}`} defaultValue={email} />
           </label>
           <label>
             Telefone

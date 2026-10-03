@@ -7,6 +7,15 @@ import { Bell, ChevronDown, LogOut, Menu, Search, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { toast } from "@/components/ui/sonner";
 
+import { useUserProfile } from "@/hooks/useUserProfile";
+
+function getInitials(name?: string, fallback = "ME"): string {
+  if (!name) return fallback;
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 // Renova o token de acesso (validade de 15 min) um pouco antes de expirar,
 // enquanto o painel estiver aberto, para a sessão não cair no meio do uso.
 // Se o refresh falhar (ex.: sessão revogada), a próxima navegação já esbarra
@@ -49,6 +58,12 @@ export function AppShell({
   const [loggingOut, setLoggingOut] = useState(false);
   const isAdmin = role === "admin";
   const router = useRouter();
+  const { profile } = useUserProfile();
+
+  const companyName = profile?.business?.nome_empresa || (isAdmin ? "Administração" : "Minha Empresa");
+  const userName = profile?.name || (isAdmin ? "Administrador" : "Responsável Legal");
+  const companyAvatar = isAdmin ? "CA" : getInitials(profile?.business?.nome_empresa, "ME");
+  const userAvatar = isAdmin ? "CM" : getInitials(profile?.name, "US");
 
   useSessionKeepAlive();
 
@@ -98,10 +113,10 @@ export function AppShell({
         </div>
 
         <div className="workspace-switcher">
-          <span className="workspace-avatar">{isAdmin ? "CA" : "MS"}</span>
+          <span className="workspace-avatar">{companyAvatar}</span>
           <span>
             <small>{isAdmin ? "AMBIENTE" : "MINHA EMPRESA"}</small>
-            <strong>{isAdmin ? "Administração" : "Mercado São José"}</strong>
+            <strong>{companyName}</strong>
           </span>
           <ChevronDown size={16} />
         </div>
@@ -130,9 +145,9 @@ export function AppShell({
         </div>
 
         <div className="sidebar-user">
-          <span className="user-avatar">{isAdmin ? "CM" : "AR"}</span>
+          <span className="user-avatar">{userAvatar}</span>
           <span>
-            <strong>{isAdmin ? "Carlos Mendes" : "Ana Ribeiro"}</strong>
+            <strong>{userName}</strong>
             <small>{isAdmin ? "Administrador" : "Responsável legal"}</small>
           </span>
           <ChevronDown size={16} />
@@ -223,7 +238,7 @@ export function AppShell({
             >
               <LogOut size={19} />
             </button>
-            <span className="topbar-avatar">{isAdmin ? "CM" : "AR"}</span>
+            <span className="topbar-avatar">{userAvatar}</span>
           </div>
         </header>
         <main className="dashboard-content">{children}</main>

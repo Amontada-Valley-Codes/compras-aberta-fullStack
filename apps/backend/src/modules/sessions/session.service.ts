@@ -54,7 +54,13 @@ const sessionService = {
     }
 
     if (!user.isActive) {
-      throw new AppError("Usuário desativado", 403);
+      if (user.role === "BUSINESS") {
+        throw new AppError(
+          "Sua solicitação cadastral ainda está em análise pelo administrador. Aguarde a aprovação para acessar a plataforma.",
+          403,
+        );
+      }
+      throw new AppError("Usuário desativado pelo administrador", 403);
     }
 
     return issueTokens(user);

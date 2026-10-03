@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Login } from "@/app/components/auth/login";
 
@@ -11,5 +12,9 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
-  return <Login next={next} />;
+  return (
+    <Suspense fallback={<div className="auth-page"><div className="auth-shell">Carregando...</div></div>}>
+      <Login next={next} />
+    </Suspense>
+  );
 }

@@ -199,3 +199,170 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* Customizações adicionais para Cadastro de Microempresa (ME) */
+.auth-shell-wide {
+  max-width: 1180px;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin: -20px 0 20px;
+  line-height: 1.4;
+}
+
+.auth-section-title {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--brand-blue);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+  margin-top: 8px;
+}
+
+.auth-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .auth-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.auth-select {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 14px;
+  color: var(--graphite);
+  cursor: pointer;
+}
+
+.auth-docs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .auth-docs-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.auth-file-box {
+  position: relative;
+}
+
+.auth-file-box input[type='file'] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.auth-file-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.auth-file-box:hover .auth-file-label {
+  border-color: var(--brand-blue);
+  background: rgba(37, 99, 166, 0.04);
+}
+
+.auth-file-preview-btn {
+  position: relative;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--brand-blue, #2563eb);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.auth-file-preview-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.auth-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #eaf3f8;
+  color: var(--brand-blue);
+  flex-shrink: 0;
+}
+
+.auth-file-icon .text-success {
+  color: #16a34a;
+}
+
+.auth-file-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.auth-file-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-navy);
+}
+
+.auth-file-name {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auth-register-prompt {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 16px;
+}
+
+.auth-register-link {
+  color: var(--brand-blue);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.auth-register-link:hover {
+  text-decoration: underline;
+  color: var(--brand-blue-hover);
+}

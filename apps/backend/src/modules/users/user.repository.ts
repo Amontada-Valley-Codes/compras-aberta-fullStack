@@ -22,6 +22,9 @@ const userRepository = {
       where: {
         id,
       },
+      include: {
+        business: true,
+      },
     });
   },
 

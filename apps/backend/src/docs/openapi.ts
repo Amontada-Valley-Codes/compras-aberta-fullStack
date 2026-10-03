@@ -17,6 +17,10 @@ const swaggerOptions: SwaggerOptions = {
         description: "Cadastro de usuários e login com JWT.",
       },
       {
+        name: "Microempresa",
+        description: "Cadastro e gestão de microempresas.",
+      },
+      {
         name: "Municípios",
         description: "Catálogo de municípios do Ceará.",
       },

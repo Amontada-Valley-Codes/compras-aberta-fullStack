@@ -13,6 +13,12 @@ enum UserRole {
   BUSINESS
 }
 
+enum PorteEmpresa {
+  MEI
+  ME
+  EPP
+}
+
 model user {
   id       String   @id @default(uuid())
   name     String
@@ -49,13 +55,18 @@ model refreshToken {
 model business {
   id String @id @default(uuid())
 
-  cnpj                     String  @unique
+  cnpj                     String        @unique
   name_businss              String
-  isActive Boolean  @default(true)
-  url_cartao_cnpj            String
-  url_contrato_social         String
-  url_comprovante_endereco    String
-  url_comprovante_socio       String
+  porte_empresa             PorteEmpresa
+  isActive                 Boolean       @default(true)
+  cartaoCnpjData              Bytes
+  cartaoCnpjMimeType          String
+  contratoSocialData          Bytes
+  contratoSocialMimeType      String
+  comprovanteEnderecoData     Bytes
+  comprovanteEnderecoMimeType String
+  comprovanteSocioData        Bytes
+  comprovanteSocioMimeType    String
   user                       user?
 
   createdAt DateTime @default(now())

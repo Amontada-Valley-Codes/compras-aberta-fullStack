@@ -8,6 +8,7 @@ municípios do Ceará gastam com compras públicas.
 | Grupo | O que faz | Precisa de login? |
 | --- | --- | --- |
 | **Autenticação** | Cadastro de usuários e login (emissão de token JWT). | Não |
+| **Microempresa** | Cadastro de microempresas com upload de documentos. | Não |
 | **Municípios** | Catálogo de municípios do Ceará (código IBGE e nome). | Não |
 | **Analytics** | Indicadores e licitações públicas. | Não |
 
@@ -17,8 +18,16 @@ validação dos filtros, cache e tentativas automáticas.
 
 ## Autenticação
 
+### Cadastro simples (apenas usuário)
 1. Crie a conta em \`POST /users\` (o papel é sempre \`BUSINESS\`).
+2. Faça login em \`POST /sessions\`.
+
+### Cadastro de microempresa (usuário + empresa)
+1. Cadastre a empresa em \`POST /business/register\` enviando os dados do
+   usuário, da empresa e os 4 documentos obrigatórios via \`multipart/form-data\`.
 2. Faça login em \`POST /sessions\` e guarde o \`token\` e o \`refreshToken\`.
+
+### Uso do token
 3. Envie o token nas rotas protegidas no cabeçalho
    \`Authorization: Bearer <token>\`.
 4. Quando o token expirar, chame \`POST /sessions/refresh\` com o
@@ -45,6 +54,7 @@ Rotas sensíveis têm limite por IP. Ao excedê-lo a resposta é **429**.
 | \`POST /sessions\` | 5 requisições por minuto |
 | \`POST /sessions/refresh\` e \`/sessions/logout\` | 20 requisições por minuto |
 | \`POST /users\` | 3 requisições a cada 10 minutos |
+| \`POST /business/register\` | 3 requisições a cada 10 minutos |
 
 ## Cache e resiliência (Analytics)
 
@@ -63,7 +73,7 @@ Todo erro tem o corpo \`{ "message": "..." }\`.
 | 400 | Parâmetros inválidos. Traz também \`issues\` com o detalhe por campo. |
 | 401 | Credenciais ou token inválidos. |
 | 403 | Sem permissão (ex.: usuário desativado). |
-| 409 | Conflito (ex.: e-mail já cadastrado). |
+| 409 | Conflito (ex.: e-mail ou CNPJ já cadastrado). |
 | 429 | Limite de requisições excedido. |
 | 502 | API externa de dados indisponível. |
 | 500 | Erro inesperado no servidor. |
@@ -77,6 +87,8 @@ Todo erro tem o corpo \`{ "message": "..." }\`.
 - **Datas** de filtro usam \`AAAA-MM-DD\`.
 - **Paginação** das listas usa \`limit\` (máx. 100) e \`offset\`.
 - **ME** significa *microempresa*.
+- **Upload de documentos** usa \`multipart/form-data\`. Formatos aceitos:
+  PDF, JPG, PNG (máx 5 MB por arquivo).
 `;
 
 export { apiDescription };

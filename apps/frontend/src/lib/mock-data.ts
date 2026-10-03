@@ -22,6 +22,12 @@ export type CompanyRequest = {
   sentAt: string;
   documents: string;
   status: "Em análise" | "Pendente" | "Aprovada" | "Recusada";
+  docsUrls?: {
+    cartao_cnpj: string;
+    contrato_social: string;
+    comprovante_endereco: string;
+    comprovante_socio: string;
+  } | null;
 };
 
 export const opportunities: Opportunity[] = [
