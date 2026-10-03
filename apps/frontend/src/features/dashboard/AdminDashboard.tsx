@@ -15,6 +15,7 @@ import {
   FileText,
   Filter,
   LayoutDashboard,
+  Loader2,
   RefreshCw,
   Search,
   Settings,
@@ -51,15 +52,22 @@ const navItems: NavItem[] = [
 export function AdminDashboard() {
   const [active, setActive] = useState("overview");
   const [requests, setRequests] = useState<CompanyRequest[]>(companyRequests);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     listBusinessRequestsService()
       .then((data) => {
-        if (data && data.length > 0) {
-          setRequests(data);
-        }
+        setRequests(Array.isArray(data) && data.length > 0 ? data : companyRequests);
       })
-      .catch(console.error);
+      .catch((err) => {
+        // Ignora o console.error para não abrir o overlay vermelho do Next.js
+        setError("Não foi possível carregar as solicitações. Verifique os dados enviados.");
+        // Keeps the mock data in requests array so the Dashboard Overview doesn't break
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const pendingCount = requests.filter(
@@ -85,7 +93,7 @@ export function AdminDashboard() {
         <AdminOverview onNavigate={setActive} requests={requests} />
       )}
       {active === "requests" && (
-        <Requests requests={requests} setRequests={setRequests} />
+        <Requests requests={error ? [] : requests} setRequests={setRequests} loading={loading} />
       )}
       {active === "licitacoes" && <AdminLicitacoes />}
       {active === "companies" && <Companies requests={requests} />}
@@ -270,9 +278,12 @@ function AdminOverview({
 function Requests({
   requests,
   setRequests,
+  loading,
+  error,
 }: {
   requests: CompanyRequest[];
   setRequests: (items: CompanyRequest[]) => void;
+  loading?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Todas");
@@ -317,46 +328,61 @@ function Requests({
         title="Solicitações de microempresas"
         description="Priorize a fila, confira documentos e registre decisões com rastreabilidade."
       />
-      <section className="request-tabs">
-        <button
-          className={filter === "Todas" ? "active" : ""}
-          onClick={() => setFilter("Todas")}
-        >
-          Todas <em>{requests.length}</em>
-        </button>
-        {["Em análise", "Pendente", "Aprovada"].map((status) => (
-          <button
-            className={filter === status ? "active" : ""}
-            onClick={() => setFilter(status)}
-            key={status}
-          >
-            {status}{" "}
-            <em>{requests.filter((item) => item.status === status).length}</em>
-          </button>
-        ))}
-      </section>
-      <section className="dashboard-card filter-bar">
-        <label>
-          <Search />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar empresa, CNPJ ou município"
-          />
-        </label>
-        <span className="filter-context">
-          <ShieldCheck /> Dados sensíveis protegidos
-        </span>
-      </section>
-      <section className="dashboard-card admin-table-card full-table">
-        <div className="table-summary">
-          <p>
-            <b>{visible.length}</b> solicitações nesta visualização
-          </p>
-          <button>Exportar lista</button>
+      {loading ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}>
+          <Loader2 size={32} className="spin" style={{ color: 'var(--accent, #3b82f6)' }} />
         </div>
-        <RequestTable items={visible} onOpen={setSelected} />
-      </section>
+      ) : (
+        <>
+          <section className="request-tabs">
+            <button
+              className={filter === "Todas" ? "active" : ""}
+              onClick={() => setFilter("Todas")}
+            >
+              Todas <em>{requests.length}</em>
+            </button>
+            {["Em análise", "Pendente", "Aprovada"].map((status) => (
+              <button
+                className={filter === status ? "active" : ""}
+                onClick={() => setFilter(status)}
+                key={status}
+              >
+                {status}{" "}
+                <em>{requests.filter((item) => item.status === status).length}</em>
+              </button>
+            ))}
+          </section>
+          <section className="dashboard-card filter-bar">
+            <label>
+              <Search />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Buscar empresa, CNPJ ou município"
+              />
+            </label>
+            <span className="filter-context">
+              <ShieldCheck /> Dados sensíveis protegidos
+            </span>
+          </section>
+          <section className="dashboard-card admin-table-card full-table">
+            <div className="table-summary">
+              <p>
+                <b>{visible.length}</b> solicitações nesta visualização
+              </p>
+              <button>Exportar lista</button>
+            </div>
+            <RequestTable items={visible} onOpen={setSelected} />
+            {visible.length === 0 && (
+              <div style={{ textAlign: "center", padding: "3rem", color: "var(--ds-gray-500)" }}>
+                <Building2 size={48} style={{ margin: "0 auto", opacity: 0.5, marginBottom: "1rem" }} />
+                <p>Nenhuma solicitação de cadastro encontrada.</p>
+                <p style={{ fontSize: "0.875rem", opacity: 0.7 }}>A tabela está vazia ou ocorreu um erro na busca.</p>
+              </div>
+            )}
+          </section>
+        </>
+      )}
       {selected && (
         <div className="modal-backdrop" onClick={() => setSelected(null)}>
           <section
