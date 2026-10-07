@@ -79,6 +79,17 @@ export async function adminRoutes(app: FastifyInstance) {
           : []),
       ]);
 
+      if (isActive) {
+        // Import must be at the top, or inline if dynamic, but let's just add it to the top. Wait, I will use dynamic import or just add import at the top of the file in the next replacement chunk.
+        // Actually, let's just add it at the top of the file using another chunk, or dynamically here. I'll add the import at the top.
+        const { sendApprovalEmail } = await import("../../services/notification.service");
+        // Dispatch in background so it doesn't block the request response
+        sendApprovalEmail({ 
+          toEmail: user.email, 
+          companyName: user.business?.name_businss || user.name 
+        });
+      }
+
       return reply.send({ message: `Status atualizado para ${status}` });
     }
   );

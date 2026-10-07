@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowRight,
@@ -51,26 +52,17 @@ const navItems: NavItem[] = [
 
 export function AdminDashboard() {
   const [active, setActive] = useState("overview");
-  const [requests, setRequests] = useState<CompanyRequest[]>(companyRequests);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    listBusinessRequestsService()
-      .then((data) => {
-        setRequests(Array.isArray(data) && data.length > 0 ? data : companyRequests);
-      })
-      .catch((err) => {
-        // Ignora o console.error para não abrir o overlay vermelho do Next.js
-        setError("Não foi possível carregar as solicitações. Verifique os dados enviados.");
-        // Keeps the mock data in requests array so the Dashboard Overview doesn't break
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["businessRequests"],
+    queryFn: listBusinessRequestsService,
+  });
 
-  const pendingCount = requests.filter(
+  // Use dados reais se existirem, senão mock no overview, e array vazio na aba de solicitações em caso de erro
+  const overviewRequests = Array.isArray(data) && data.length > 0 ? data : companyRequests;
+  const requestsPageData = isError ? [] : overviewRequests;
+
+  const pendingCount = overviewRequests.filter(
     (item) => item.status === "Em análise" || item.status === "Pendente",
   ).length;
 
@@ -90,13 +82,13 @@ export function AdminDashboard() {
       items={dynamicNavItems}
     >
       {active === "overview" && (
-        <AdminOverview onNavigate={setActive} requests={requests} />
+        <AdminOverview onNavigate={setActive} requests={overviewRequests} />
       )}
       {active === "requests" && (
-        <Requests requests={error ? [] : requests} setRequests={setRequests} loading={loading} />
+        <Requests requests={requestsPageData} loading={isLoading} />
       )}
       {active === "licitacoes" && <AdminLicitacoes />}
-      {active === "companies" && <Companies requests={requests} />}
+      {active === "companies" && <Companies requests={overviewRequests} />}
       {active === "integrations" && <Integrations />}
       {active === "municipalities" && <SimpleRegistry type="municipalities" />}
       {active === "users" && <SimpleRegistry type="users" />}
@@ -277,14 +269,12 @@ function AdminOverview({
 
 function Requests({
   requests,
-  setRequests,
   loading,
-  error,
 }: {
   requests: CompanyRequest[];
-  setRequests: (items: CompanyRequest[]) => void;
   loading?: boolean;
 }) {
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Todas");
   const [selected, setSelected] = useState<CompanyRequest | null>(null);
@@ -300,17 +290,23 @@ function Requests({
       ),
     [requests, query, filter],
   );
+  const mutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: "Aprovada" | "Pendente" | "Em análise" }) =>
+      updateBusinessRequestStatusService(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["businessRequests"] });
+    },
+  });
+
   const decide = async (status: CompanyRequest["status"]) => {
     if (!selected) return;
     try {
       if (status !== "Recusada") {
-        await updateBusinessRequestStatusService(selected.id, status as "Aprovada" | "Pendente" | "Em análise");
+        await mutation.mutateAsync({
+          id: selected.id,
+          status: status as "Aprovada" | "Pendente" | "Em análise",
+        });
       }
-      setRequests(
-        requests.map((item) =>
-          item.id === selected.id ? { ...item, status } : item,
-        ),
-      );
       setSelected(null);
       setMessage(
         `Solicitação ${status === "Aprovada" ? "aprovada" : "enviada para correção"} com sucesso.`,
