@@ -92,12 +92,21 @@
   );
   transform: translate(-50%, -50%);
 }
-.steps-visual img {
+.steps-visual {
+  /* A caixa do celular calcula o tamanho a partir deste container. As
+     unidades cqh precisam de altura explícita (só min-height dá 0). */
+  container-type: size;
+  height: 680px;
+  --phone-scale: 0.9;
+}
+@media (max-width: 900px) {
+  .steps-visual {
+    height: 610px;
+  }
+}
+.steps-phone img {
   z-index: 1;
   object-fit: contain;
-  object-position: center bottom;
-  transform: scale(0.9);
-  transform-origin: center bottom;
 }
 
 @media (max-width: 900px) {
@@ -164,7 +173,378 @@
     width: 420px;
     height: 420px;
   }
-  .steps-visual img {
-    transform: scale(0.88);
+  .steps-visual {
+    --phone-scale: 0.88;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Passos interativos + celular animado                                */
+/* As posições em % dentro de .steps-phone são relativas ao PNG        */
+/* celular-oportunidades.png (1312x1199): tela entre x 495–812 e       */
+/* y 35–745; sino em (735, 100).                                       */
+/* ------------------------------------------------------------------ */
+.steps-phone {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 0;
+  height: min(100cqh, 100cqw * 1199 / 1312);
+  aspect-ratio: 1312 / 1199;
+  transform: translateX(-50%) scale(var(--phone-scale));
+  transform-origin: center bottom;
+  animation: steps-sway 9s ease-in-out infinite;
+}
+
+/* Luz descendo pela tela do celular */
+.steps-screen-scan {
+  position: absolute;
+  z-index: 2;
+  left: 37.9%;
+  top: 3.1%;
+  width: 23.9%;
+  height: 59%;
+  border-radius: 12% / 5.5%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.steps-screen-scan::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -30%;
+  height: 30%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(24, 192, 220, 0.16) 70%,
+    rgba(160, 240, 255, 0.55) 98%,
+    transparent
+  );
+  animation: steps-scan 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Sino com notificação pulsando */
+.steps-bell-ping {
+  position: absolute;
+  z-index: 2;
+  left: 56%;
+  top: 8.3%;
+  width: 3.4%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid #f2b83e;
+  transform: translate(-50%, -50%);
+  animation: steps-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+/* Moldura de luz que pula para o elemento da tela ligado ao passo ativo */
+.steps-card-focus {
+  position: absolute;
+  z-index: 2;
+  border-radius: 10px;
+  border: 2px solid rgba(24, 192, 220, 0.95);
+  box-shadow:
+    0 0 0 4px rgba(24, 192, 220, 0.18),
+    0 0 22px rgba(24, 192, 220, 0.55);
+  pointer-events: none;
+  transition:
+    left 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    top 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    width 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    height 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-radius 0.6s ease;
+}
+.steps-card-focus.is-step-0 {
+  /* avatar da empresa */
+  left: 57.6%;
+  top: 6.6%;
+  width: 3.4%;
+  height: 3.7%;
+  border-radius: 50%;
+}
+.steps-card-focus.is-step-1 {
+  /* busca com filtros */
+  left: 38.6%;
+  top: 16%;
+  width: 22.6%;
+  height: 3.4%;
+}
+.steps-card-focus.is-step-2 {
+  /* primeira oportunidade */
+  left: 38.5%;
+  top: 37.6%;
+  width: 22.8%;
+  height: 7.8%;
+}
+.steps-card-focus.is-step-3 {
+  /* data limite da primeira oportunidade */
+  left: 53.3%;
+  top: 42.6%;
+  width: 6.6%;
+  height: 2.2%;
+  border-radius: 6px;
+}
+
+/* Cards de vidro saindo do celular, um por passo */
+.steps-toasts {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.steps-toast {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: min(270px, 40%);
+  padding: 12px 14px;
+  border-radius: 16px;
+  color: var(--brand-navy);
+  opacity: 0;
+  visibility: hidden;
+  filter: blur(6px);
+  /* visibility garante que o vidro (backdrop-filter) não seja pintado
+     enquanto o card está oculto; só some depois do fade de saída. */
+  transition:
+    opacity 0.45s ease,
+    transform 0.6s cubic-bezier(0.2, 0.9, 0.25, 1.2),
+    filter 0.45s ease,
+    visibility 0s linear 0.45s;
+}
+.steps-toast > span {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #18c0dc, #2563a6);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(24, 192, 220, 0.4);
+}
+.steps-toast > span svg {
+  width: 19px;
+  height: 19px;
+}
+.steps-toast > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.steps-toast b {
+  font-size: 14px;
+  line-height: 1.25;
+}
+.steps-toast small {
+  font-size: 12px;
+  color: #5c6f7c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.steps-toast.toast-0 {
+  left: 4%;
+  top: 6%;
+  transform: translateX(40px) scale(0.85);
+  transform-origin: right center;
+}
+.steps-toast.toast-1 {
+  left: 63%;
+  top: 13%;
+  transform: translateX(-40px) scale(0.85);
+  transform-origin: left center;
+}
+.steps-toast.toast-2 {
+  left: 2%;
+  top: 33%;
+  transform: translateX(40px) scale(0.85);
+  transform-origin: right center;
+}
+.steps-toast.toast-3 {
+  left: 63%;
+  top: 39%;
+  transform: translateX(-40px) scale(0.85);
+  transform-origin: left center;
+}
+.steps-toast.toast-3 > span {
+  background: linear-gradient(135deg, #f2b83e, #e0901c);
+  box-shadow: 0 6px 16px rgba(242, 184, 62, 0.45);
+}
+.steps-toast.is-active {
+  opacity: 1;
+  visibility: visible;
+  filter: none;
+  transform: none;
+  transition-delay: 0s;
+}
+
+/* Lista de passos: o ativo acende, os outros ficam em segundo plano */
+.steps-list li {
+  position: relative;
+  cursor: pointer;
+}
+.steps-list li > span {
+  position: relative;
+  transition:
+    background 0.4s ease,
+    color 0.4s ease,
+    box-shadow 0.4s ease,
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.25, 1.2);
+}
+.steps-list li > span em {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #087586;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(18, 59, 93, 0.15);
+}
+.steps-list li > p {
+  transition: opacity 0.4s ease;
+}
+.steps-section.is-in-view .steps-list li:not(.is-active) > p {
+  opacity: 0.55;
+}
+.steps-list li.is-active > span {
+  background: linear-gradient(135deg, #18c0dc, #2563a6);
+  color: #fff;
+  box-shadow:
+    0 0 0 6px rgba(24, 192, 220, 0.14),
+    0 10px 24px rgba(24, 192, 220, 0.35);
+  transform: scale(1.08);
+}
+.steps-list li > i {
+  position: absolute;
+  left: 78px;
+  right: 0;
+  bottom: -11px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #18c0dc, #2563a6);
+  transform-origin: left center;
+  animation: steps-progress var(--step-duration, 3.2s) linear both;
+}
+.steps-list.is-pinned li > i {
+  animation: none;
+}
+
+/* Brilho atrás do celular respirando */
+.steps-visual::before {
+  animation: steps-glow 6s ease-in-out infinite;
+}
+
+@keyframes steps-sway {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(var(--phone-scale)) rotate(-0.8deg);
+  }
+  50% {
+    transform: translateX(-50%) scale(var(--phone-scale)) rotate(0.8deg);
+  }
+}
+@keyframes steps-scan {
+  0% {
+    transform: translateY(0);
+  }
+  70%,
+  100% {
+    transform: translateY(440%);
+  }
+}
+@keyframes steps-ping {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  80%,
+  100% {
+    transform: translate(-50%, -50%) scale(2.2);
+    opacity: 0;
+  }
+}
+@keyframes steps-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes steps-glow {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 680px) {
+  .steps-list li > i {
+    left: 64px;
+  }
+  .steps-toast {
+    width: min(210px, 52%);
+    padding: 9px 10px;
+    gap: 8px;
+  }
+  .steps-toast > span {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+  .steps-toast b {
+    font-size: 12px;
+  }
+  .steps-toast small {
+    font-size: 10px;
+  }
+  .steps-toast.toast-1,
+  .steps-toast.toast-3 {
+    left: auto;
+    right: 0;
+  }
+  .steps-toast.toast-0,
+  .steps-toast.toast-2 {
+    left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .steps-phone,
+  .steps-screen-scan::after,
+  .steps-bell-ping,
+  .steps-visual::before,
+  .steps-list li > i {
+    animation: none !important;
+  }
+  .steps-phone {
+    transform: translateX(-50%) scale(var(--phone-scale));
+  }
+  .steps-screen-scan {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  /* No celular a largura limita a imagem; altura menor evita vão acima. */
+  .steps-visual {
+    height: 430px;
+    min-height: 430px;
   }
 }

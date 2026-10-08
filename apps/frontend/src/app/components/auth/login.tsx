@@ -7,43 +7,7 @@ import { ChevronLeft, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { toast } from '@/components/ui/sonner'
-
-const LoginIllustration = () => (
-  <svg
-    className='auth-icon'
-    viewBox='0 0 140 140'
-    fill='none'
-    xmlns='http://www.w3.org/2000/svg'
-    role='img'
-    aria-label='Ícone de cadastro verificado'>
-    <rect
-      x='26'
-      y='26'
-      width='80'
-      height='94'
-      rx='16'
-      fill='#2563a6'
-      fillOpacity='0.18'
-      stroke='#eaf3f8'
-      strokeWidth='6'
-    />
-    <rect x='59' y='10' width='14' height='12' rx='6' fill='#eaf3f8' />
-    <rect x='51' y='16' width='30' height='16' rx='8' fill='#eaf3f8' />
-    <rect x='38' y='48' width='56' height='58' rx='10' fill='#123b5d' fillOpacity='0.4' />
-    <circle cx='66' cy='68' r='14' fill='#4f9fee' />
-    <rect x='46' y='90' width='40' height='6' rx='3' fill='#eaf3f8' />
-    <rect x='46' y='100' width='26' height='6' rx='3' fill='#eaf3f8' fillOpacity='0.55' />
-    <circle cx='96' cy='112' r='18' fill='#d9a441' />
-    <path
-      d='M88 112 l6 6 12-13'
-      stroke='#123b5d'
-      strokeWidth='6'
-      strokeLinecap='round'
-      strokeLinejoin='round'
-      fill='none'
-    />
-  </svg>
-)
+import { AuthIllustration } from './auth-illustration'
 
 // Só aceita um destino relativo dentro do próprio site (nunca "//host" ou
 // "/\host", que o navegador trata como um redirecionamento para outro
@@ -84,6 +48,19 @@ export const Login = ({ next }: { next?: string }) => {
         return
       }
 
+      // Empresa ainda sem aprovação vai direto para o status da solicitação,
+      // ignorando o "next" (o proxy.ts a devolveria para lá de todo jeito).
+      if (data?.accessStatus && data.accessStatus !== 'APPROVED') {
+        toast.info('Acompanhe sua solicitação', {
+          description:
+            data.accessStatus === 'PENDING'
+              ? 'Seu acesso ainda está em análise pela nossa equipe.'
+              : 'Sua solicitação de acesso não foi aprovada.',
+        })
+        router.push(data.home ?? '/')
+        return
+      }
+
       // O Toaster fica no layout raiz, então o toast continua na tela depois
       // do redirecionamento para o painel.
       toast.success('Bem-vindo(a) de volta!', {
@@ -104,7 +81,7 @@ export const Login = ({ next }: { next?: string }) => {
       <div className='auth-shell'>
         <div className='auth-visual'>
           <div className='auth-icon-wrap'>
-            <LoginIllustration />
+            <AuthIllustration />
           </div>
           <BrandLogo inverse />
         </div>
@@ -175,6 +152,11 @@ export const Login = ({ next }: { next?: string }) => {
               {pending ? 'Entrando…' : 'Entrar'}
             </button>
           </form>
+
+          <p className='auth-switch'>
+            Sua empresa ainda não tem acesso?{' '}
+            <Link href='/auth/solicitar-acesso'>Solicitar acesso</Link>
+          </p>
         </div>
       </div>
     </div>

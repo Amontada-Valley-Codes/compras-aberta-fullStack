@@ -9,10 +9,9 @@ import {
   CheckCircle2,
   Clock3,
   Database,
-  Eye,
   FileCheck2,
-  FileText,
   LayoutDashboard,
+  Loader2,
   RefreshCw,
   Search,
   Settings,
@@ -22,276 +21,198 @@ import {
   X,
 } from "lucide-react";
 import { AppShell, type NavItem } from "./AppShell";
-import { AdminFlowChart, RegistrationDonut } from "./DashboardCharts";
-import { companyRequests, type CompanyRequest } from "@/lib/mock-data";
+import { AdminOverview } from "./AdminOverview";
 import { CardHeader, Metric, PageHeading } from "./MeDashboard";
+import { initials, readMessage, useAccessRequests, type RequestsState } from "./useAccessRequests";
+import { toast } from "@/components/ui/sonner";
+import { formatCnpj, formatDateTime, formatPhone } from "@/lib/format-br";
+import {
+  accessStatusLabel,
+  type AccessRequest,
+  type AccessStatus,
+} from "@/services/access-requests/access-requests.types";
 
-const navItems: NavItem[] = [
-  { id: "overview", label: "Visão geral", icon: <LayoutDashboard size={19} /> },
-  {
-    id: "requests",
-    label: "Solicitações",
-    icon: <FileCheck2 size={19} />,
-    badge: "8",
-  },
-  { id: "companies", label: "Microempresas", icon: <Store size={19} /> },
-  { id: "municipalities", label: "Municípios", icon: <Building2 size={19} /> },
-  { id: "integrations", label: "Integrações", icon: <Database size={19} /> },
-  { id: "users", label: "Usuários e acessos", icon: <Users size={19} /> },
-  { id: "settings", label: "Configurações", icon: <Settings size={19} /> },
-];
+const statusClass: Record<AccessStatus, string> = {
+  PENDING: "",
+  APPROVED: "status-aprovada",
+  REJECTED: "status-recusada",
+};
 
 export function AdminDashboard() {
   const [active, setActive] = useState("overview");
-  const [requests, setRequests] = useState(companyRequests);
+  // Solicitação a abrir direto na aba "Solicitações" (ex.: "Analisar" na
+  // visão geral). Navegar pelo menu limpa a escolha.
+  const [openRequestId, setOpenRequestId] = useState<string | null>(null);
+  const navigate = (id: string) => {
+    setOpenRequestId(null);
+    setActive(id);
+  };
+  const openRequest = (id: string) => {
+    setOpenRequestId(id);
+    setActive("requests");
+  };
+  const accessRequests = useAccessRequests();
+  const pendingCount = accessRequests.requests.filter(
+    (item) => item.status === "PENDING",
+  ).length;
+
+  const navItems: NavItem[] = [
+    { id: "overview", label: "Visão geral", icon: <LayoutDashboard size={19} /> },
+    {
+      id: "requests",
+      label: "Solicitações",
+      icon: <FileCheck2 size={19} />,
+      badge: pendingCount > 0 ? String(pendingCount) : undefined,
+    },
+    { id: "companies", label: "Microempresas", icon: <Store size={19} /> },
+    { id: "municipalities", label: "Municípios", icon: <Building2 size={19} /> },
+    { id: "integrations", label: "Integrações", icon: <Database size={19} /> },
+    { id: "users", label: "Usuários e acessos", icon: <Users size={19} /> },
+    { id: "settings", label: "Configurações", icon: <Settings size={19} /> },
+  ];
+
   return (
     <AppShell
       role="admin"
       active={active}
-      onNavigate={setActive}
+      onNavigate={navigate}
       items={navItems}
     >
-      {active === "overview" && (
-        <AdminOverview onNavigate={setActive} requests={requests} />
-      )}
-      {active === "requests" && (
-        <Requests requests={requests} setRequests={setRequests} />
-      )}
-      {active === "companies" && <Companies requests={requests} />}
-      {active === "integrations" && <Integrations />}
-      {active === "municipalities" && <SimpleRegistry type="municipalities" />}
-      {active === "users" && <SimpleRegistry type="users" />}
-      {active === "settings" && <SettingsPage />}
+      {/* key: cada troca de aba remonta o conteúdo e repete a entrada suave. */}
+      <div key={active} className="ov-tab">
+        {active === "overview" && (
+          <AdminOverview
+            onNavigate={navigate}
+            onOpenRequest={openRequest}
+            state={accessRequests}
+          />
+        )}
+        {active === "requests" && (
+          <Requests state={accessRequests} initialSelectedId={openRequestId} />
+        )}
+        {active === "companies" && (
+          <Companies requests={accessRequests.requests} />
+        )}
+        {active === "integrations" && <Integrations />}
+        {active === "municipalities" && <SimpleRegistry type="municipalities" />}
+        {active === "users" && <SimpleRegistry type="users" />}
+        {active === "settings" && <SettingsPage />}
+      </div>
     </AppShell>
   );
 }
 
-function AdminOverview({
-  onNavigate,
-  requests,
-}: {
-  onNavigate: (id: string) => void;
-  requests: CompanyRequest[];
-}) {
-  const pending = requests.filter(
-    (item) => item.status === "Em análise" || item.status === "Pendente",
-  );
-  return (
-    <div className="dashboard-page">
-      <PageHeading
-        eyebrow="ADMINISTRAÇÃO DA PLATAFORMA"
-        title="Visão geral"
-        description="Acompanhe cadastros, integridade dos dados e o que precisa de decisão hoje."
-        action={
-          <button
-            className="ds-button primary"
-            onClick={() => onNavigate("requests")}
-          >
-            Analisar solicitações <ArrowRight />
-          </button>
-        }
-      />
-      <section className="attention-banner">
-        <span>
-          <AlertCircle />
-        </span>
-        <div>
-          <b>8 solicitações aguardam análise</b>
-          <p>3 delas estão na fila há mais de 48 horas.</p>
-        </div>
-        <button onClick={() => onNavigate("requests")}>
-          Priorizar agora <ArrowRight />
-        </button>
-      </section>
-      <section className="metric-grid admin-metrics">
-        <Metric
-          icon={<Store />}
-          label="Microempresas cadastradas"
-          value="384"
-          detail="42 aguardam aprovação"
-          trend="+14%"
-        />
-        <Metric
-          icon={<FileText />}
-          label="Solicitações pendentes"
-          value={String(pending.length + 5)}
-          detail="3 com mais de 48 horas"
-          tone="gold"
-        />
-        <Metric
-          icon={<Building2 />}
-          label="Municípios integrados"
-          value="42"
-          detail="39 sincronizados hoje"
-          trend="+3"
-        />
-        <Metric
-          icon={<Database />}
-          label="Saúde das integrações"
-          value="98,7%"
-          detail="1 fonte requer atenção"
-        />
-      </section>
-      <section className="dashboard-grid two-thirds">
-        <article className="dashboard-card chart-card">
-          <CardHeader
-            title="Fluxo de cadastros"
-            subtitle="Solicitações recebidas e aprovadas nos últimos 6 meses"
-            action={<button>6 meses ⌄</button>}
-          />
-          <AdminFlowChart />
-        </article>
-        <article className="dashboard-card chart-card">
-          <CardHeader
-            title="Situação cadastral"
-            subtitle="Distribuição das microempresas"
-          />
-          <RegistrationDonut />
-        </article>
-      </section>
-      <section className="dashboard-card admin-table-card">
-        <CardHeader
-          title="Solicitações que pedem atenção"
-          subtitle="Ordenadas por tempo na fila e pendências"
-          action={
-            <button onClick={() => onNavigate("requests")}>
-              Ver fila completa <ArrowRight />
-            </button>
-          }
-        />
-        <RequestTable
-          items={pending.slice(0, 3)}
-          onOpen={() => onNavigate("requests")}
-        />
-      </section>
-      <section className="dashboard-grid thirds operational-grid">
-        <article className="dashboard-card health-card">
-          <CardHeader
-            title="Saúde das fontes"
-            subtitle="Atualizado há 3 minutos"
-          />
-          {[
-            ["PNCP", "Operacional", "1.842 registros"],
-            ["TCE Ceará", "Operacional", "921 registros"],
-            ["Portais municipais", "Atenção", "2 indisponíveis"],
-          ].map((item) => (
-            <span key={item[0]}>
-              <i className={item[1] === "Operacional" ? "online" : "warning"} />
-              <div>
-                <b>{item[0]}</b>
-                <small>{item[2]}</small>
-              </div>
-              <em>{item[1]}</em>
-            </span>
-          ))}
-        </article>
-        <article className="dashboard-card activity-card">
-          <CardHeader title="Atividade recente" subtitle="Decisões da equipe" />
-          <span>
-            <i className="green">
-              <Check />
-            </i>
-            <div>
-              <b>Trairi Suprimentos aprovada</b>
-              <small>Por Carlos Mendes • 18 min</small>
-            </div>
-          </span>
-          <span>
-            <i className="blue">
-              <RefreshCw />
-            </i>
-            <div>
-              <b>Sincronização concluída</b>
-              <small>PNCP • 32 min</small>
-            </div>
-          </span>
-          <span>
-            <i className="gold">
-              <AlertCircle />
-            </i>
-            <div>
-              <b>Correção solicitada</b>
-              <small>Servlimp Ceará • 1 h</small>
-            </div>
-          </span>
-        </article>
-        <article className="dashboard-card quick-actions">
-          <CardHeader title="Ações rápidas" subtitle="Atalhos de gestão" />
-          <button onClick={() => onNavigate("requests")}>
-            <FileCheck2 />
-            Analisar cadastros <ArrowRight />
-          </button>
-          <button onClick={() => onNavigate("integrations")}>
-            <Database />
-            Ver integrações <ArrowRight />
-          </button>
-          <button onClick={() => onNavigate("companies")}>
-            <Store />
-            Consultar empresas <ArrowRight />
-          </button>
-        </article>
-      </section>
-    </div>
-  );
-}
+const statusTabs: { id: AccessStatus | "ALL"; label: string }[] = [
+  { id: "ALL", label: "Todas" },
+  { id: "PENDING", label: accessStatusLabel.PENDING },
+  { id: "APPROVED", label: accessStatusLabel.APPROVED },
+  { id: "REJECTED", label: accessStatusLabel.REJECTED },
+];
 
 function Requests({
-  requests,
-  setRequests,
+  state,
+  initialSelectedId = null,
 }: {
-  requests: CompanyRequest[];
-  setRequests: (items: CompanyRequest[]) => void;
+  state: RequestsState;
+  initialSelectedId?: string | null;
 }) {
+  const { requests, loading, error, reload, replace } = state;
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("Todas");
-  const [selected, setSelected] = useState<CompanyRequest | null>(null);
-  const [message, setMessage] = useState("");
-  const visible = useMemo(
-    () =>
-      requests.filter(
-        (item) =>
-          (filter === "Todas" || item.status === filter) &&
-          `${item.name} ${item.cnpj} ${item.city}`
-            .toLowerCase()
-            .includes(query.toLowerCase()),
-      ),
-    [requests, query, filter],
+  const [filter, setFilter] = useState<AccessStatus | "ALL">("PENDING");
+  // A aba remonta a cada navegação, então o valor inicial basta para abrir a
+  // ficha pedida pela visão geral.
+  const [selected, setSelected] = useState<AccessRequest | null>(
+    () => state.requests.find((item) => item.id === initialSelectedId) ?? null,
   );
-  const decide = (status: CompanyRequest["status"]) => {
-    if (!selected) return;
-    setRequests(
-      requests.map((item) =>
-        item.id === selected.id ? { ...item, status } : item,
-      ),
+  const [note, setNote] = useState("");
+  const [deciding, setDeciding] = useState<"approve" | "reject" | null>(null);
+
+  const visible = useMemo(() => {
+    const search = query.trim().toLowerCase();
+    const digits = search.replace(/\D/g, "");
+    return requests.filter(
+      (item) =>
+        (filter === "ALL" || item.status === filter) &&
+        (`${item.companyName} ${item.municipio.nome ?? ""} ${item.requester.name} ${item.requester.email}`
+          .toLowerCase()
+          .includes(search) ||
+          (digits.length > 0 && item.cnpj.includes(digits))),
     );
-    setSelected(null);
-    setMessage(
-      `Solicitação ${status === "Aprovada" ? "aprovada" : "enviada para correção"} com sucesso.`,
-    );
-    window.setTimeout(() => setMessage(""), 3200);
+  }, [requests, query, filter]);
+
+  const open = (item: AccessRequest) => {
+    setSelected(item);
+    setNote("");
   };
+
+  const decide = async (decision: "approve" | "reject") => {
+    if (!selected) return;
+    if (decision === "reject" && note.trim().length < 5) {
+      toast.error("Informe o motivo da recusa", {
+        description: "A empresa verá esse motivo na tela de status.",
+      });
+      return;
+    }
+
+    setDeciding(decision);
+    try {
+      const response = await fetch(
+        `/api/admin/access-requests/${encodeURIComponent(selected.id)}/${decision}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ note: note.trim() || undefined }),
+        },
+      );
+      if (!response.ok) {
+        toast.error("Não foi possível registrar a decisão", {
+          description: await readMessage(response, "Tente novamente."),
+        });
+        // 409: outro administrador já decidiu; recarrega para mostrar o estado atual.
+        if (response.status === 409) void reload();
+        return;
+      }
+
+      replace(await response.json());
+      setSelected(null);
+      toast.success(
+        decision === "approve" ? "Acesso aprovado" : "Solicitação recusada",
+        {
+          description:
+            decision === "approve"
+              ? `${selected.companyName} já pode usar a área da empresa.`
+              : `${selected.companyName} verá o motivo na tela de status.`,
+        },
+      );
+    } catch {
+      toast.error("Não foi possível registrar a decisão", {
+        description: "Verifique sua conexão e tente novamente.",
+      });
+    } finally {
+      setDeciding(null);
+    }
+  };
+
   return (
     <div className="dashboard-page">
       <PageHeading
         eyebrow="ANÁLISE CADASTRAL"
-        title="Solicitações de microempresas"
-        description="Priorize a fila, confira documentos e registre decisões com rastreabilidade."
+        title="Solicitações de acesso"
+        description="Confira os dados das microempresas e libere ou recuse o acesso à plataforma."
       />
       <section className="request-tabs">
-        <button
-          className={filter === "Todas" ? "active" : ""}
-          onClick={() => setFilter("Todas")}
-        >
-          Todas <em>{requests.length}</em>
-        </button>
-        {["Em análise", "Pendente", "Aprovada"].map((status) => (
+        {statusTabs.map((tab) => (
           <button
-            className={filter === status ? "active" : ""}
-            onClick={() => setFilter(status)}
-            key={status}
+            className={filter === tab.id ? "active" : ""}
+            onClick={() => setFilter(tab.id)}
+            key={tab.id}
           >
-            {status}{" "}
-            <em>{requests.filter((item) => item.status === status).length}</em>
+            {tab.label}{" "}
+            <em>
+              {tab.id === "ALL"
+                ? requests.length
+                : requests.filter((item) => item.status === tab.id).length}
+            </em>
           </button>
         ))}
       </section>
@@ -301,7 +222,7 @@ function Requests({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar empresa, CNPJ ou município"
+            placeholder="Buscar empresa, CNPJ, município ou responsável"
           />
         </label>
         <span className="filter-context">
@@ -313,9 +234,17 @@ function Requests({
           <p>
             <b>{visible.length}</b> solicitações nesta visualização
           </p>
-          <button>Exportar lista</button>
+          <button onClick={() => void reload()} disabled={loading}>
+            Atualizar lista
+          </button>
         </div>
-        <RequestTable items={visible} onOpen={setSelected} />
+        <RequestTable
+          items={visible}
+          loading={loading}
+          error={error}
+          emptyMessage="Nenhuma solicitação encontrada."
+          onOpen={open}
+        />
       </section>
       {selected && (
         <div className="modal-backdrop" onClick={() => setSelected(null)}>
@@ -326,83 +255,121 @@ function Requests({
             <header>
               <div>
                 <small>ANÁLISE DE SOLICITAÇÃO</small>
-                <h2>{selected.name}</h2>
+                <h2>{selected.companyName}</h2>
                 <p>
-                  {selected.cnpj} • {selected.city}/CE
+                  {formatCnpj(selected.cnpj)} • {selected.municipio.nome}/CE
                 </p>
               </div>
-              <button onClick={() => setSelected(null)}>
+              <button onClick={() => setSelected(null)} aria-label="Fechar">
                 <X />
               </button>
             </header>
             <div className="review-section">
-              <h3>Dados empresariais</h3>
+              <h3>Dados da empresa</h3>
               <dl>
                 <div>
                   <dt>Razão social</dt>
-                  <dd>{selected.legalName}</dd>
+                  <dd>{selected.companyName}</dd>
                 </div>
                 <div>
-                  <dt>Segmento</dt>
-                  <dd>{selected.segment}</dd>
+                  <dt>CNPJ</dt>
+                  <dd>{formatCnpj(selected.cnpj)}</dd>
                 </div>
                 <div>
-                  <dt>Identificador</dt>
-                  <dd>{selected.id}</dd>
+                  <dt>Município</dt>
+                  <dd>{selected.municipio.nome ?? "—"}</dd>
                 </div>
                 <div>
                   <dt>Recebida em</dt>
-                  <dd>{selected.sentAt}</dd>
+                  <dd>{formatDateTime(selected.createdAt)}</dd>
                 </div>
               </dl>
             </div>
             <div className="review-section">
-              <h3>Documentos enviados</h3>
-              {[
-                "Cartão CNPJ",
-                "Contrato social",
-                "Comprovante de endereço",
-                "Identificação do responsável",
-              ].map((doc, index) => (
-                <button className="review-doc" key={doc}>
-                  <FileText />
-                  <span>
-                    <b>{doc}</b>
-                    <small>PDF • {index + 2}40 KB</small>
-                  </span>
-                  <em>
-                    {index === 2 && selected.status === "Pendente"
-                      ? "Revisar"
-                      : "Recebido"}
-                  </em>
-                  <Eye />
-                </button>
-              ))}
+              <h3>Responsável pelo acesso</h3>
+              <dl>
+                <div>
+                  <dt>Nome</dt>
+                  <dd>{selected.requester.name}</dd>
+                </div>
+                <div>
+                  <dt>Telefone</dt>
+                  <dd>{formatPhone(selected.phone)}</dd>
+                </div>
+                <div>
+                  <dt>E-mail</dt>
+                  <dd>{selected.requester.email}</dd>
+                </div>
+              </dl>
+              {selected.message && (
+                <p className="review-message">“{selected.message}”</p>
+              )}
             </div>
-            <label className="review-note">
-              Observação da decisão
-              <textarea placeholder="Descreva uma pendência ou registre uma observação interna..." />
-            </label>
-            <footer>
-              <button
-                className="ds-button secondary"
-                onClick={() => decide("Pendente")}
-              >
-                Solicitar correção
-              </button>
-              <button
-                className="ds-button primary"
-                onClick={() => decide("Aprovada")}
-              >
-                <Check /> Aprovar cadastro
-              </button>
-            </footer>
+            {selected.status === "PENDING" ? (
+              <>
+                <label className="review-note">
+                  Observação da decisão (obrigatória para recusar)
+                  <textarea
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    maxLength={500}
+                    placeholder="Na recusa, explique o motivo: a empresa verá este texto."
+                  />
+                </label>
+                <footer>
+                  <button
+                    className="ds-button secondary"
+                    onClick={() => void decide("reject")}
+                    disabled={deciding !== null}
+                  >
+                    {deciding === "reject" ? (
+                      <Loader2 className="spin" />
+                    ) : (
+                      <X />
+                    )}{" "}
+                    Recusar
+                  </button>
+                  <button
+                    className="ds-button primary"
+                    onClick={() => void decide("approve")}
+                    disabled={deciding !== null}
+                  >
+                    {deciding === "approve" ? (
+                      <Loader2 className="spin" />
+                    ) : (
+                      <Check />
+                    )}{" "}
+                    Aprovar acesso
+                  </button>
+                </footer>
+              </>
+            ) : (
+              <div className="review-section">
+                <h3>Decisão</h3>
+                <dl>
+                  <div>
+                    <dt>Situação</dt>
+                    <dd>{accessStatusLabel[selected.status]}</dd>
+                  </div>
+                  <div>
+                    <dt>Decidida em</dt>
+                    <dd>
+                      {selected.reviewedAt
+                        ? formatDateTime(selected.reviewedAt)
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Por</dt>
+                    <dd>{selected.reviewedBy ?? "—"}</dd>
+                  </div>
+                </dl>
+                {selected.reviewNote && (
+                  <p className="review-message">{selected.reviewNote}</p>
+                )}
+              </div>
+            )}
           </section>
-        </div>
-      )}
-      {message && (
-        <div className="toast-message">
-          <CheckCircle2 /> {message}
         </div>
       )}
     </div>
@@ -411,11 +378,21 @@ function Requests({
 
 function RequestTable({
   items,
+  loading = false,
+  error = null,
+  emptyMessage = "Nenhum registro.",
   onOpen,
 }: {
-  items: CompanyRequest[];
-  onOpen: (item: CompanyRequest) => void;
+  items: AccessRequest[];
+  loading?: boolean;
+  error?: string | null;
+  emptyMessage?: string;
+  onOpen: (item: AccessRequest) => void;
 }) {
+  const stateMessage = loading
+    ? "Carregando solicitações…"
+    : error ?? (items.length === 0 ? emptyMessage : null);
+
   return (
     <div className="table-scroll">
       <table className="admin-table">
@@ -424,7 +401,7 @@ function RequestTable({
             <th>Empresa</th>
             <th>Município</th>
             <th>Enviada em</th>
-            <th>Documentos</th>
+            <th>Responsável</th>
             <th>Situação</th>
             <th>
               <span className="sr-only">Ação</span>
@@ -432,44 +409,51 @@ function RequestTable({
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => (
-            <tr key={item.id}>
-              <td>
-                <span className="company-cell">
-                  <i>{item.initials}</i>
-                  <span>
-                    <b>{item.name}</b>
-                    <small>{item.cnpj}</small>
-                  </span>
-                </span>
-              </td>
-              <td>
-                {item.city}
-                <small>{item.segment}</small>
-              </td>
-              <td>{item.sentAt}</td>
-              <td>{item.documents}</td>
-              <td>
-                <em
-                  className={`table-status status-${item.status.toLowerCase().replace(" ", "-").replace("á", "a")}`}
-                >
-                  {item.status}
-                </em>
-              </td>
-              <td>
-                <button className="table-action" onClick={() => onOpen(item)}>
-                  Analisar <ArrowRight />
-                </button>
+          {stateMessage ? (
+            <tr>
+              <td colSpan={6} className="table-state" role="status">
+                {stateMessage}
               </td>
             </tr>
-          ))}
+          ) : (
+            items.map((item) => (
+              <tr key={item.id}>
+                <td>
+                  <span className="company-cell">
+                    <i>{initials(item.companyName)}</i>
+                    <span>
+                      <b>{item.companyName}</b>
+                      <small>{formatCnpj(item.cnpj)}</small>
+                    </span>
+                  </span>
+                </td>
+                <td>{item.municipio.nome ?? "—"}</td>
+                <td>{formatDateTime(item.createdAt)}</td>
+                <td>
+                  {item.requester.name}
+                  <small>{item.requester.email}</small>
+                </td>
+                <td>
+                  <em className={`table-status ${statusClass[item.status]}`}>
+                    {accessStatusLabel[item.status]}
+                  </em>
+                </td>
+                <td>
+                  <button className="table-action" onClick={() => onOpen(item)}>
+                    {item.status === "PENDING" ? "Analisar" : "Ver"}{" "}
+                    <ArrowRight />
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
   );
 }
 
-function Companies({ requests }: { requests: CompanyRequest[] }) {
+function Companies({ requests }: { requests: AccessRequest[] }) {
   return (
     <div className="dashboard-page">
       <PageHeading
@@ -510,10 +494,14 @@ function Companies({ requests }: { requests: CompanyRequest[] }) {
       </section>
       <section className="dashboard-card admin-table-card">
         <CardHeader
-          title="Empresas recentes"
-          subtitle="Cadastros e atualizações da base"
+          title="Empresas aprovadas"
+          subtitle="Microempresas com acesso liberado à plataforma"
         />
-        <RequestTable items={requests} onOpen={() => undefined} />
+        <RequestTable
+          items={requests.filter((item) => item.status === "APPROVED")}
+          emptyMessage="Nenhuma empresa aprovada ainda."
+          onOpen={() => undefined}
+        />
       </section>
     </div>
   );

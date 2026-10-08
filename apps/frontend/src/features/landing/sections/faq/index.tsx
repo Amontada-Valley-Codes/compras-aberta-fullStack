@@ -1,3 +1,6 @@
+import type { CSSProperties } from "react";
+import { RevealWords } from "../../RevealWords";
+
 const questions = [
   [
     "O que é a Compras Abertas?",
@@ -30,15 +33,21 @@ export function FaqSection() {
     <section className="faq-section" id="faq">
       <div className="public-container faq-grid">
         <div className="faq-heading">
-          <h2>Tire suas dúvidas.</h2>
-          <p>
+          <h2 data-reveal="words">
+            <RevealWords text="Tire suas dúvidas." />
+          </h2>
+          <p data-reveal="blur" style={{ "--reveal-delay": "200ms" } as CSSProperties}>
             Entenda como consultar os dados e encontrar oportunidades para sua
             empresa.
           </p>
         </div>
         <div className="faq-list">
-          {questions.map(([question, answer]) => (
-            <details key={question}>
+          {questions.map(([question, answer], index) => (
+            <details
+              key={question}
+              data-reveal="up"
+              style={{ "--reveal-delay": `${index * 90}ms` } as CSSProperties}
+            >
               <summary>{question}</summary>
               <p>{answer}</p>
             </details>

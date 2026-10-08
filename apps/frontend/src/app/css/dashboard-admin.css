@@ -74,9 +74,15 @@
   background: var(--success-soft);
   color: var(--success);
 }
-.status-pendente {
+.status-pendente,
+.status-recusada {
   background: var(--danger-soft);
   color: var(--danger);
+}
+.admin-table td.table-state {
+  text-align: center;
+  color: #7d8c95;
+  padding: 28px 12px;
 }
 .table-action {
   border: 0;
@@ -322,6 +328,16 @@
 }
 .review-note {
   margin-top: 18px;
+}
+.review-message {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--graphite);
+  font-size: 9px;
+  line-height: 1.5;
+  white-space: pre-line;
 }
 .review-note textarea {
   height: 80px;

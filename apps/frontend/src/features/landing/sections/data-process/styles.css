@@ -41,10 +41,14 @@
   line-height: 1.75;
   text-align: center;
 }
-.data-process-picture {
+.data-process-figure {
+  position: relative;
   width: min(92%, 1320px);
-  display: block;
   margin-top: 18px;
+}
+.data-process-picture {
+  width: 100%;
+  display: block;
 }
 .data-process-picture img {
   width: 100%;
@@ -86,7 +90,7 @@
   .data-process-section {
     padding-block: 36px;
   }
-  .data-process-picture {
+  .data-process-figure {
     width: min(92%, 430px);
     margin-top: 16px;
   }
@@ -114,4 +118,248 @@
   line-height: 1.7;
   color: #6a7b86;
   margin: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Diagrama animado: camada SVG sobre o PNG (ver DataFlowOverlay).     */
+/* Um ciclo de 6s: fontes → anel → conferência → indicadores.          */
+/* ------------------------------------------------------------------ */
+.data-process-section {
+  --flow-cycle: 6s;
+}
+.data-process-inner {
+  position: relative;
+  z-index: 1;
+}
+.data-process-aura {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: min(1100px, 90vw);
+  height: 520px;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side at 35% 50%, rgba(24, 192, 220, 0.16), transparent),
+    radial-gradient(closest-side at 70% 50%, rgba(37, 99, 166, 0.12), transparent);
+  filter: blur(30px);
+  transform: translate(-50%, -50%);
+  animation: flow-aura 12s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.data-flow-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Entrada: o diagrama "se desenha" da esquerda para a direita e só então
+   a camada animada liga. */
+.reveal-ready .data-process-figure[data-reveal="flow"] {
+  opacity: 1;
+}
+.reveal-ready .data-process-figure[data-reveal="flow"] .data-process-picture {
+  clip-path: inset(0 100% 0 0);
+  filter: saturate(0.4) brightness(1.15);
+  transition:
+    clip-path 1.6s cubic-bezier(0.65, 0, 0.35, 1),
+    filter 1.2s ease 0.9s;
+}
+.reveal-ready .data-process-figure[data-reveal="flow"].is-visible .data-process-picture {
+  clip-path: inset(0 0 0 0);
+  filter: none;
+}
+.reveal-ready .data-process-figure[data-reveal="flow"] .data-flow-overlay {
+  opacity: 0;
+  transition: opacity 0.8s ease 1.4s;
+}
+.reveal-ready .data-process-figure[data-reveal="flow"].is-visible .data-flow-overlay {
+  opacity: 1;
+}
+
+/* 1 e 5. Luz atravessando as faixas de setas */
+.flow-sheen {
+  mix-blend-mode: soft-light;
+}
+.flow-sheen-left {
+  animation: flow-sheen-left var(--flow-cycle) cubic-bezier(0.45, 0, 0.3, 1) infinite;
+}
+.flow-sheen-right {
+  animation: flow-sheen-right var(--flow-cycle) cubic-bezier(0.45, 0, 0.3, 1) infinite;
+}
+
+/* 2. Varredura girando pelo anel */
+.flow-ring-sweep {
+  mix-blend-mode: screen;
+  transform-box: view-box;
+  transform-origin: 785px 415px;
+  animation: flow-rotate var(--flow-cycle) linear infinite;
+}
+
+/* 3. Cometas na borda do anel */
+.flow-comet {
+  transform-box: view-box;
+  transform-origin: 785px 415px;
+}
+.flow-comet circle {
+  fill: none;
+  stroke-linecap: round;
+}
+.flow-comet-main circle {
+  stroke: #f2fdff;
+  stroke-width: 9;
+  stroke-dasharray: 9 91;
+}
+.flow-comet-main {
+  animation: flow-rotate var(--flow-cycle) linear infinite;
+}
+.flow-comet-gold circle {
+  stroke: #ffd060;
+  stroke-width: 7;
+  stroke-dasharray: 4 96;
+  stroke-dashoffset: 50;
+}
+.flow-comet-gold {
+  animation: flow-rotate calc(var(--flow-cycle) * 1.5) linear infinite reverse;
+}
+
+/* 4. Ondas do selo "Dados conferidos" */
+.flow-check circle {
+  fill: none;
+  stroke: #f2b83e;
+  stroke-width: 5;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: flow-check var(--flow-cycle) ease-out infinite;
+}
+.flow-check circle:nth-child(2) {
+  animation-delay: 0.35s;
+}
+
+/* 6. Pacotes no tubo ciano */
+.flow-packets rect {
+  fill: #ffffff;
+  opacity: 0;
+  animation: flow-packet 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.flow-packets rect:nth-child(2) {
+  fill: #ffe7a3;
+  animation-delay: 1s;
+}
+.flow-packets rect:nth-child(3) {
+  animation-delay: 2s;
+}
+
+/* 7. Pulso nas notas */
+.flow-notes circle {
+  fill: none;
+  stroke: #18c0dc;
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: flow-note 3s ease-out infinite;
+}
+.flow-notes circle:nth-child(2) {
+  animation-delay: 1.5s;
+}
+
+@keyframes flow-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes flow-sheen-left {
+  0% {
+    transform: translateX(0);
+  }
+  25%,
+  100% {
+    transform: translateX(820px);
+  }
+}
+@keyframes flow-sheen-right {
+  0%,
+  42% {
+    transform: translateX(0);
+  }
+  78%,
+  100% {
+    transform: translateX(1150px);
+  }
+}
+@keyframes flow-check {
+  0%,
+  30% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  32% {
+    opacity: 0.85;
+  }
+  55%,
+  100% {
+    transform: scale(1.75);
+    opacity: 0;
+  }
+}
+@keyframes flow-packet {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(800px);
+    opacity: 0;
+  }
+}
+@keyframes flow-note {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  70%,
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+@keyframes flow-aura {
+  from {
+    transform: translate(-52%, -50%) scale(0.95);
+  }
+  to {
+    transform: translate(-48%, -50%) scale(1.06);
+  }
+}
+
+/* O PNG do celular tem outro desenho; a camada só vale para o desktop. */
+@media (max-width: 680px) {
+  .data-flow-overlay {
+    display: none;
+  }
+  .reveal-ready .data-process-figure[data-reveal="flow"] .data-process-picture {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-process-aura,
+  .data-flow-overlay * {
+    animation: none !important;
+  }
+  .data-flow-overlay {
+    display: none;
+  }
+  .reveal-ready .data-process-figure[data-reveal="flow"] .data-process-picture {
+    clip-path: none !important;
+    filter: none !important;
+  }
 }

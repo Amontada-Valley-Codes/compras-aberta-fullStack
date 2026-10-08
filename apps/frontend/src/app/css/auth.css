@@ -199,3 +199,245 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* Solicitação de acesso e status da solicitação */
+.auth-lead {
+  margin: -16px 0 28px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.auth-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.auth-fieldset legend {
+  margin-bottom: 16px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-blue);
+}
+.auth-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  min-width: 0;
+}
+@media (min-width: 640px) {
+  .auth-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.auth-input-wrap select,
+.auth-input-wrap textarea {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--graphite);
+}
+.auth-input-wrap select:invalid {
+  color: var(--muted);
+}
+.auth-input-wrap textarea {
+  resize: vertical;
+  min-height: 44px;
+}
+.auth-switch {
+  margin: 24px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+.auth-switch a {
+  color: var(--brand-blue);
+  font-weight: 700;
+}
+.auth-switch a:hover {
+  color: var(--brand-blue-hover);
+}
+.auth-result {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.auth-result h1 {
+  margin: 0;
+}
+.auth-result > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.auth-result-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+}
+.auth-result-icon.is-pending {
+  background: var(--brand-gold-soft);
+  color: #a87516;
+}
+.auth-result-icon.is-success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.auth-result-icon.is-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.auth-eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--brand-blue);
+}
+.auth-note {
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  border: 1px solid #f3cfcf;
+}
+.auth-note b {
+  font-size: 12px;
+  color: var(--danger);
+}
+.auth-note p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--graphite);
+  line-height: 1.5;
+}
+.auth-summary {
+  margin: 6px 0 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.auth-summary div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.auth-summary dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+.auth-summary dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand-navy);
+  overflow-wrap: anywhere;
+}
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.auth-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--graphite);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.auth-secondary:hover {
+  border-color: var(--brand-blue);
+  color: var(--brand-blue);
+}
+.auth-secondary:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+/* Consulta de CNPJ na Receita Federal */
+.auth-hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.auth-hint.is-warning {
+  color: #8d6415;
+}
+.auth-input-wrap svg.auth-lookup-ok {
+  color: var(--success);
+}
+.auth-lookup {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+}
+.auth-lookup > b {
+  font-size: 12px;
+  color: var(--brand-navy);
+}
+.auth-lookup dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.auth-lookup dl div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.auth-lookup dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+.auth-lookup dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--graphite);
+  overflow-wrap: anywhere;
+}
+.auth-lookup dd.is-active {
+  color: var(--success);
+}
+.auth-lookup dd.is-inactive {
+  color: var(--danger);
+}
+.auth-lookup p {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.auth-lookup p.is-warning {
+  color: #8d6415;
+}
+.auth-lookup p svg {
+  flex: none;
+  margin-top: 1px;
+}

@@ -84,7 +84,7 @@ export function AppShell({
   };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell is-${role}`}>
       <aside className={`app-sidebar ${mobileOpen ? "is-open" : ""}`}>
         <div className="sidebar-head">
           <BrandLogo href="/" />

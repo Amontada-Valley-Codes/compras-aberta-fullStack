@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Script from "next/script";
 import { ClosingCtaSection } from "./sections/closing-cta";
 import { DataExplorerSection } from "./sections/data-explorer";
@@ -9,10 +10,14 @@ import { LandingFooter } from "./sections/footer";
 import { LandingHeader } from "./sections/header";
 import { HeroSection } from "./sections/hero";
 import { StepsSection } from "./sections/steps";
+import { useScrollReveal } from "./useScrollReveal";
 
 export function LandingPage() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useScrollReveal(rootRef);
+
   return (
-    <div className="public-site">
+    <div className="public-site" ref={rootRef}>
       <LandingHeader />
       <main>
         <HeroSection />

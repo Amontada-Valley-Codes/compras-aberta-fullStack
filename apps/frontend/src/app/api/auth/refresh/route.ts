@@ -6,9 +6,9 @@ import {
   authCookieOptions,
   REFRESH_COOKIE,
   REFRESH_MAX_AGE_SECONDS,
-  roleHomePath,
   SESSION_COOKIE,
   SESSION_MAX_AGE_SECONDS,
+  sessionHomePath,
   verifySessionToken,
 } from "@/lib/auth/session";
 
@@ -45,7 +45,11 @@ export async function POST(request: Request) {
       maxAge: REFRESH_MAX_AGE_SECONDS,
     });
 
-    return NextResponse.json({ role: session.role, home: roleHomePath(session.role) });
+    return NextResponse.json({
+      role: session.role,
+      accessStatus: session.accessStatus,
+      home: sessionHomePath(session),
+    });
   } catch (error) {
     cookieStore.delete(SESSION_COOKIE);
     cookieStore.delete(REFRESH_COOKIE);

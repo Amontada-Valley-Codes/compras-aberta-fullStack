@@ -21,4 +21,45 @@ const password = z
     "Senha deve ter no máximo 72 bytes",
   );
 
-export { email, password };
+function isValidCnpj(digits: string) {
+  if (!/^\d{14}$/.test(digits) || /^(\d)\1{13}$/.test(digits)) {
+    return false;
+  }
+
+  const checkDigit = (length: number) => {
+    const weights =
+      length === 12
+        ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+        : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const sum = weights.reduce(
+      (total, weight, index) => total + Number(digits[index]) * weight,
+      0,
+    );
+    const rest = sum % 11;
+    return rest < 2 ? 0 : 11 - rest;
+  };
+
+  return (
+    checkDigit(12) === Number(digits[12]) &&
+    checkDigit(13) === Number(digits[13])
+  );
+}
+
+// Aceita com ou sem máscara ("12.345.678/0001-90") e guarda só os dígitos.
+const cnpj = z
+  .string()
+  .trim()
+  .transform((value) => value.replace(/\D/g, ""))
+  .refine(isValidCnpj, "CNPJ inválido");
+
+// Telefone brasileiro com DDD (fixo ou celular), guardado só com dígitos.
+const phone = z
+  .string()
+  .trim()
+  .transform((value) => value.replace(/\D/g, ""))
+  .refine(
+    (value) => /^\d{10,11}$/.test(value),
+    "Telefone deve ter DDD e 10 ou 11 dígitos",
+  );
+
+export { cnpj, email, password, phone };

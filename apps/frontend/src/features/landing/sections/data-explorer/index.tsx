@@ -1,8 +1,10 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { natureLabel } from "@/features/public-data/plain-language";
 import { landingData } from "../../landing-mock";
+import { RevealWords } from "../../RevealWords";
 
 export function DataExplorerSection() {
   const data = landingData;
@@ -10,13 +12,16 @@ export function DataExplorerSection() {
     <section className="opportunities-section" id="oportunidades">
       <div className="public-container opportunity-showcase">
         <div className="opportunity-intro">
-          <h2>Explore os dados de compras públicas do Ceará.</h2>
-          <p>
+          <h2 data-reveal="words">
+            <RevealWords text="Explore os dados de compras públicas do Ceará." />
+          </h2>
+          <p data-reveal="blur" style={{ "--reveal-delay": "250ms" } as CSSProperties}>
             Consulte registros históricos e entenda como as microempresas
             participam das contratações em cada município.
           </p>
           <div
             className="opportunity-badges"
+            data-reveal="up" style={{ "--reveal-delay": "400ms" } as CSSProperties}
             aria-label="Fontes de dados integradas"
           >
             <span className="data-source-badge">
@@ -54,7 +59,7 @@ export function DataExplorerSection() {
             </span>
           </div>
         </div>
-        <div className="opportunity-person" aria-hidden="true">
+        <div className="opportunity-person" aria-hidden="true" data-reveal="right" style={{ "--reveal-delay": "150ms" } as CSSProperties}>
           <Image
             src="/sections/imagem-sara.png?v=6"
             alt=""
@@ -62,7 +67,12 @@ export function DataExplorerSection() {
             sizes="(max-width: 900px) 100vw, 48vw"
           />
         </div>
-        <form className="opportunity-search" action="/analise" method="get">
+        <form
+          className="opportunity-search"
+          action="/analise"
+          method="get"
+          data-reveal="up" style={{ "--reveal-delay": "500ms" } as CSSProperties}
+        >
           <PublicFilterSelect
             name="municipio"
             label="Município"

@@ -11,19 +11,6 @@ export type Opportunity = {
   exclusive: boolean;
 };
 
-export type CompanyRequest = {
-  id: string;
-  initials: string;
-  name: string;
-  legalName: string;
-  cnpj: string;
-  city: string;
-  segment: string;
-  sentAt: string;
-  documents: string;
-  status: "Em análise" | "Pendente" | "Aprovada" | "Recusada";
-};
-
 export const opportunities: Opportunity[] = [
   {
     id: "OP-2048",
@@ -72,57 +59,6 @@ export const opportunities: Opportunity[] = [
     daysLeft: 12,
     match: 82,
     exclusive: false,
-  },
-];
-
-export const companyRequests: CompanyRequest[] = [
-  {
-    id: "ME-0284",
-    initials: "OL",
-    name: "Office Litoral",
-    legalName: "Office Litoral Suprimentos Ltda.",
-    cnpj: "22.101.884/0001-17",
-    city: "Itapipoca",
-    segment: "Equipamentos",
-    sentAt: "Hoje, 08:42",
-    documents: "4 de 4",
-    status: "Em análise",
-  },
-  {
-    id: "ME-0279",
-    initials: "SC",
-    name: "Servlimp Ceará",
-    legalName: "Servlimp Ceará Ltda.",
-    cnpj: "19.700.332/0001-04",
-    city: "Trairi",
-    segment: "Serviços",
-    sentAt: "Ontem, 16:18",
-    documents: "3 de 4",
-    status: "Pendente",
-  },
-  {
-    id: "ME-0273",
-    initials: "NT",
-    name: "Norte Tecnologia",
-    legalName: "Norte Tecnologia e Sistemas Ltda.",
-    cnpj: "31.402.765/0001-82",
-    city: "Acaraú",
-    segment: "Tecnologia",
-    sentAt: "18 ago, 11:05",
-    documents: "4 de 4",
-    status: "Em análise",
-  },
-  {
-    id: "ME-0268",
-    initials: "TS",
-    name: "Trairi Suprimentos",
-    legalName: "Trairi Comércio de Suprimentos Ltda.",
-    cnpj: "17.290.118/0001-60",
-    city: "Trairi",
-    segment: "Alimentos",
-    sentAt: "17 ago, 14:30",
-    documents: "4 de 4",
-    status: "Aprovada",
   },
 ];
 
