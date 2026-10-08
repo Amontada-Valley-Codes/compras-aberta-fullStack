@@ -35,11 +35,26 @@ const userRepository = {
   },
 
   async findById(id: string) {
-    return findUserWithOptionalAccessStatus({
-      where: { id },
-      include: withAccessStatus,
-    });
+    try {
+      return await prisma.user.findUnique({
+        where: { id },
+        include: { ...withAccessStatus, business: true },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2021"
+      ) {
+        return prisma.user.findUnique({
+          where: { id },
+          include: { business: true },
+        });
+      }
+
+      throw error;
+    }
   },
+
 };
 
 export { userRepository };

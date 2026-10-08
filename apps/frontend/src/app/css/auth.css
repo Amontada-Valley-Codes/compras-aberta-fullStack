@@ -198,6 +198,278 @@
   color: #b3261e;
   font-size: 13px;
   font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Customizações adicionais para Cadastro de Microempresa (ME) */
+/* O formulário é longo: o painel visual só aparece quando sobra largura
+   para ele sem espremer os campos, e ocupa menos que a metade. */
+@media (max-width: 1023px) {
+  .auth-shell.auth-shell-wide {
+    max-width: 760px;
+    grid-template-columns: 1fr;
+  }
+  .auth-shell-wide .auth-visual {
+    display: none;
+  }
+}
+@media (min-width: 1024px) {
+  .auth-shell-wide {
+    grid-template-columns: 2fr 3fr;
+  }
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin: -20px 0 28px;
+  line-height: 1.5;
+}
+
+.auth-section {
+  min-width: 0;
+}
+
+.auth-section + .auth-section {
+  margin-top: 16px;
+}
+
+.auth-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.auth-section-step {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--brand-sky);
+  color: var(--brand-blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.auth-section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-navy);
+}
+
+.auth-section-hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.auth-section > .auth-grid-2,
+.auth-section > .auth-docs-grid {
+  margin-top: 20px;
+}
+
+.auth-section > .auth-section-hint + .auth-docs-grid {
+  margin-top: 12px;
+}
+
+/* minmax(0, 1fr): a coluna nunca cresce para caber um conteúdo largo
+   (ex.: nome de arquivo longo), é o conteúdo que se ajusta a ela. */
+.auth-grid-2,
+.auth-docs-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.auth-grid-2 {
+  gap: 20px;
+}
+
+.auth-docs-grid {
+  gap: 12px;
+}
+
+.auth-field-full {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .auth-grid-2,
+  .auth-docs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.auth-select-wrap {
+  position: relative;
+}
+
+.auth-select-wrap svg {
+  position: absolute;
+  right: 0;
+  pointer-events: none;
+}
+
+.auth-select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 0 28px 0 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  appearance: none;
+  font-size: 14px;
+  color: var(--graphite);
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.auth-file-box {
+  position: relative;
+  min-width: 0;
+}
+
+.auth-file-box input[type='file'] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.auth-file-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.auth-file-box:hover .auth-file-label {
+  border-color: var(--brand-blue);
+  background: rgba(37, 99, 166, 0.04);
+}
+
+.auth-file-preview-btn {
+  position: relative;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--brand-blue, #2563eb);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.auth-file-preview-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.auth-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #eaf3f8;
+  color: var(--brand-blue);
+  flex-shrink: 0;
+}
+
+.auth-file-icon .text-success {
+  color: #16a34a;
+}
+
+.auth-file-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.auth-file-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-navy);
+}
+
+.auth-file-name {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, var(--surface));
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.auth-alert svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.auth-shell-wide .auth-submit {
+  margin-top: 8px;
+}
+
+.auth-register-prompt {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 16px;
+}
+
+.auth-register-link {
+  color: var(--brand-blue);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.auth-register-link:hover {
+  text-decoration: underline;
+  color: var(--brand-blue-hover);
 }
 
 /* Solicitação de acesso e status da solicitação */

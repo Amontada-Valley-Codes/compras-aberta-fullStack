@@ -13,6 +13,7 @@ municípios do Ceará gastam com compras públicas.
 | **Autenticação** | Login (emissão de token JWT) e renovação de sessão. | Não |
 | **Solicitações de acesso** | Cadastro da microempresa e aprovação pela administração. | Só para consultar e decidir |
 | **CNPJ** | Dados cadastrais da empresa na Receita Federal (para preencher a solicitação). | Não |
+| **Microempresa** | Cadastro de microempresas com upload de documentos. | Não |
 | **Municípios** | Catálogo de municípios do Ceará (código IBGE e nome). | Não |
 | **Analytics** | Indicadores e licitações públicas. | Não |
 
@@ -26,7 +27,11 @@ validação dos filtros, cache e tentativas automáticas.
    papel \`BUSINESS\` e a solicitação fica **pendente** até um administrador
    aprovar (\`PATCH /access-requests/:id/approve\`) ou recusar
    (\`PATCH /access-requests/:id/reject\`).
-2. Faça login em \`POST /sessions\` e guarde o \`token\` e o \`refreshToken\`.
+2. Também é possível enviar o cadastro com documentos em
+  \`POST /business/register\` usando \`multipart/form-data\`.
+3. Faça login em \`POST /sessions\` e guarde o \`token\` e o \`refreshToken\`.
+
+### Uso do token
 3. Envie o token nas rotas protegidas no cabeçalho
    \`Authorization: Bearer <token>\`.
 4. Quando o token expirar, chame \`POST /sessions/refresh\` com o
@@ -57,6 +62,7 @@ Rotas sensíveis têm limite por IP. Ao excedê-lo a resposta é **429**.
 | \`POST /sessions/refresh\` e \`/sessions/logout\` | 20 requisições por minuto |
 | \`POST /access-requests\` | 3 requisições a cada 10 minutos |
 | \`GET /cnpj/:cnpj\` | 20 requisições por minuto |
+| \`POST /business/register\` | 3 requisições a cada 10 minutos |
 
 ## Cache e resiliência (Analytics)
 
@@ -90,5 +96,7 @@ Todo erro tem o corpo \`{ "message": "..." }\`.
 - **Datas** de filtro usam \`AAAA-MM-DD\`.
 - **Paginação** das listas usa \`limit\` (máx. 100) e \`offset\`.
 - **ME** significa *microempresa*.
+- **Upload de documentos** usa \`multipart/form-data\`. Formatos aceitos:
+  PDF, JPG, PNG (máx 5 MB por arquivo).
 `;
 exports.apiDescription = apiDescription;

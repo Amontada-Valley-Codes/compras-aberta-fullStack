@@ -6,9 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
 const cors_1 = __importDefault(require("@fastify/cors"));
 const rate_limit_1 = __importDefault(require("@fastify/rate-limit"));
+const static_1 = __importDefault(require("@fastify/static"));
 const swagger_1 = __importDefault(require("@fastify/swagger"));
 const swagger_ui_1 = __importDefault(require("@fastify/swagger-ui"));
 const fastify_1 = __importDefault(require("fastify"));
+const node_path_1 = __importDefault(require("node:path"));
 const openapi_1 = require("./docs/openapi");
 const env_1 = require("./env");
 const error_handling_1 = require("./middlewares/error-handling");
@@ -24,6 +26,11 @@ exports.app.register(rate_limit_1.default, {
         statusCode: context.statusCode,
         message: `Muitas requisições. Tente novamente em ${context.after}.`,
     }),
+});
+exports.app.register(static_1.default, {
+    root: node_path_1.default.resolve(__dirname, "..", "uploads"),
+    prefix: "/uploads/",
+    decorateReply: false,
 });
 exports.app.register(swagger_1.default, openapi_1.swaggerOptions);
 exports.app.register(swagger_ui_1.default, openapi_1.swaggerUiOptions);

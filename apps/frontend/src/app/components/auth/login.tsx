@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ChevronLeft, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { ChevronLeft, Clock3, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { toast } from '@/components/ui/sonner'
@@ -24,6 +24,8 @@ export const Login = ({ next }: { next?: string }) => {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isPendingRegistration = searchParams.get('status') === 'pending'
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -94,6 +96,32 @@ export const Login = ({ next }: { next?: string }) => {
 
           <h1>Faça login na nossa plataforma</h1>
 
+          {isPendingRegistration && (
+            <div
+              style={{
+                background: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                color: '#1e40af',
+                padding: '12px 14px',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px',
+                lineHeight: '1.4',
+              }}
+            >
+              <Clock3 size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#2563eb' }} />
+              <div>
+                <strong style={{ display: 'block', marginBottom: '2px', fontWeight: 600 }}>
+                  Solicitação Cadastral em Análise
+                </strong>
+                Seus dados e documentos foram enviados. Aguarde a validação do administrador para que seu acesso seja liberado.
+              </div>
+            </div>
+          )}
+
           <form className='auth-form' onSubmit={handleSubmit}>
             <div className='auth-field'>
               <label htmlFor='email'>E-mail</label>
@@ -151,6 +179,13 @@ export const Login = ({ next }: { next?: string }) => {
               {pending && <Loader2 className='auth-submit-spinner' size={18} />}
               {pending ? 'Entrando…' : 'Entrar'}
             </button>
+
+            <div className='auth-register-prompt'>
+              <span>Não possui cadastro? </span>
+              <Link href='/auth/cadastro-me' className='auth-register-link'>
+                Cadastrar empresa (ME)
+              </Link>
+            </div>
           </form>
 
           <p className='auth-switch'>

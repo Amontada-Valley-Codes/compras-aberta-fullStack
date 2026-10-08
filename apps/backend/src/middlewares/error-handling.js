@@ -15,19 +15,41 @@ function errorHandling(error, request, reply) {
     }
     if (error instanceof zod_1.ZodError) {
         return reply.status(400).send({
-            message: "Validation error",
+            message: "Erro de validação nos dados enviados.",
             issues: zod_1.z.flattenError(error),
+        });
+    }
+    // Captura erros de limite de tamanho de arquivo do Fastify e Multipart (413 Payload Too Large)
+    const isFileTooLarge = error.code === "FST_REQ_FILE_TOO_LARGE" ||
+        error.code === "FST_ERR_CTP_BODY_TOO_LARGE" ||
+        error.statusCode === 413 ||
+        (typeof error.message === "string" && error.message.toLowerCase().includes("file too large"));
+    if (isFileTooLarge) {
+        return reply.status(400).send({
+            message: "O arquivo enviado excede o tamanho máximo permitido de 5 MB.",
         });
     }
     if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
         return reply.status(error.statusCode).send({ message: error.message });
     }
-    // Violação de unicidade que escapou da checagem prévia no service (ex.: dois
-    // cadastros simultâneos com o mesmo e-mail).
-    if (error instanceof client_1.Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002") {
-        return reply.status(409).send({ message: "Registro já existe" });
+    // Trata violações conhecidas do Prisma (unicidade, chaves estrangeiras, etc.)
+    if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
+        if (error.code === "P2002") {
+            const target = error.meta?.target?.join(", ") || "registro";
+            return reply.status(409).send({ message: `Já existe um cadastro com este ${target}.` });
+        }
+        if (error.code === "P2003") {
+            return reply.status(400).send({
+                message: "Falha na relação entre empresa e usuário. Verifique se o CNPJ fornecido está correto.",
+            });
+        }
+        return reply.status(400).send({
+            message: `Erro na operação do banco de dados (Código ${error.code}). Verifique os dados enviados.`,
+        });
     }
-    request.log.error({ err: error }, "Erro inesperado");
-    return reply.status(500).send({ message: "Internal server error" });
+    request.log.error({ err: error }, "Erro inesperado no servidor");
+    const detailMessage = error?.message || "Ocorreu uma falha interna inesperada no servidor.";
+    return reply.status(500).send({
+        message: `Erro interno no servidor: ${detailMessage}`,
+    });
 }

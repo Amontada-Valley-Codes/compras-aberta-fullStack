@@ -11,6 +11,24 @@ export type Opportunity = {
   exclusive: boolean;
 };
 
+export type CompanyRequest = {
+  id: string;
+  initials: string;
+  name: string;
+  legalName: string;
+  cnpj: string;
+  city: string;
+  segment: string;
+  sentAt: string;
+  documents: string;
+  status: "Em análise" | "Pendente" | "Aprovada" | "Recusada";
+  docsUrls?: {
+    cartao_cnpj: string;
+    contrato_social: string;
+    comprovante_endereco: string;
+    comprovante_socio: string;
+  } | null;
+};
 export const opportunities: Opportunity[] = [
   {
     id: "OP-2048",

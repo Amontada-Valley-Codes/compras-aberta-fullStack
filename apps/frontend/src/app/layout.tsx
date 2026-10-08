@@ -12,6 +12,8 @@ const inter = Inter({
   fallback: ["system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
 });
 
+import QueryProvider from "./providers/QueryProvider";
+
 export const metadata: Metadata = {
   title: "Compras Abertas | Transparência que movimenta",
   description:
@@ -34,8 +36,10 @@ export default function RootLayout({
         <link rel="icon" href="/logos/logo-symbol.png" type="image/png" />
       </head>
       <body className={inter.className}>
-        {children}
-        <Toaster />
+        <QueryProvider>
+          {children}
+          <Toaster />
+        </QueryProvider>
       </body>
     </html>
   );

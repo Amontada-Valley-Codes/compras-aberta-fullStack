@@ -24,6 +24,10 @@ const swaggerOptions = {
                 description: "Dados cadastrais de empresas na base aberta da Receita Federal.",
             },
             {
+                name: "Microempresa",
+                description: "Cadastro e gestão de microempresas.",
+            },
+            {
                 name: "Municípios",
                 description: "Catálogo de municípios do Ceará.",
             },

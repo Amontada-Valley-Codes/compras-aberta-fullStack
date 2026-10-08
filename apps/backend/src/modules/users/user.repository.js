@@ -30,10 +30,22 @@ const userRepository = {
         });
     },
     async findById(id) {
-        return findUserWithOptionalAccessStatus({
-            where: { id },
-            include: withAccessStatus,
-        });
+        try {
+            return await prisma_1.prisma.user.findUnique({
+                where: { id },
+                include: { ...withAccessStatus, business: true },
+            });
+        }
+        catch (error) {
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError &&
+                error.code === "P2021") {
+                return prisma_1.prisma.user.findUnique({
+                    where: { id },
+                    include: { business: true },
+                });
+            }
+            throw error;
+        }
     },
 };
 exports.userRepository = userRepository;

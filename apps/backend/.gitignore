@@ -3,6 +3,7 @@ node_modules
 .env
 
 prisma/generated/
+uploads/
 .agents
 .claude
 .windsurf
