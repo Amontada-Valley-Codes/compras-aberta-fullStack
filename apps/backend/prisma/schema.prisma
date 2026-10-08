@@ -59,13 +59,13 @@ model business {
   name_businss              String
   porte_empresa             PorteEmpresa
   isActive                 Boolean       @default(true)
-  cartaoCnpjData              Bytes
+  cartaoCnpjPath              String
   cartaoCnpjMimeType          String
-  contratoSocialData          Bytes
+  contratoSocialPath          String
   contratoSocialMimeType      String
-  comprovanteEnderecoData     Bytes
+  comprovanteEnderecoPath     String
   comprovanteEnderecoMimeType String
-  comprovanteSocioData        Bytes
+  comprovanteSocioPath        String
   comprovanteSocioMimeType    String
   user                       user?
 

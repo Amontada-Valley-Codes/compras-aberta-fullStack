@@ -1,5 +1,7 @@
+import path from "node:path";
 import { hash } from "bcryptjs";
 import { prisma } from "../../lib/prisma";
+import { supabase } from "../../lib/supabase";
 import { AppError } from "../../utils/AppError";
 import { validateFile } from "../../utils/upload";
 import { userRepository } from "../users/user.repository";
@@ -43,6 +45,33 @@ export const businessService = {
       validateFile(file.mimetype, file.data.length);
     }
 
+    const BUCKET_NAME = "documentos-empresas";
+    const cleanCnpj = data.cnpj.replace(/\D/g, "");
+
+    const saveFile = async (file: UploadedFile, prefix: string) => {
+      const ext = path.extname(file.filename) || ".pdf";
+      const fileName = `${cleanCnpj}/${prefix}${ext}`;
+      
+      const { data: uploadData, error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(fileName, file.data, {
+          contentType: file.mimetype,
+          upsert: true,
+        });
+
+      if (error) {
+        console.error("Erro ao fazer upload para o Supabase:", error);
+        throw new AppError("Ocorreu uma instabilidade ao processar seus documentos. Por favor, tente novamente em instantes.", 500);
+      }
+      
+      return fileName; // Salva o caminho dentro do bucket
+    };
+
+    const cartaoCnpjPath = await saveFile(files.cartao_cnpj, "cartao_cnpj");
+    const contratoSocialPath = await saveFile(files.contrato_social, "contrato_social");
+    const comprovanteEnderecoPath = await saveFile(files.comprovante_endereco, "comprovante_endereco");
+    const comprovanteSocioPath = await saveFile(files.comprovante_socio, "comprovante_socio");
+
     const hashedPassword = await hash(data.password, 10);
 
     const result = await prisma.$transaction(async (tx) => {
@@ -51,13 +80,13 @@ export const businessService = {
           cnpj: data.cnpj,
           name_businss: data.nome_empresa,
           porte_empresa: data.porte_empresa as PorteEmpresa,
-          cartaoCnpjData: files.cartao_cnpj.data,
+          cartaoCnpjPath: cartaoCnpjPath,
           cartaoCnpjMimeType: files.cartao_cnpj.mimetype,
-          contratoSocialData: files.contrato_social.data,
+          contratoSocialPath: contratoSocialPath,
           contratoSocialMimeType: files.contrato_social.mimetype,
-          comprovanteEnderecoData: files.comprovante_endereco.data,
+          comprovanteEnderecoPath: comprovanteEnderecoPath,
           comprovanteEnderecoMimeType: files.comprovante_endereco.mimetype,
-          comprovanteSocioData: files.comprovante_socio.data,
+          comprovanteSocioPath: comprovanteSocioPath,
           comprovanteSocioMimeType: files.comprovante_socio.mimetype,
         },
       });

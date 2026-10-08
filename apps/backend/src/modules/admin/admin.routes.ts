@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { FastifyInstance } from "fastify";
 import { ensureAuthenticated } from "../../middlewares/ensure-authenticated";
 import { verifyUserAuthorization } from "../../middlewares/verify-user-authorization";
@@ -102,13 +104,13 @@ export async function adminRoutes(app: FastifyInstance) {
       const business = await prisma.business.findUnique({
         where: { cnpj },
         select: {
-          cartaoCnpjData: true,
+          cartaoCnpjPath: true,
           cartaoCnpjMimeType: true,
-          contratoSocialData: true,
+          contratoSocialPath: true,
           contratoSocialMimeType: true,
-          comprovanteEnderecoData: true,
+          comprovanteEnderecoPath: true,
           comprovanteEnderecoMimeType: true,
-          comprovanteSocioData: true,
+          comprovanteSocioPath: true,
           comprovanteSocioMimeType: true,
         },
       });
@@ -117,37 +119,51 @@ export async function adminRoutes(app: FastifyInstance) {
         return reply.status(404).send({ message: "Empresa não encontrada" });
       }
 
-      let data: Buffer | null = null;
+      let filePath: string | null = null;
       let mimeType = "";
 
       switch (docType) {
         case "cartao_cnpj":
-          data = business.cartaoCnpjData;
+          filePath = business.cartaoCnpjPath;
           mimeType = business.cartaoCnpjMimeType;
           break;
         case "contrato_social":
-          data = business.contratoSocialData;
+          filePath = business.contratoSocialPath;
           mimeType = business.contratoSocialMimeType;
           break;
         case "comprovante_endereco":
-          data = business.comprovanteEnderecoData;
+          filePath = business.comprovanteEnderecoPath;
           mimeType = business.comprovanteEnderecoMimeType;
           break;
         case "comprovante_socio":
-          data = business.comprovanteSocioData;
+          filePath = business.comprovanteSocioPath;
           mimeType = business.comprovanteSocioMimeType;
           break;
         default:
           return reply.status(400).send({ message: "Tipo de documento inválido" });
       }
 
-      if (!data) {
+      if (!filePath) {
         return reply.status(404).send({ message: "Documento não encontrado" });
       }
 
-      reply.header("Content-Type", mimeType);
-      reply.header("Content-Disposition", `inline; filename="${docType}"`);
-      return reply.send(data);
+      try {
+        const { supabase } = await import("../../lib/supabase");
+        const { data, error } = await supabase.storage.from("documentos-empresas").download(filePath);
+
+        if (error || !data) {
+          console.error("Erro ao baixar arquivo do Supabase:", error);
+          return reply.status(500).send({ message: "Erro ao acessar o documento na nuvem" });
+        }
+
+        const buffer = Buffer.from(await data.arrayBuffer());
+        reply.header("Content-Type", mimeType);
+        reply.header("Content-Disposition", `inline; filename="${docType}"`);
+        return reply.send(buffer);
+      } catch (err) {
+        console.error("Erro ao ler arquivo:", err);
+        return reply.status(500).send({ message: "Erro ao acessar o documento" });
+      }
     }
   );
 }

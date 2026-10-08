@@ -5,13 +5,13 @@ export interface CreateBusinessData {
   cnpj: string;
   name_businss: string;
   porte_empresa: PorteEmpresa;
-  cartaoCnpjData: Buffer;
+  cartaoCnpjPath: string;
   cartaoCnpjMimeType: string;
-  contratoSocialData: Buffer;
+  contratoSocialPath: string;
   contratoSocialMimeType: string;
-  comprovanteEnderecoData: Buffer;
+  comprovanteEnderecoPath: string;
   comprovanteEnderecoMimeType: string;
-  comprovanteSocioData: Buffer;
+  comprovanteSocioPath: string;
   comprovanteSocioMimeType: string;
 }
 

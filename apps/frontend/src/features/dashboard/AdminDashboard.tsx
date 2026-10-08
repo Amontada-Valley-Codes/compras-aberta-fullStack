@@ -33,6 +33,7 @@ import { openDocumentInNewTab } from "@/utils/openInNewTab";
 import { listDetailedBidsService } from "@/services/analytics/list-detailed-bids.service";
 import type { DetailedBid } from "@/services/analytics/analytics.types";
 import { listBusinessRequestsService, updateBusinessRequestStatusService } from "@/services/admin/admin.service";
+import { SkeletonTable } from "./Skeleton";
 
 const navItems: NavItem[] = [
   { id: "overview", label: "Visão geral", icon: <LayoutDashboard size={19} /> },
@@ -58,9 +59,9 @@ export function AdminDashboard() {
     queryFn: listBusinessRequestsService,
   });
 
-  // Use dados reais se existirem, senão mock no overview, e array vazio na aba de solicitações em caso de erro
-  const overviewRequests = Array.isArray(data) && data.length > 0 ? data : companyRequests;
-  const requestsPageData = isError ? [] : overviewRequests;
+  // Removido o mock: agora usamos apenas dados reais retornados pelo backend
+  const overviewRequests = Array.isArray(data) ? data : [];
+  const requestsPageData = overviewRequests;
 
   const pendingCount = overviewRequests.filter(
     (item) => item.status === "Em análise" || item.status === "Pendente",
@@ -325,9 +326,7 @@ function Requests({
         description="Priorize a fila, confira documentos e registre decisões com rastreabilidade."
       />
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}>
-          <Loader2 size={32} className="spin" style={{ color: 'var(--accent, #3b82f6)' }} />
-        </div>
+        <SkeletonTable rows={5} />
       ) : (
         <>
           <section className="request-tabs">
