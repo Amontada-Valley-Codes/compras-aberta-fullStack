@@ -12,8 +12,8 @@ const questions = [
     "A plataforma cruza empresas e licitações, remove duplicidades e organiza os registros para apresentar os indicadores conforme os filtros escolhidos.",
   ],
   [
-    "Posso filtrar os dados por município e tipo de compra?",
-    "Sim. Escolha o município e o tipo de compra (como materiais, obras ou serviços) na busca da página inicial ou na página de análise. O tipo de compra segue a classificação oficial do orçamento público, chamada de “natureza da despesa”.",
+    "Como vejo os tipos de compra de um município?",
+    "Escolha o município para ver o panorama completo dos sete tipos de compra. A classificação segue a natureza oficial da despesa e aparece detalhada nos gráficos.",
   ],
   [
     "A consulta dos dados públicos é gratuita?",

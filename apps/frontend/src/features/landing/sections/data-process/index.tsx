@@ -9,7 +9,7 @@ export function DataProcessSection() {
           <h2>Conheça o processo por trás dos dados.</h2>
           <p>
             Reunimos, validamos e organizamos dados públicos para tornar a
-            participação das microempresas mais fácil de entender.
+            participação de empresas nas compras públicas mais fácil de entender.
           </p>
         </div>
         <picture className="data-process-picture">

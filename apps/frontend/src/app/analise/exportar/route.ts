@@ -82,7 +82,7 @@ export async function GET(request: Request) {
       try {
         const page = firstPending ? firstPage : await listDetailedBidsService({ ...query, offset: nextOffset });
         if (firstPending) {
-          controller.enqueue(encoder.encode(`\uFEFF${csvLine(["Licitação", "Ano", "Código do município", "Município", "Código do tipo de compra", "Tipo de compra", "Natureza da despesa (nome oficial)", "Empresa vencedora", "CNPJ", "Porte", "Endereço", "Valor total da licitação (R$)", "Valor ganho (R$)", "Itens ganhos"])}`));
+          controller.enqueue(encoder.encode(`\uFEFF${csvLine(["Licitação", "Ano", "Código do município", "Município", "Código do tipo de compra", "Tipo de compra", "Natureza da despesa (nome oficial)", "Empresa vencedora", "CNPJ", "Porte", "Endereço", "Valor total da licitação (R$)", "Valor homologado (R$)", "Itens ganhos"])}`));
           firstPending = false;
         }
         if (page.data.length) controller.enqueue(encoder.encode(page.data.map((bid) => csvLine(bidRow(bid))).join("")));

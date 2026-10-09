@@ -85,7 +85,7 @@ export function ExpensesChart({ data, compactView = false }: { data: ExpensesByN
   return <NatureBarChart
     id="export-expenses-chart"
     color={chartColors.expenses}
-    seriesName="Orçamento previsto"
+    seriesName="Dotação prevista"
     labels={rows.map((item) => natureLabel(item.codigo_natureza, item.nome_natureza))}
     values={rows.map((item) => Number(item.valor_total_dotacao))}
     axisFormatter={compact}
@@ -100,7 +100,7 @@ export function ParticipationChart({ data, compactView = false }: { data: Partic
   return <NatureBarChart
     id="export-participation-chart"
     color={chartColors.participation}
-    seriesName="Participações de microempresas"
+    seriesName="Participação de ME"
     labels={rows.map((item) => natureLabel(item.codigo_natureza, item.nome_natureza))}
     values={rows.map((item) => item.percentual_participacoes_me ?? 0)}
     axisFormatter={(value) => `${Math.round(value)}%`}
@@ -111,11 +111,11 @@ export function ParticipationChart({ data, compactView = false }: { data: Partic
 
 export function MicroenterpriseValueChart({ data }: { data: ParticipationByNatureResponse["data"] }) {
   const rows = selectMicroenterpriseValueRows(data);
-  if (!rows.length) return <p className="analysis-data-state">Nenhum valor ganho por microempresas para estes filtros.</p>;
+    if (!rows.length) return <p className="analysis-data-state">Nenhum valor homologado para microempresas nestes filtros.</p>;
   return <NatureBarChart
     id="export-microenterprise-chart"
     color={chartColors.microenterprise}
-    seriesName="Valor ganho por microempresas"
+    seriesName="Valor homologado para ME"
     labels={rows.map((item) => natureLabel(item.codigo_natureza, item.nome_natureza))}
     values={rows.map((item) => Number(item.valor_vencido_me))}
     axisFormatter={compact}
@@ -190,14 +190,14 @@ export function LocalShareChart({ percentage, size = 210 }: { percentage: number
       percentage={percentage}
       size={size}
       chartId="export-local-share-chart"
-      meLabel="Microempresas locais"
+      meLabel="Compras com ME locais"
       othersLabel="Outras empresas"
       meColor={chartColors.local}
       othersColor={chartColors.remaining}
       meMarkerClass="local-share-tooltip-marker--me"
       othersMarkerClass="local-share-tooltip-marker--others"
-      centerLabel="microempresas locais"
-      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% do valor ganho ficou com microempresas locais`}
+      centerLabel="compras com ME locais"
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras homologadas ficaram com microempresas locais`}
     />
   );
 }
@@ -210,14 +210,14 @@ export function GeneralShareChart({ percentage, size = 210 }: { percentage: numb
       percentage={percentage}
       size={size}
       chartId="export-general-share-chart"
-      meLabel="Microempresas"
+      meLabel="Compras com ME"
       othersLabel="Outras empresas"
       meColor={chartColors.general}
       othersColor={chartColors.generalRemaining}
       meMarkerClass="local-share-tooltip-marker--general-me"
       othersMarkerClass="local-share-tooltip-marker--general-others"
-      centerLabel="microempresas"
-      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% do valor ganho ficou com microempresas, de qualquer cidade`}
+      centerLabel="compras com ME"
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras homologadas ficaram com microempresas, de qualquer cidade`}
     />
   );
 }

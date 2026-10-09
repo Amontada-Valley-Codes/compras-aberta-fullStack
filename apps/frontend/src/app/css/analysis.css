@@ -204,11 +204,12 @@
 }
 .analysis-kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 15px;
 }
 .analysis-kpis article {
+  min-width: 0;
   min-height: 137px;
   background: #fff;
   border: 1px solid var(--line);
@@ -241,7 +242,7 @@
   width: 16px;
 }
 .analysis-kpis small {
-  font-size: 8px;
+  font-size: 13px;
   color: #71828c;
 }
 .analysis-kpis strong {
@@ -253,7 +254,7 @@
 }
 .analysis-kpis p {
   color: #89969e;
-  font-size: 7px;
+  font-size: 13px;
   margin: 0;
 }
 .analysis-insight {
@@ -539,6 +540,45 @@
   font-size: 12px;
   margin: 0;
 }
+.analysis-share-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+  padding-top: 8px;
+}
+.analysis-share-item {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+  padding: 12px 10px 10px;
+  border: 1px solid #e2ebf0;
+  border-radius: 14px;
+  background: #f9fbfc;
+  text-align: center;
+}
+.analysis-share-item h3 {
+  min-height: 38px;
+  margin: 0;
+  color: var(--brand-navy);
+  font-size: 14px;
+  line-height: 1.35;
+}
+.analysis-share-item .apexcharts-canvas {
+  margin: 2px auto -4px;
+}
+.analysis-share-item > strong {
+  color: var(--brand-navy);
+  font-size: 24px;
+  line-height: 1;
+}
+.analysis-share-item > p {
+  min-height: 36px;
+  margin: 8px 0 0;
+  color: #53697a;
+  font-size: 12px;
+  line-height: 1.45;
+}
 .analysis-pagination {
   display: flex;
   align-items: center;
@@ -677,7 +717,7 @@
     grid-template-columns: 1fr 1fr;
   }
   .analysis-kpis {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (max-width: 720px) {
@@ -719,6 +759,9 @@
   }
   .analysis-kpis,
   .analysis-chart-grid {
+    grid-template-columns: 1fr;
+  }
+  .analysis-share-comparison {
     grid-template-columns: 1fr;
   }
   .analysis-table-card {
