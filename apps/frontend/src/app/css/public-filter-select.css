@@ -20,6 +20,16 @@
 .public-filter-trigger:hover {
   background: #f6fafe;
 }
+.public-filter-trigger[data-disabled] {
+  cursor: default;
+  opacity: 0.9;
+}
+.public-filter-trigger[data-disabled]:hover {
+  background: transparent;
+}
+.public-filter-trigger[data-disabled] .public-filter-chevron {
+  display: none;
+}
 .public-filter-trigger:focus-visible {
   outline: 2px solid var(--brand-blue);
   outline-offset: -2px;

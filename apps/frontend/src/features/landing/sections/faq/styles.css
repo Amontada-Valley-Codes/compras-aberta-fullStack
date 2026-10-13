@@ -42,7 +42,7 @@
   position: relative;
   padding: 25px 56px 25px 0;
   color: var(--brand-navy);
-  font-size: 19px;
+  font-size: 21px;
   font-weight: 750;
   line-height: 1.4;
   cursor: pointer;
@@ -120,7 +120,7 @@
   }
   .faq-list summary {
     padding: 21px 48px 21px 0;
-    font-size: 17px;
+    font-size: 18px;
   }
   .faq-list summary::after {
     width: 32px;

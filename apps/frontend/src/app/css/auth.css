@@ -12,7 +12,7 @@
       rgba(217, 164, 65, 0.4) 45% 50%,
       transparent 50% 100%
     ),
-    linear-gradient(115deg, #0d2b45 0%, #123b5d 22%, #1d518b 40%, #ffffff 46% 100%);
+    linear-gradient(115deg, #1515b8 0%, #11169b 22%, #6ce3f8 40%, #ffffff 46% 100%);
 }
 .auth-shell {
   width: 100%;
@@ -320,7 +320,7 @@
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: #eaf3f8;
+  background: #6ce3f8;
   color: var(--brand-blue);
   flex-shrink: 0;
 }

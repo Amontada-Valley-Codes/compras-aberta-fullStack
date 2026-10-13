@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
-import { natureLabel } from "@/features/public-data/plain-language";
 import { landingData } from "../../landing-mock";
 
 export function DataExplorerSection() {
@@ -10,10 +9,13 @@ export function DataExplorerSection() {
     <section className="opportunities-section" id="oportunidades">
       <div className="public-container opportunity-showcase">
         <div className="opportunity-intro">
-          <h2>Explore os dados de compras públicas do Ceará.</h2>
+          <h2>
+            Processos <em>manuais</em> custam tempo, esforço e recursos.
+          </h2>
           <p>
-            Consulte registros históricos e entenda como as microempresas
-            participam das contratações em cada município.
+            Chega de perder tempo entre planilhas e portais. O Compras Abertas
+            reúne dados públicos em um só lugar para você acompanhar gastos,
+            identificar oportunidades e tomar decisões com mais confiança.
           </p>
           <div className="opportunity-badges" aria-label="Fontes de dados integradas">
             <span className="data-source-badge"><Image src="/images/data-sources/pncp.png" alt="PNCP" width={82} height={27} /></span>
@@ -22,12 +24,12 @@ export function DataExplorerSection() {
             <span className="data-source-badge"><Image src="/images/data-sources/ibge.svg" alt="IBGE" width={80} height={28} /></span>
           </div>
         </div>
-        <div className="opportunity-person" aria-hidden="true">
-          <Image src="/sections/imagem-sara-aberta-sem-arcos.png" alt="" fill sizes="(max-width: 900px) 100vw, 48vw" />
+        <div className="opportunity-person opportunity-hero-image" aria-hidden="true">
+          <Image src="/images/hero/foto-hero.png" alt="" fill sizes="(max-width: 900px) 100vw, 62vw" />
         </div>
         <form className="opportunity-search" action="/analise" method="get">
           <PublicFilterSelect name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="landing" options={data.municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []} />
-          <PublicFilterSelect name="natureza" label="Tipo de compra" allLabel="Todos os tipos" icon="nature" variant="landing" options={data.expenses.data?.data.map((item) => ({ value: item.codigo_natureza, label: natureLabel(item.codigo_natureza, item.nome_natureza) })) ?? []} />
+          <PublicFilterSelect name="natureza" label="Tipo de compra" allLabel="Todas as naturezas" icon="nature" variant="landing" options={[]} disabled />
           <button className="opportunity-search-button" type="submit" aria-label="Consultar dados"><Search size={24} /><span>Consultar dados</span></button>
         </form>
         {data.municipalities.error && <p className="public-data-state" role="status">Lista de municípios: {data.municipalities.error}</p>}

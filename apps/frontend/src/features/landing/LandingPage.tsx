@@ -3,11 +3,11 @@
 import Script from "next/script";
 import { ClosingCtaSection } from "./sections/closing-cta";
 import { DataExplorerSection } from "./sections/data-explorer";
+import { AudiencesSection } from "./sections/audiences";
 import { FaqSection } from "./sections/faq";
 import { LandingFooter } from "./sections/footer";
 import { LandingHeader } from "./sections/header";
-import { ManualWorkSection } from "./sections/manual-work";
-import { StepsSection } from "./sections/steps";
+import { HowItWorksSection } from "./sections/how-it-works";
 
 export function LandingPage() {
   return (
@@ -15,8 +15,8 @@ export function LandingPage() {
       <LandingHeader />
       <main>
         <DataExplorerSection />
-        <ManualWorkSection />
-        <StepsSection />
+        <AudiencesSection />
+        <HowItWorksSection />
         <FaqSection />
         <ClosingCtaSection />
       </main>

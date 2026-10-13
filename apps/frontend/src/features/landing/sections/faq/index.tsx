@@ -1,27 +1,35 @@
 const questions = [
   [
-    "O que é a Compras Abertas?",
-    "É uma plataforma que organiza dados de compras públicas e facilita a consulta da participação de microempresas por município.",
+    "O que é o Compras Abertas?",
+    "O Compras Abertas é uma plataforma que organiza dados públicos municipais e facilita o acesso a informações sobre receitas, despesas, fornecedores, contratos e licitações.",
   ],
   [
-    "De onde vêm os dados apresentados?",
-    "Os registros são reunidos a partir de fontes públicas como PNCP, TCE-CE e IBGE. O OpenCNPJ ajuda a confirmar a classificação das empresas.",
+    "Quem pode utilizar a plataforma?",
+    "A plataforma atende gestores públicos, microempresas e cidadãos. Alguns recursos são públicos, enquanto funcionalidades específicas para gestores e empresas exigem cadastro aprovado.",
   ],
   [
-    "Como a participação das microempresas é calculada?",
-    "A plataforma cruza empresas e licitações, remove duplicidades e organiza os registros para apresentar os indicadores conforme os filtros escolhidos.",
+    "Como solicito acesso como Gestor público ou ME?",
+    "Escolha o seu perfil, preencha as informações solicitadas e envie os documentos necessários. Depois disso, sua solicitação será encaminhada para análise.",
   ],
   [
-    "Como vejo os tipos de compra de um município?",
-    "Escolha o município para ver o panorama completo dos sete tipos de compra. A classificação segue a natureza oficial da despesa e aparece detalhada nos gráficos.",
+    "Quais documentos preciso enviar?",
+    "Os documentos variam de acordo com o perfil escolhido. Durante o cadastro, a plataforma mostrará todos os documentos necessários para Gestor público ou ME.",
   ],
   [
-    "A consulta dos dados públicos é gratuita?",
-    "Sim. A consulta dos indicadores públicos pode ser feita diretamente pela landing page e pela página de análise.",
+    "Como acompanho minha solicitação?",
+    "Você poderá consultar se sua solicitação está em análise, aprovada, recusada ou aguardando correção diretamente pela plataforma.",
   ],
   [
-    "Como encontro licitações para minha empresa?",
-    "A área da microempresa oferece radar de oportunidades, filtros e notificações para ajudar a acompanhar licitações compatíveis com o seu perfil.",
+    "O que acontece depois da aprovação?",
+    "Após a aprovação, seu acesso será liberado conforme o perfil cadastrado. Gestores públicos terão acesso aos recursos de gestão e análise, enquanto microempresas poderão acompanhar licitações, históricos de compras e alertas de oportunidades.",
+  ],
+  [
+    "O que acontece se houver algum problema com meus documentos?",
+    "A solicitação ficará aguardando correção. Você poderá consultar o motivo, substituir os documentos necessários e enviar novamente para análise.",
+  ],
+  [
+    "O cidadão precisa solicitar acesso?",
+    "Não. O cidadão poderá consultar gratuitamente os dados públicos disponíveis, acompanhar os gastos do município e verificar como o dinheiro público está sendo utilizado.",
   ],
 ];
 
@@ -32,8 +40,8 @@ export function FaqSection() {
         <div className="faq-heading">
           <h2>Tire suas dúvidas.</h2>
           <p>
-            Entenda como consultar os dados e encontrar oportunidades para sua
-            empresa.
+            Entenda como acessar os dados públicos, solicitar seu cadastro e
+            acompanhar a análise da sua solicitação.
           </p>
         </div>
         <div className="faq-list">

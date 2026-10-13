@@ -56,7 +56,7 @@
 /* Hero carousel */
 .hero-carousel {
   min-height: 720px;
-  background: #123b5d;
+  background: #11169b;
   isolation: isolate;
 }
 .hero-carousel::before {
