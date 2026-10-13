@@ -23,20 +23,21 @@ export function LandingHeader() {
       <div className="public-container header-inner">
         <BrandLogo />
         <nav
+          id="landing-navigation"
           className={menuOpen ? "is-open" : ""}
           aria-label="Navegação principal"
         >
-          <a href="#como-funciona" onClick={closeMenu}>
-            Como funciona
-          </a>
-          <a href="#oportunidades" onClick={closeMenu}>
-            Licitações
-          </a>
-          <Link href="/analise" onClick={closeMenu}>
-            Transparência
+          <Link href="#gestor-publico" onClick={closeMenu}>
+            Gestor público
           </Link>
-          <Link href="/admin" onClick={closeMenu}>
-            Para municípios
+          <Link href="#microempresa" onClick={closeMenu}>
+            Microempresa
+          </Link>
+          <Link href="/analise" onClick={closeMenu}>
+            Portal público
+          </Link>
+          <Link href="#como-funciona" onClick={closeMenu}>
+            Como funciona
           </Link>
           <a className="mobile-nav-action" href="#contato" onClick={closeMenu}>
             Contato
@@ -56,7 +57,7 @@ export function LandingHeader() {
           <a
             className="header-search"
             href="#oportunidades"
-            aria-label="Buscar licitações"
+            aria-label="Buscar dados públicos"
           >
             <Search size={20} />
           </a>
@@ -66,9 +67,12 @@ export function LandingHeader() {
         </div>
         <span className="scroll-progress" aria-hidden="true" />
         <button
+          type="button"
           className="mobile-nav-toggle"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Alternar menu"
+          aria-controls="landing-navigation"
+          aria-expanded={menuOpen}
         >
           {menuOpen ? <X /> : <Menu />}
         </button>

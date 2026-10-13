@@ -18,30 +18,28 @@
   min-height: 430px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 .closing-cta-copy {
-  width: min(610px, 46%);
+  width: min(1000px, 100%);
   padding-block: 62px;
+  text-align: center;
 }
 .closing-cta-copy h2 {
+  max-width: 1000px;
   margin: 0;
   color: #27333e;
-  font-size: clamp(40px, 4vw, 60px);
+  font-size: clamp(38px, 3.7vw, 56px);
   line-height: 1.08;
   letter-spacing: -0.045em;
 }
-.closing-cta-copy h2::after {
-  content: "";
-  width: 84px;
-  height: 5px;
-  display: block;
-  margin-top: 19px;
-  border-radius: 999px;
-  background: var(--brand-gold);
+.closing-cta-highlight {
+  color: var(--brand-blue);
+  font-weight: 850;
 }
 .closing-cta-copy p {
   max-width: 570px;
-  margin: 22px 0 0;
+  margin: 22px auto 0;
   color: #5f707b;
   font-size: 17px;
   line-height: 1.65;
@@ -52,6 +50,7 @@
   flex-wrap: wrap;
   gap: 16px;
   margin-top: 30px;
+  justify-content: center;
 }
 .closing-cta-actions .button {
   min-height: 58px;
@@ -92,35 +91,6 @@
   background: #20bd5a;
   transform: translateY(-2px);
 }
-.closing-cta-visual {
-  position: absolute;
-  z-index: 1;
-  top: -32%;
-  right: -8%;
-  width: 69%;
-  height: 165%;
-  transform: rotate(-2deg);
-  transform-origin: center;
-}
-.closing-cta-visual::before {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    #f7f9fa 0%,
-    rgba(247, 249, 250, 0.94) 12%,
-    rgba(247, 249, 250, 0.2) 42%,
-    transparent 65%
-  );
-}
-.closing-cta-visual img {
-  object-fit: contain;
-  object-position: right center;
-  filter: drop-shadow(0 22px 30px rgba(18, 59, 93, 0.16));
-}
-
 @media (max-width: 900px) {
   .closing-cta-section,
   .closing-cta-inner {
@@ -132,23 +102,6 @@
   .closing-cta-copy {
     width: min(100%, 650px);
     padding-top: 58px;
-  }
-  .closing-cta-visual {
-    top: auto;
-    right: -15%;
-    bottom: -19%;
-    width: 105%;
-    height: 67%;
-    opacity: 0.62;
-    transform: rotate(-1deg);
-  }
-  .closing-cta-visual::before {
-    background: linear-gradient(
-      180deg,
-      #f7f9fa 0%,
-      rgba(247, 249, 250, 0.32) 36%,
-      transparent 72%
-    );
   }
 }
 
@@ -164,9 +117,6 @@
   .closing-cta-copy h2 {
     font-size: 38px;
   }
-  .closing-cta-copy h2::after {
-    margin-inline: auto;
-  }
   .closing-cta-copy p {
     font-size: 15px;
   }
@@ -181,12 +131,5 @@
   }
   .closing-cta-whatsapp {
     display: none;
-  }
-  .closing-cta-visual {
-    right: -38%;
-    bottom: -12%;
-    width: 170%;
-    height: 47%;
-    opacity: 0.72;
   }
 }

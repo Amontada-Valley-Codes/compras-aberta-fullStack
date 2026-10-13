@@ -27,6 +27,7 @@ interface PublicFilterSelectProps {
   defaultValue?: string;
   icon: FilterIcon;
   variant: "landing" | "analysis";
+  disabled?: boolean;
 }
 
 const allValue = "__all__";
@@ -39,6 +40,7 @@ export function PublicFilterSelect({
   defaultValue = "",
   icon,
   variant,
+  disabled = false,
 }: PublicFilterSelectProps) {
   const [value, setValue] = useState(defaultValue || allValue);
   const [search, setSearch] = useState("");
@@ -73,6 +75,7 @@ export function PublicFilterSelect({
       />
       <Select.Root
         value={value}
+        disabled={disabled}
         onValueChange={setValue}
         onOpenChange={(open) => {
           if (!open) setSearch("");

@@ -1,8 +1,8 @@
 .public-footer {
   padding: 72px 0 28px;
   background:
-    radial-gradient(circle at 12% 0%, rgba(37, 99, 166, 0.28), transparent 32%),
-    #0b2c46;
+    radial-gradient(circle at 12% 0%, rgba(108, 227, 248, 0.2), transparent 32%),
+    #11169b;
   color: white;
 }
 .footer-grid {

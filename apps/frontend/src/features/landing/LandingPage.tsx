@@ -1,29 +1,26 @@
 "use client";
 
-import { useRef } from "react";
+import { RefObject, useRef } from "react";
 import Script from "next/script";
 import { ClosingCtaSection } from "./sections/closing-cta";
 import { DataExplorerSection } from "./sections/data-explorer";
-import { DataProcessSection } from "./sections/data-process";
+import { AudiencesSection } from "./sections/audiences";
 import { FaqSection } from "./sections/faq";
 import { LandingFooter } from "./sections/footer";
 import { LandingHeader } from "./sections/header";
-import { HeroSection } from "./sections/hero";
-import { StepsSection } from "./sections/steps";
-import { useScrollReveal } from "./useScrollReveal";
+import { HowItWorksSection } from "./sections/how-it-works";
 
 export function LandingPage() {
   const rootRef = useRef<HTMLDivElement>(null);
-  useScrollReveal(rootRef);
-
+  // useScrollReveal(rootRef);
+  
   return (
     <div className="public-site" ref={rootRef}>
       <LandingHeader />
       <main>
-        <HeroSection />
         <DataExplorerSection />
-        <DataProcessSection />
-        <StepsSection />
+        <AudiencesSection />
+        <HowItWorksSection />
         <FaqSection />
         <ClosingCtaSection />
       </main>
@@ -36,3 +33,4 @@ export function LandingPage() {
     </div>
   );
 }
+

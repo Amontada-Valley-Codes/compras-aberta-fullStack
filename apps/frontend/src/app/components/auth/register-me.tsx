@@ -37,16 +37,16 @@ const RegisterIllustration = () => (
       width='100'
       height='100'
       rx='16'
-      fill='#2563a6'
+      fill='#11169b'
       fillOpacity='0.18'
-      stroke='#eaf3f8'
+      stroke='#6ce3f8'
       strokeWidth='6'
     />
     <rect x='36' y='36' width='68' height='12' rx='6' fill='#d9a441' />
-    <rect x='36' y='56' width='44' height='8' rx='4' fill='#eaf3f8' />
-    <rect x='36' y='70' width='68' height='8' rx='4' fill='#eaf3f8' fillOpacity='0.6' />
-    <rect x='36' y='84' width='52' height='8' rx='4' fill='#eaf3f8' fillOpacity='0.4' />
-    <circle cx='102' cy='102' r='20' fill='#2563a6' stroke='#eaf3f8' strokeWidth='4' />
+    <rect x='36' y='56' width='44' height='8' rx='4' fill='#6ce3f8' />
+    <rect x='36' y='70' width='68' height='8' rx='4' fill='#6ce3f8' fillOpacity='0.6' />
+    <rect x='36' y='84' width='52' height='8' rx='4' fill='#6ce3f8' fillOpacity='0.4' />
+    <circle cx='102' cy='102' r='20' fill='#11169b' stroke='#6ce3f8' strokeWidth='4' />
     <path
       d='M94 102l5 5 10-10'
       stroke='#ffffff'
