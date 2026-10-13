@@ -4,7 +4,7 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 export function LandingFooter() {
   return (
     <footer className="public-footer" id="contato">
-      <div className="public-container footer-grid">
+      <div className="public-container footer-grid" data-reveal="up">
         <div className="footer-brand">
           <BrandLogo inverse />
           <p>

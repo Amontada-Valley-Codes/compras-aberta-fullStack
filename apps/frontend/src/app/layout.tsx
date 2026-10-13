@@ -4,9 +4,12 @@ import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./css/globals.css";
 
+// O fallback termina em sans-serif: sem ele, se o Inter não carregar e a
+// máquina não tiver Arial (comum no Linux), o navegador cai numa fonte serifada.
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+  fallback: ["system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
 });
 
 import QueryProvider from "./providers/QueryProvider";

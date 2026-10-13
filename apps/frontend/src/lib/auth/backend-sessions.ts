@@ -9,7 +9,7 @@ export interface SessionTokens {
 // fala direto com o backend), então o backend só enxergaria o IP do próprio
 // servidor do Next.js — e o rate limit de login/refresh (por IP) puniria
 // todo mundo junto. Repassamos o IP de quem realmente fez a requisição.
-function forwardClientIp(request: Request) {
+export function forwardClientIp(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   return ip ? { headers: { "X-Forwarded-For": ip } } : undefined;
 }

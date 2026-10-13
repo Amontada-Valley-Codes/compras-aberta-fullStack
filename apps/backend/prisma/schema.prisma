@@ -13,6 +13,12 @@ enum UserRole {
   BUSINESS
 }
 
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum PorteEmpresa {
   MEI
   ME
@@ -32,10 +38,42 @@ model user {
 
   refreshTokens refreshToken[]
 
+  accessRequest          accessRequest?  @relation("AccessRequestRequester")
+  reviewedAccessRequests accessRequest[] @relation("AccessRequestReviewer")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("User")
+}
+
+// Solicitação de acesso de uma microempresa. O usuário é criado junto com a
+// solicitação, mas só usa a área da empresa depois que um ADMIN aprova.
+model accessRequest {
+  id     String              @id @default(uuid())
+  status AccessRequestStatus @default(PENDING)
+
+  companyName   String
+  cnpj          String
+  phone         String
+  message       String?
+  municipioIbge Int
+  municipio     municipios @relation(fields: [municipioIbge], references: [codigo_ibge])
+
+  userId String @unique
+  user   user   @relation("AccessRequestRequester", fields: [userId], references: [id], onDelete: Cascade)
+
+  reviewedById String?
+  reviewedBy   user?     @relation("AccessRequestReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNote   String?
+  reviewedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([cnpj])
+  @@map("AccessRequest")
 }
 
 model refreshToken {
@@ -80,6 +118,8 @@ model municipios {
   nome        String?
   codigo_ibge Int     @unique
   codigo_tce  Int?    @unique
+
+  accessRequests accessRequest[]
 
   @@map("Municipios")
 }

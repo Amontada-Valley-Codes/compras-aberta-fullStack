@@ -7,10 +7,19 @@ export const REFRESH_COOKIE = "refresh_token";
 export const SESSION_MAX_AGE_SECONDS = 15 * 60;
 export const REFRESH_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
+export type AccessStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export interface SessionPayload {
   userId: string;
   role: string;
+  accessStatus: AccessStatus;
 }
+
+const ACCESS_STATUSES: readonly string[] = ["PENDING", "APPROVED", "REJECTED"];
+
+// Para onde vai quem tem a solicitação de acesso pendente ou recusada: só
+// consegue acompanhar a situação, sem entrar na área da empresa.
+export const ACCESS_STATUS_PATH = "/acesso/status";
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -29,17 +38,27 @@ function getJwtSecret(): string {
 export function verifySessionToken(token: string): SessionPayload | null {
   try {
     const payload = jwt.verify(token, getJwtSecret(), { algorithms: ["HS256"] });
-    if (typeof payload === "string" || !payload.sub || typeof payload.role !== "string") {
+    if (
+      typeof payload === "string" ||
+      !payload.sub ||
+      typeof payload.role !== "string" ||
+      !ACCESS_STATUSES.includes(payload.accessStatus)
+    ) {
       return null;
     }
-    return { userId: String(payload.sub), role: payload.role };
+    return {
+      userId: String(payload.sub),
+      role: payload.role,
+      accessStatus: payload.accessStatus as AccessStatus,
+    };
   } catch {
     return null;
   }
 }
 
-export function roleHomePath(role: string): string {
-  return role === "ADMIN" ? "/admin" : "/me";
+export function sessionHomePath(session: SessionPayload): string {
+  if (session.role === "ADMIN") return "/admin";
+  return session.accessStatus === "APPROVED" ? "/me" : ACCESS_STATUS_PATH;
 }
 
 export const authCookieOptions = {

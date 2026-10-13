@@ -19,6 +19,7 @@ const createSessionDocs = {
     "- O e-mail é normalizado (sem espaços, minúsculo) antes da busca.",
     "- Para não revelar quais e-mails existem, e-mail inexistente e senha errada retornam a **mesma** mensagem (401).",
     "- Usuários desativados recebem 403, mas só depois de informarem a senha correta.",
+    "- Empresas com solicitação **pendente ou recusada** também fazem login (para acompanhar a solicitação); o `accessStatus` no token indica a situação.",
     "",
     "**Limite:** 5 requisições por minuto por IP.",
   ].join("\n"),
@@ -26,7 +27,7 @@ const createSessionDocs = {
   response: {
     200: object("Login realizado com sucesso.", {
       token: field.string(
-        "Token JWT. O `sub` é o id do usuário e o `role` é ADMIN ou BUSINESS.",
+        "Token JWT. O `sub` é o id do usuário, o `role` é ADMIN ou BUSINESS e o `accessStatus` é a situação da solicitação de acesso.",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiQlVTSU5FU1MiLCJzdWIiOiIuLi4ifQ.assinatura",
       ),
       refreshToken: field.string(

@@ -2,15 +2,24 @@
 
 import Link from "next/link";
 import { Menu, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 
 export function LandingHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const closeMenu = () => setMenuOpen(false);
 
+  // Ao rolar, o vidro do header fica mais denso e ganha sombra.
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 8);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+
   return (
-    <header className="public-header">
+    <header className={`public-header ${scrolled ? "is-scrolled" : ""}`}>
       <div className="public-container header-inner">
         <BrandLogo />
         <nav
@@ -52,10 +61,11 @@ export function LandingHeader() {
           >
             <Search size={20} />
           </a>
-          <Link className="header-login" href="/auth/login">
+          <Link className="header-login liquid-glass is-light" href="/auth/login">
             LOGIN
           </Link>
         </div>
+        <span className="scroll-progress" aria-hidden="true" />
         <button
           type="button"
           className="mobile-nav-toggle"

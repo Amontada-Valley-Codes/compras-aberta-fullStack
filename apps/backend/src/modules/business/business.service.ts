@@ -51,7 +51,7 @@ export const businessService = {
     const saveFile = async (file: UploadedFile, prefix: string) => {
       const ext = path.extname(file.filename) || ".pdf";
       const fileName = `${cleanCnpj}/${prefix}${ext}`;
-      
+
       const { data: uploadData, error } = await supabase.storage
         .from(BUCKET_NAME)
         .upload(fileName, file.data, {
@@ -63,7 +63,7 @@ export const businessService = {
         console.error("Erro ao fazer upload para o Supabase:", error);
         throw new AppError("Ocorreu uma instabilidade ao processar seus documentos. Por favor, tente novamente em instantes.", 500);
       }
-      
+
       return fileName; // Salva o caminho dentro do bucket
     };
 

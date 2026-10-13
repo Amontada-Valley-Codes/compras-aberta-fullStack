@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa6";
+import { RevealWords } from "../../RevealWords";
 
 export function ClosingCtaSection() {
   return (
@@ -16,7 +17,7 @@ export function ClosingCtaSection() {
             públicos e microempresas podem agir com mais clareza, estratégia e
             confiança.
           </p>
-          <div className="closing-cta-actions">
+          <div className="closing-cta-actions" data-reveal="up" style={{ "--reveal-delay": "400ms" } as CSSProperties}>
             <Link className="button closing-cta-primary" href="/analise">
               Conhecer a plataforma
             </Link>

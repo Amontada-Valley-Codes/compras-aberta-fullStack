@@ -14,7 +14,16 @@ const swaggerOptions: SwaggerOptions = {
     tags: [
       {
         name: "Autenticação",
-        description: "Cadastro de usuários e login com JWT.",
+        description: "Login com JWT e renovação de sessão.",
+      },
+      {
+        name: "Solicitações de acesso",
+        description:
+          "Cadastro de microempresas e aprovação do acesso pela administração.",
+      },
+      {
+        name: "CNPJ",
+        description: "Dados cadastrais de empresas na base aberta da Receita Federal.",
       },
       {
         name: "Microempresa",

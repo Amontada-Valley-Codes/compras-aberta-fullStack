@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, type FormEvent, type ChangeEvent } from 'react'
+import { useState, type FormEvent, type ChangeEvent, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Building2,
+  ChevronDown,
   ChevronLeft,
+  CircleAlert,
   ExternalLink,
   Eye,
   EyeOff,
@@ -64,12 +66,97 @@ function formatCNPJ(value: string) {
     .replace(/(\d{4})(\d)/, '$1-$2')
 }
 
-interface SelectedFiles {
-  cartao_cnpj?: File
-  contrato_social?: File
-  comprovante_endereco?: File
-  comprovante_socio?: File
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
+
+const DOCUMENTS = [
+  { field: 'cartao_cnpj', title: 'Cartão CNPJ' },
+  { field: 'contrato_social', title: 'Contrato Social' },
+  { field: 'comprovante_endereco', title: 'Comprovante de Endereço' },
+  { field: 'comprovante_socio', title: 'Comprovante dos Sócios' },
+] as const
+
+type DocumentField = (typeof DOCUMENTS)[number]['field']
+
+type SelectedFiles = Partial<Record<DocumentField, File>>
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`
 }
+
+// Nomes muito longos tornam a mensagem de erro ilegível: mantém o começo e o fim.
+function shortenFileName(name: string) {
+  return name.length > 40 ? `${name.slice(0, 24)}…${name.slice(-14)}` : name
+}
+
+interface FormSectionProps {
+  step: number
+  title: string
+  hint?: string
+  children: ReactNode
+}
+
+const FormSection = ({ step, title, hint, children }: FormSectionProps) => {
+  const headingId = `cadastro-secao-${step}`
+
+  return (
+    <div className='auth-section' role='group' aria-labelledby={headingId}>
+      <div className='auth-section-head'>
+        <span className='auth-section-step' aria-hidden='true'>
+          {step}
+        </span>
+        <h2 id={headingId} className='auth-section-title'>
+          {title}
+        </h2>
+      </div>
+      {hint && <p className='auth-section-hint'>{hint}</p>}
+      {children}
+    </div>
+  )
+}
+
+interface DocumentUploadProps {
+  field: DocumentField
+  title: string
+  file?: File
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void
+}
+
+const DocumentUpload = ({ field, title, file, onChange }: DocumentUploadProps) => (
+  <div className='auth-file-box'>
+    <label htmlFor={field} className='auth-file-label'>
+      <div className='auth-file-icon'>
+        {file ? <FileCheck size={20} className='text-success' /> : <UploadCloud size={20} />}
+      </div>
+      <div className='auth-file-info'>
+        <span className='auth-file-title'>{title}</span>
+        <span className='auth-file-name'>{file ? file.name : 'Clique para selecionar'}</span>
+      </div>
+      {file && (
+        <button
+          type='button'
+          className='auth-file-preview-btn'
+          title='Abrir em nova aba'
+          aria-label={`Visualizar ${title}`}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            openDocumentInNewTab(file, title)
+          }}>
+          <ExternalLink size={14} />
+        </button>
+      )}
+    </label>
+    <input
+      id={field}
+      name={field}
+      type='file'
+      accept='.pdf,.png,.jpg,.jpeg'
+      onChange={onChange}
+      required
+    />
+  </div>
+)
 
 export const RegisterME = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -83,13 +170,12 @@ export const RegisterME = () => {
     setCnpjValue(formatCNPJ(e.target.value))
   }
 
-  const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
-
-  const handleFileChange = (field: keyof SelectedFiles) => (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (field: DocumentField) => (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile && selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      const sizeMb = (selectedFile.size / (1024 * 1024)).toFixed(1)
-      setError(`O arquivo "${selectedFile.name}" tem ${sizeMb} MB e excede o tamanho máximo de 5 MB. Escolha um arquivo menor.`)
+      setError(
+        `O arquivo "${shortenFileName(selectedFile.name)}" tem ${formatFileSize(selectedFile.size)} e excede o tamanho máximo de 5 MB. Escolha um arquivo menor.`,
+      )
       e.target.value = '' // Limpa o input
       setFiles((prev) => ({ ...prev, [field]: undefined }))
       return
@@ -109,12 +195,7 @@ export const RegisterME = () => {
     formData.set('cnpj', rawCnpj)
 
     // Validação client-side dos arquivos
-    const requiredFiles: (keyof SelectedFiles)[] = [
-      'cartao_cnpj',
-      'contrato_social',
-      'comprovante_endereco',
-      'comprovante_socio',
-    ]
+    const requiredFiles = DOCUMENTS.map((doc) => doc.field)
 
     const missing = requiredFiles.filter((f) => !files[f])
     if (missing.length > 0) {
@@ -127,8 +208,9 @@ export const RegisterME = () => {
     for (const key of requiredFiles) {
       const file = files[key]
       if (file && file.size > MAX_FILE_SIZE_BYTES) {
-        const sizeMb = (file.size / (1024 * 1024)).toFixed(1)
-        setError(`O arquivo "${file.name}" possui ${sizeMb} MB e excede o limite máximo permitido de 5 MB.`)
+        setError(
+          `O arquivo "${shortenFileName(file.name)}" possui ${formatFileSize(file.size)} e excede o limite máximo permitido de 5 MB.`,
+        )
         setPending(false)
         return
       }
@@ -191,279 +273,134 @@ export const RegisterME = () => {
           </p>
 
           <form className='auth-form' onSubmit={handleSubmit}>
-            <div className='auth-section-title'>Dados Cadastrais</div>
-
-            <div className='auth-grid-2'>
-              <div className='auth-field'>
-                <label htmlFor='usuario'>Nome do Responsável</label>
-                <div className='auth-input-wrap'>
-                  <input
-                    id='usuario'
-                    name='usuario'
-                    type='text'
-                    placeholder='Seu nome completo'
-                    required
-                    minLength={3}
-                    maxLength={120}
-                  />
-                  <User size={18} />
-                </div>
-              </div>
-
-              <div className='auth-field'>
-                <label htmlFor='email'>E-mail</label>
-                <div className='auth-input-wrap'>
-                  <input
-                    id='email'
-                    name='email'
-                    type='email'
-                    placeholder='seu.email@empresa.com'
-                    autoComplete='email'
-                    required
-                  />
-                  <Mail size={18} />
-                </div>
-              </div>
-            </div>
-
-            <div className='auth-grid-2'>
-              <div className='auth-field'>
-                <label htmlFor='password'>Senha de Acesso</label>
-                <div className='auth-input-wrap'>
-                  <input
-                    id='password'
-                    name='password'
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder='Mínimo 6 caracteres'
-                    required
-                    minLength={6}
-                  />
-                  <button
-                    type='button'
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
-                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              <div className='auth-field'>
-                <label htmlFor='cnpj'>CNPJ da Empresa</label>
-                <div className='auth-input-wrap'>
-                  <input
-                    id='cnpj'
-                    name='cnpj'
-                    type='text'
-                    value={cnpjValue}
-                    onChange={handleCnpjChange}
-                    placeholder='00.000.000/0000-00'
-                    required
-                    maxLength={18}
-                  />
-                  <Building2 size={18} />
-                </div>
-              </div>
-            </div>
-
-            <div className='auth-grid-2'>
-              <div className='auth-field'>
-                <label htmlFor='nome_empresa'>Nome Fantasia / Razão Social</label>
-                <div className='auth-input-wrap'>
-                  <input
-                    id='nome_empresa'
-                    name='nome_empresa'
-                    type='text'
-                    placeholder='Nome da sua empresa'
-                    required
-                    minLength={2}
-                    maxLength={200}
-                  />
-                  <FileText size={18} />
-                </div>
-              </div>
-
-              <div className='auth-field'>
-                <label htmlFor='porte_empresa'>Porte da Empresa</label>
-                <div className='auth-input-wrap'>
-                  <select
-                    id='porte_empresa'
-                    name='porte_empresa'
-                    defaultValue='ME'
-                    className='auth-select'
-                    required>
-                    <option value='MEI'>MEI - Microempreendedor Individual</option>
-                    <option value='ME'>ME - Microempresa</option>
-                    <option value='EPP'>EPP - Empresa de Pequeno Porte</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className='auth-section-title' style={{ marginTop: '12px' }}>
-              Documentação Comprobatória (PDF ou Imagem)
-            </div>
-
-            <div className='auth-docs-grid'>
-              <div className='auth-file-box'>
-                <label htmlFor='cartao_cnpj' className='auth-file-label'>
-                  <div className='auth-file-icon'>
-                    {files.cartao_cnpj ? <FileCheck size={20} className='text-success' /> : <UploadCloud size={20} />}
+            <FormSection step={1} title='Dados do Responsável'>
+              <div className='auth-grid-2'>
+                <div className='auth-field auth-field-full'>
+                  <label htmlFor='usuario'>Nome do Responsável</label>
+                  <div className='auth-input-wrap'>
+                    <input
+                      id='usuario'
+                      name='usuario'
+                      type='text'
+                      placeholder='Seu nome completo'
+                      required
+                      minLength={3}
+                      maxLength={120}
+                    />
+                    <User size={18} />
                   </div>
-                  <div className='auth-file-info'>
-                    <span className='auth-file-title'>Cartão CNPJ</span>
-                    <span className='auth-file-name'>
-                      {files.cartao_cnpj ? files.cartao_cnpj.name : 'Clique para selecionar'}
-                    </span>
+                </div>
+
+                <div className='auth-field'>
+                  <label htmlFor='email'>E-mail</label>
+                  <div className='auth-input-wrap'>
+                    <input
+                      id='email'
+                      name='email'
+                      type='email'
+                      placeholder='seu.email@empresa.com'
+                      autoComplete='email'
+                      required
+                    />
+                    <Mail size={18} />
                   </div>
-                  {files.cartao_cnpj && (
+                </div>
+
+                <div className='auth-field'>
+                  <label htmlFor='password'>Senha de Acesso</label>
+                  <div className='auth-input-wrap'>
+                    <input
+                      id='password'
+                      name='password'
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder='Mínimo 6 caracteres'
+                      required
+                      minLength={6}
+                    />
                     <button
                       type='button'
-                      className='auth-file-preview-btn'
-                      title='Abrir em nova aba'
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        openDocumentInNewTab(files.cartao_cnpj, 'Cartão CNPJ')
-                      }}
-                    >
-                      <ExternalLink size={14} /> Visualizar
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
+                      {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                     </button>
-                  )}
-                </label>
-                <input
-                  id='cartao_cnpj'
-                  name='cartao_cnpj'
-                  type='file'
-                  accept='.pdf,.png,.jpg,.jpeg'
-                  onChange={handleFileChange('cartao_cnpj')}
-                  required
-                />
+                  </div>
+                </div>
               </div>
+            </FormSection>
 
-              <div className='auth-file-box'>
-                <label htmlFor='contrato_social' className='auth-file-label'>
-                  <div className='auth-file-icon'>
-                    {files.contrato_social ? <FileCheck size={20} className='text-success' /> : <UploadCloud size={20} />}
+            <FormSection step={2} title='Dados da Empresa'>
+              <div className='auth-grid-2'>
+                <div className='auth-field auth-field-full'>
+                  <label htmlFor='nome_empresa'>Nome Fantasia / Razão Social</label>
+                  <div className='auth-input-wrap'>
+                    <input
+                      id='nome_empresa'
+                      name='nome_empresa'
+                      type='text'
+                      placeholder='Nome da sua empresa'
+                      required
+                      minLength={2}
+                      maxLength={200}
+                    />
+                    <FileText size={18} />
                   </div>
-                  <div className='auth-file-info'>
-                    <span className='auth-file-title'>Contrato Social</span>
-                    <span className='auth-file-name'>
-                      {files.contrato_social ? files.contrato_social.name : 'Clique para selecionar'}
-                    </span>
-                  </div>
-                  {files.contrato_social && (
-                    <button
-                      type='button'
-                      className='auth-file-preview-btn'
-                      title='Abrir em nova aba'
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        openDocumentInNewTab(files.contrato_social, 'Contrato Social')
-                      }}
-                    >
-                      <ExternalLink size={14} /> Visualizar
-                    </button>
-                  )}
-                </label>
-                <input
-                  id='contrato_social'
-                  name='contrato_social'
-                  type='file'
-                  accept='.pdf,.png,.jpg,.jpeg'
-                  onChange={handleFileChange('contrato_social')}
-                  required
-                />
-              </div>
+                </div>
 
-              <div className='auth-file-box'>
-                <label htmlFor='comprovante_endereco' className='auth-file-label'>
-                  <div className='auth-file-icon'>
-                    {files.comprovante_endereco ? (
-                      <FileCheck size={20} className='text-success' />
-                    ) : (
-                      <UploadCloud size={20} />
-                    )}
+                <div className='auth-field'>
+                  <label htmlFor='cnpj'>CNPJ da Empresa</label>
+                  <div className='auth-input-wrap'>
+                    <input
+                      id='cnpj'
+                      name='cnpj'
+                      type='text'
+                      value={cnpjValue}
+                      onChange={handleCnpjChange}
+                      placeholder='00.000.000/0000-00'
+                      required
+                      maxLength={18}
+                    />
+                    <Building2 size={18} />
                   </div>
-                  <div className='auth-file-info'>
-                    <span className='auth-file-title'>Comprovante de Endereço</span>
-                    <span className='auth-file-name'>
-                      {files.comprovante_endereco
-                        ? files.comprovante_endereco.name
-                        : 'Clique para selecionar'}
-                    </span>
-                  </div>
-                  {files.comprovante_endereco && (
-                    <button
-                      type='button'
-                      className='auth-file-preview-btn'
-                      title='Abrir em nova aba'
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        openDocumentInNewTab(files.comprovante_endereco, 'Comprovante de Endereço')
-                      }}
-                    >
-                      <ExternalLink size={14} /> Visualizar
-                    </button>
-                  )}
-                </label>
-                <input
-                  id='comprovante_endereco'
-                  name='comprovante_endereco'
-                  type='file'
-                  accept='.pdf,.png,.jpg,.jpeg'
-                  onChange={handleFileChange('comprovante_endereco')}
-                  required
-                />
-              </div>
+                </div>
 
-              <div className='auth-file-box'>
-                <label htmlFor='comprovante_socio' className='auth-file-label'>
-                  <div className='auth-file-icon'>
-                    {files.comprovante_socio ? (
-                      <FileCheck size={20} className='text-success' />
-                    ) : (
-                      <UploadCloud size={20} />
-                    )}
+                <div className='auth-field'>
+                  <label htmlFor='porte_empresa'>Porte da Empresa</label>
+                  <div className='auth-input-wrap auth-select-wrap'>
+                    <select
+                      id='porte_empresa'
+                      name='porte_empresa'
+                      defaultValue='ME'
+                      className='auth-select'
+                      required>
+                      <option value='ME'>ME - Microempresa</option>
+                    </select>
+                    <ChevronDown size={18} />
                   </div>
-                  <div className='auth-file-info'>
-                    <span className='auth-file-title'>Comprovante dos Sócios</span>
-                    <span className='auth-file-name'>
-                      {files.comprovante_socio
-                        ? files.comprovante_socio.name
-                        : 'Clique para selecionar'}
-                    </span>
-                  </div>
-                  {files.comprovante_socio && (
-                    <button
-                      type='button'
-                      className='auth-file-preview-btn'
-                      title='Abrir em nova aba'
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        openDocumentInNewTab(files.comprovante_socio, 'Comprovante dos Sócios')
-                      }}
-                    >
-                      <ExternalLink size={14} /> Visualizar
-                    </button>
-                  )}
-                </label>
-                <input
-                  id='comprovante_socio'
-                  name='comprovante_socio'
-                  type='file'
-                  accept='.pdf,.png,.jpg,.jpeg'
-                  onChange={handleFileChange('comprovante_socio')}
-                  required
-                />
+                </div>
               </div>
-            </div>
+            </FormSection>
+
+            <FormSection
+              step={3}
+              title='Documentação Comprobatória'
+              hint='Anexe os 4 documentos em PDF, PNG ou JPG, com até 5 MB cada.'>
+              <div className='auth-docs-grid'>
+                {DOCUMENTS.map(({ field, title }) => (
+                  <DocumentUpload
+                    key={field}
+                    field={field}
+                    title={title}
+                    file={files[field]}
+                    onChange={handleFileChange(field)}
+                  />
+                ))}
+              </div>
+            </FormSection>
 
             {error && (
-              <p className='auth-error' role='alert'>
-                {error}
+              <p className='auth-alert' role='alert'>
+                <CircleAlert size={18} aria-hidden='true' />
+                <span>{error}</span>
               </p>
             )}
 

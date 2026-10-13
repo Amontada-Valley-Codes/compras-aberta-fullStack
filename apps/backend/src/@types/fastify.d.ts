@@ -5,6 +5,7 @@ declare module "fastify" {
     user?: {
       id: string;
       role: string;
+      accessStatus: "PENDING" | "APPROVED" | "REJECTED";
     };
   }
 }

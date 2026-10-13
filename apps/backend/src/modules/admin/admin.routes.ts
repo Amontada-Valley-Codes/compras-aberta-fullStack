@@ -84,11 +84,11 @@ export async function adminRoutes(app: FastifyInstance) {
       if (isActive) {
         // Import must be at the top, or inline if dynamic, but let's just add it to the top. Wait, I will use dynamic import or just add import at the top of the file in the next replacement chunk.
         // Actually, let's just add it at the top of the file using another chunk, or dynamically here. I'll add the import at the top.
-        const { sendApprovalEmail } = await import("../../services/notification.service");
+        const { sendApprovalEmail } = await import("../../services/notification.service.js");
         // Dispatch in background so it doesn't block the request response
-        sendApprovalEmail({ 
-          toEmail: user.email, 
-          companyName: user.business?.name_businss || user.name 
+        sendApprovalEmail({
+          toEmail: user.email,
+          companyName: user.business?.name_businss || user.name
         });
       }
 
@@ -148,7 +148,7 @@ export async function adminRoutes(app: FastifyInstance) {
       }
 
       try {
-        const { supabase } = await import("../../lib/supabase");
+        const { supabase } = await import("../../lib/supabase.js");
         const { data, error } = await supabase.storage.from("documentos-empresas").download(filePath);
 
         if (error || !data) {

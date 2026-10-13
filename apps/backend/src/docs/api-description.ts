@@ -7,7 +7,9 @@ municípios do Ceará gastam com compras públicas.
 
 | Grupo | O que faz | Precisa de login? |
 | --- | --- | --- |
-| **Autenticação** | Cadastro de usuários e login (emissão de token JWT). | Não |
+| **Autenticação** | Login (emissão de token JWT) e renovação de sessão. | Não |
+| **Solicitações de acesso** | Cadastro da microempresa e aprovação pela administração. | Só para consultar e decidir |
+| **CNPJ** | Dados cadastrais da empresa na Receita Federal (para preencher a solicitação). | Não |
 | **Microempresa** | Cadastro de microempresas com upload de documentos. | Não |
 | **Municípios** | Catálogo de municípios do Ceará (código IBGE e nome). | Não |
 | **Analytics** | Indicadores e licitações públicas. | Não |
@@ -18,14 +20,13 @@ validação dos filtros, cache e tentativas automáticas.
 
 ## Autenticação
 
-### Cadastro simples (apenas usuário)
-1. Crie a conta em \`POST /users\` (o papel é sempre \`BUSINESS\`).
-2. Faça login em \`POST /sessions\`.
-
-### Cadastro de microempresa (usuário + empresa)
-1. Cadastre a empresa em \`POST /business/register\` enviando os dados do
-   usuário, da empresa e os 4 documentos obrigatórios via \`multipart/form-data\`.
-2. Faça login em \`POST /sessions\` e guarde o \`token\` e o \`refreshToken\`.
+1. Solicite o acesso em \`POST /access-requests\`: a conta é criada com o
+   papel \`BUSINESS\` e a solicitação fica **pendente** até um administrador
+   aprovar (\`PATCH /access-requests/:id/approve\`) ou recusar
+   (\`PATCH /access-requests/:id/reject\`).
+2. Também é possível enviar o cadastro com documentos em
+  \`POST /business/register\` usando \`multipart/form-data\`.
+3. Faça login em \`POST /sessions\` e guarde o \`token\` e o \`refreshToken\`.
 
 ### Uso do token
 3. Envie o token nas rotas protegidas no cabeçalho
@@ -35,15 +36,18 @@ validação dos filtros, cache e tentativas automáticas.
    \`POST /sessions/logout\`.
 
 O token é um **JWT (HS256)** com validade de **15 minutos**. O \`sub\` é o id
-do usuário e o \`role\` é \`ADMIN\` ou \`BUSINESS\`. O **refresh token** é
+do usuário, o \`role\` é \`ADMIN\` ou \`BUSINESS\` e o \`accessStatus\` é a
+situação da solicitação de acesso (\`PENDING\`, \`APPROVED\` ou \`REJECTED\`;
+administradores são sempre \`APPROVED\`). Empresas pendentes ou recusadas
+conseguem entrar para acompanhar a solicitação (\`GET /access-requests/me\`),
+mas as rotas da área da empresa as rejeitam com **403**. O **refresh token** é
 opaco, dura **7 dias** e é de uso único (cada refresh devolve um novo).
 Usuários desativados (\`isActive = false\`) não conseguem fazer login nem
 renovar a sessão, e as rotas protegidas os rejeitam com 401 mesmo com um
 token ainda dentro da validade.
 
-Hoje todas as rotas expostas são públicas. O middleware de autenticação e de
-autorização por papel já existe e será usado nas rotas restritas; use o botão
-**Authorize** para informar o token quando elas forem adicionadas.
+As rotas de consulta e decisão de solicitações exigem login; use o botão
+**Authorize** para informar o token.
 
 ## Limite de requisições (rate limit)
 
@@ -53,7 +57,8 @@ Rotas sensíveis têm limite por IP. Ao excedê-lo a resposta é **429**.
 | --- | --- |
 | \`POST /sessions\` | 5 requisições por minuto |
 | \`POST /sessions/refresh\` e \`/sessions/logout\` | 20 requisições por minuto |
-| \`POST /users\` | 3 requisições a cada 10 minutos |
+| \`POST /access-requests\` | 3 requisições a cada 10 minutos |
+| \`GET /cnpj/:cnpj\` | 20 requisições por minuto |
 | \`POST /business/register\` | 3 requisições a cada 10 minutos |
 
 ## Cache e resiliência (Analytics)
@@ -72,10 +77,11 @@ Todo erro tem o corpo \`{ "message": "..." }\`.
 | --- | --- |
 | 400 | Parâmetros inválidos. Traz também \`issues\` com o detalhe por campo. |
 | 401 | Credenciais ou token inválidos. |
-| 403 | Sem permissão (ex.: usuário desativado). |
-| 409 | Conflito (ex.: e-mail ou CNPJ já cadastrado). |
+| 403 | Sem permissão (ex.: usuário desativado, acesso não aprovado). |
+| 404 | Registro não encontrado (ex.: solicitação inexistente). |
+| 409 | Conflito (ex.: e-mail já cadastrado, solicitação já analisada). |
 | 429 | Limite de requisições excedido. |
-| 502 | API externa de dados indisponível. |
+| 502 | API externa indisponível (dados de licitações ou consulta de CNPJ). |
 | 500 | Erro inesperado no servidor. |
 
 ## Convenções

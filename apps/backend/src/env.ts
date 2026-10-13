@@ -8,6 +8,12 @@ const envSchema = z.object({
     .string()
     .min(32, "JWT_SECRET deve ter pelo menos 32 caracteres"),
   API_DADOS: z.string().url("API_DADOS deve ser uma URL válida"),
+  // Dados cadastrais de CNPJ (base aberta da Receita Federal), usados para
+  // preencher a solicitação de acesso.
+  OPEN_CNPJ_API: z
+    .string()
+    .url("OPEN_CNPJ_API deve ser uma URL válida")
+    .default("https://api.opencnpj.org"),
   CORS_ORIGIN: z
     .string()
     .default("http://localhost:3000")

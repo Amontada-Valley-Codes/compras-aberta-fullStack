@@ -1,7 +1,9 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { landingData } from "../../landing-mock";
+import { RevealWords } from "../../RevealWords";
 
 export function DataExplorerSection() {
   const data = landingData;

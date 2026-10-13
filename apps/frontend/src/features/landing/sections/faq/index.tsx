@@ -1,3 +1,6 @@
+import type { CSSProperties } from "react";
+import { RevealWords } from "../../RevealWords";
+
 const questions = [
   [
     "O que é o Compras Abertas?",
@@ -45,8 +48,12 @@ export function FaqSection() {
           </p>
         </div>
         <div className="faq-list">
-          {questions.map(([question, answer]) => (
-            <details key={question}>
+          {questions.map(([question, answer], index) => (
+            <details
+              key={question}
+              data-reveal="up"
+              style={{ "--reveal-delay": `${index * 90}ms` } as CSSProperties}
+            >
               <summary>{question}</summary>
               <p>{answer}</p>
             </details>

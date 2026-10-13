@@ -1,7 +1,7 @@
 /**
  * Abre uma imagem ou documento em uma nova aba do navegador para visualização.
  * Não baixa o arquivo no computador do usuário.
- * 
+ *
  * @param source URL (string) ou arquivo selecionado no input (File)
  * @param fallbackTitle Título opcional da janela
  */
@@ -11,7 +11,7 @@ export function openDocumentInNewTab(source: string | File | null | undefined, f
   if (source instanceof File) {
     const objectUrl = URL.createObjectURL(source);
     const newWindow = window.open(objectUrl, "_blank", "noopener,noreferrer");
-    
+
     // Se a janela abriu com sucesso, revogamos a URL de objeto após um tempo para liberar memória
     if (newWindow) {
       setTimeout(() => {

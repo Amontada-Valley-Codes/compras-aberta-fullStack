@@ -4,6 +4,8 @@ import { sign } from "jsonwebtoken";
 
 import { authConfig } from "../../configs/auth";
 import { AppError } from "../../utils/AppError";
+import type { AccessRequestStatus } from "../access-requests/access-request.schema";
+import { resolveAccessStatus } from "../access-requests/access-status";
 import { userRepository } from "../users/user.repository";
 import { refreshTokenRepository } from "./refresh-token.repository";
 import type { CreateSessionDTO } from "./session.schema";
@@ -11,6 +13,7 @@ import type { CreateSessionDTO } from "./session.schema";
 interface UserSessionData {
   id: string;
   role: string;
+  accessRequest?: { status: AccessRequestStatus } | null;
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -20,7 +23,11 @@ function hashToken(token: string) {
 }
 
 async function issueTokens(user: UserSessionData) {
-  const token = sign({ role: user.role }, authConfig.jwt.secret, {
+  // accessStatus vai no token para o frontend decidir a rota sem consultar o
+  // backend; quem garante a restrição de verdade é o ensureAccessApproved.
+  const payload = { role: user.role, accessStatus: resolveAccessStatus(user) };
+
+  const token = sign(payload, authConfig.jwt.secret, {
     subject: user.id,
     expiresIn: authConfig.jwt.expiresIn,
     algorithm: "HS256",
