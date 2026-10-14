@@ -64,9 +64,8 @@ function errorHandling(
 
   request.log.error({ err: error }, "Erro inesperado no servidor");
 
-  const detailMessage = error?.message || "Ocorreu uma falha interna inesperada no servidor.";
   return reply.status(500).send({
-    message: `Erro interno no servidor: ${detailMessage}`,
+    message: "Ocorreu um erro inesperado em nossos servidores. Por favor, tente novamente em instantes.",
   });
 }
 

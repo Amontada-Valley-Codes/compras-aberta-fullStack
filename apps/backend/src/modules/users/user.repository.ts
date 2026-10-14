@@ -14,15 +14,12 @@ async function findUserWithOptionalAccessStatus<T extends { where: { email?: str
   try {
     return await prisma.user.findUnique(query as any);
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2021"
-    ) {
+    try {
       const fallback = { ...query, include: undefined } as T;
       return await prisma.user.findUnique(fallback as any);
+    } catch {
+      throw error;
     }
-
-    throw error;
   }
 }
 
@@ -41,20 +38,63 @@ const userRepository = {
         include: { ...withAccessStatus, business: true },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2021"
-      ) {
-        return prisma.user.findUnique({
+      try {
+        return await prisma.user.findUnique({
           where: { id },
           include: { business: true },
         });
+      } catch {
+        throw error;
       }
-
-      throw error;
     }
   },
 
+  async listAdmins() {
+    return prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  },
+
+  async createAdmin(data: { name: string; email: string; password: string }) {
+    return prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: "ADMIN",
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+  },
+
+  async countAdmins() {
+    return prisma.user.count({
+      where: { role: "ADMIN", isActive: true },
+    });
+  },
+
+  async deleteAdmin(id: string) {
+    return prisma.user.delete({
+      where: { id },
+    });
+  },
 };
 
 export { userRepository };

@@ -28,29 +28,48 @@ const axisLabel = { colors: "#72808B", fontSize: "12px" };
 /* Fluxo de cadastros: colunas recebidas/aprovadas + linha de taxa     */
 /* ------------------------------------------------------------------ */
 
-// Dados demonstrativos (como no restante dos gráficos do painel).
-const FLOW_MONTHS = ["Set", "Out", "Nov", "Dez", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago"];
-const FLOW_RECEIVED = [18, 22, 20, 27, 25, 29, 31, 38, 35, 49, 56, 64];
-const FLOW_APPROVED = [12, 16, 15, 20, 19, 22, 24, 29, 30, 39, 47, 53];
+const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 type Period = 6 | 12;
 
-export function AdminFlowChart() {
+export interface FlowRequest {
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  createdAt: string;
+}
+
+// Agrupa as solicitações reais pelo mês de envio: quantas chegaram em cada
+// mês e quantas delas já foram aprovadas.
+export function AdminFlowChart({ requests }: { requests: FlowRequest[] }) {
   const [period, setPeriod] = useState<Period>(6);
 
   const { categories, received, approved, rate } = useMemo(() => {
-    const from = FLOW_MONTHS.length - period;
-    const receivedSlice = FLOW_RECEIVED.slice(from);
-    const approvedSlice = FLOW_APPROVED.slice(from);
+    const now = new Date();
+    const months = Array.from({ length: period }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (period - 1 - index), 1);
+      return { year: date.getFullYear(), month: date.getMonth() };
+    });
+    const receivedSlice = months.map(() => 0);
+    const approvedSlice = months.map(() => 0);
+
+    for (const request of requests) {
+      const created = new Date(request.createdAt);
+      const index = months.findIndex(
+        (item) => item.year === created.getFullYear() && item.month === created.getMonth(),
+      );
+      if (index === -1) continue;
+      receivedSlice[index] += 1;
+      if (request.status === "APPROVED") approvedSlice[index] += 1;
+    }
+
     return {
-      categories: FLOW_MONTHS.slice(from),
+      categories: months.map((item) => MONTH_LABELS[item.month]),
       received: receivedSlice,
       approved: approvedSlice,
       rate: receivedSlice.map((value, index) =>
-        Math.round((approvedSlice[index] / value) * 100),
+        value === 0 ? 0 : Math.round((approvedSlice[index] / value) * 100),
       ),
     };
-  }, [period]);
+  }, [period, requests]);
 
   const totalReceived = received.reduce((sum, value) => sum + value, 0);
   const totalApproved = approved.reduce((sum, value) => sum + value, 0);
@@ -148,7 +167,11 @@ export function AdminFlowChart() {
               <i className="is-rate" /> Taxa de aprovação
             </dt>
             <dd>
-              <CountUp value={Math.round((totalApproved / totalReceived) * 100)} suffix="%" delay={550} />
+              <CountUp
+                value={totalReceived === 0 ? 0 : Math.round((totalApproved / totalReceived) * 100)}
+                suffix="%"
+                delay={550}
+              />
             </dd>
           </div>
         </dl>
@@ -178,19 +201,28 @@ export function AdminFlowChart() {
 /* Situação cadastral: donut com centro e legenda interativos          */
 /* ------------------------------------------------------------------ */
 
-const REGISTRATION = [
-  { label: "Aprovadas", value: 284, color: "#2D8B6F" },
-  { label: "Pendentes", value: 42, color: "#D9A441" },
-  { label: "Em análise", value: 38, color: "#2563A6" },
-  { label: "Recusadas", value: 20, color: "#D65C5C" },
-];
+interface RegistrationDonutProps {
+  approved: number;
+  pending: number;
+  rejected: number;
+}
 
-export function RegistrationDonut() {
+export function RegistrationDonut({ approved, pending, rejected }: RegistrationDonutProps) {
   const [focus, setFocus] = useState<number | null>(null);
   const chartRef = useRef<ApexCharts | null>(null);
   const selectedRef = useRef<number | null>(null);
-  const total = REGISTRATION.reduce((sum, item) => sum + item.value, 0);
-  const focused = focus === null ? null : REGISTRATION[focus];
+
+  const items = useMemo(
+    () => [
+      { label: "Aprovadas", value: approved, color: "#2D8B6F" },
+      { label: "Em análise", value: pending, color: "#D9A441" },
+      { label: "Recusadas", value: rejected, color: "#D65C5C" },
+    ],
+    [approved, pending, rejected],
+  );
+
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  const focused = focus === null ? null : items[focus];
 
   // Passar o mouse numa fatia ou num item da legenda "puxa" a fatia para
   // fora (seleção animada do Apex), apaga as outras e mostra o valor no centro.
@@ -222,8 +254,8 @@ export function RegistrationDonut() {
         dataPointMouseLeave: () => select(null),
       },
     },
-    colors: REGISTRATION.map((item) => item.color),
-    labels: REGISTRATION.map((item) => item.label),
+    colors: items.map((item) => item.color),
+    labels: items.map((item) => item.label),
     stroke: { width: 3, colors: ["#FFFFFF"] },
     dataLabels: { enabled: false },
     legend: { show: false },
@@ -238,8 +270,12 @@ export function RegistrationDonut() {
         donut: { size: "74%", labels: { show: false } },
       },
     },
-  }), [select]);
-  const donutSeries = useMemo(() => REGISTRATION.map((item) => item.value), []);
+  }), [items, select]);
+
+  const donutSeries = useMemo(() => {
+    const values = items.map((item) => item.value);
+    return total === 0 ? [1] : values;
+  }, [items, total]);
 
   return (
     <div className="ov-donut" data-focus={focus ?? undefined}>
@@ -256,13 +292,15 @@ export function RegistrationDonut() {
             <CountUp value={focused ? focused.value : total} duration={600} />
           </b>
           <em>
-            {focused ? `${Math.round((focused.value / total) * 100)}% do total` : "na base"}
+            {focused
+              ? `${total === 0 ? 0 : Math.round((focused.value / total) * 100)}% do total`
+              : "na base"}
           </em>
         </div>
       </div>
       <ul className="ov-donut-legend">
-        {REGISTRATION.map((item, index) => {
-          const percent = Math.round((item.value / total) * 100);
+        {items.map((item, index) => {
+          const percent = total === 0 ? 0 : Math.round((item.value / total) * 100);
           return (
             <li
               key={item.label}

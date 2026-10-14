@@ -17,6 +17,12 @@ export interface AccessRequest {
   reviewedAt: string | null;
   reviewedBy: string | null;
   createdAt: string;
+  docsUrls?: {
+    cartao_cnpj: string;
+    contrato_social: string;
+    comprovante_endereco: string;
+    comprovante_socio: string;
+  } | null;
 }
 
 export interface CreateAccessRequestInput {

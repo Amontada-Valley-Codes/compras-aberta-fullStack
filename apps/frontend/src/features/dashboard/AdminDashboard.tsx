@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Building2, Check, Database, FileCheck2, LayoutDashboard, Settings, Store, Users, X } from "lucide-react";
 import { AppShell, type NavItem } from "./AppShell";
 import { AdminOverview } from "./AdminOverview";
+import { AdminUsers } from "./AdminUsers";
 import { PageHeading } from "./MeDashboard";
 import { initials, readMessage, useAccessRequests } from "./useAccessRequests";
 import { toast } from "@/components/ui/sonner";
@@ -33,7 +34,6 @@ export function AdminDashboard() {
     { id: "requests", label: "Solicitacoes", icon: <FileCheck2 size={19} />, badge: pendingCount ? String(pendingCount) : undefined },
     { id: "companies", label: "Microempresas", icon: <Store size={19} /> },
     { id: "municipalities", label: "Municipios", icon: <Building2 size={19} /> },
-    { id: "integrations", label: "Integracoes", icon: <Database size={19} /> },
     { id: "users", label: "Usuarios e acessos", icon: <Users size={19} /> },
     { id: "settings", label: "Configuracoes", icon: <Settings size={19} /> },
   ];
@@ -47,8 +47,7 @@ export function AdminDashboard() {
         {active === "requests" && <Requests state={state} initialSelectedId={openRequestId} />}
         {active === "companies" && <Requests state={state} approvedOnly />}
         {active === "municipalities" && <Placeholder title="Municipios integrados" />}
-        {active === "integrations" && <Placeholder title="Integracoes e fontes" />}
-        {active === "users" && <Placeholder title="Usuarios e acessos" />}
+        {active === "users" && <AdminUsers />}
         {active === "settings" && <Placeholder title="Configuracoes" />}
       </div>
     </AppShell>
@@ -141,6 +140,57 @@ function Requests({
             <div><dt>Municipio</dt><dd>{selected.municipio.nome ?? "-"}</dd></div><div><dt>Recebida em</dt><dd>{formatDateTime(selected.createdAt)}</dd></div>
             <div><dt>Responsavel</dt><dd>{selected.requester.name}</dd></div><div><dt>Telefone</dt><dd>{formatPhone(selected.phone)}</dd></div><div><dt>E-mail</dt><dd>{selected.requester.email}</dd></div>
           </dl>{selected.message && <p className="review-message">"{selected.message}"</p>}</div>
+          {selected.docsUrls && (
+            <div className="review-section">
+              <h3>Documentos comprobatórios anexados</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "10px" }}>
+                {selected.docsUrls.cartao_cnpj && (
+                  <a
+                    href={selected.docsUrls.cartao_cnpj}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ds-button secondary"
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+                  >
+                    📄 Cartão CNPJ
+                  </a>
+                )}
+                {selected.docsUrls.contrato_social && (
+                  <a
+                    href={selected.docsUrls.contrato_social}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ds-button secondary"
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+                  >
+                    📄 Contrato Social
+                  </a>
+                )}
+                {selected.docsUrls.comprovante_endereco && (
+                  <a
+                    href={selected.docsUrls.comprovante_endereco}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ds-button secondary"
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+                  >
+                    📄 Comprovante Endereço
+                  </a>
+                )}
+                {selected.docsUrls.comprovante_socio && (
+                  <a
+                    href={selected.docsUrls.comprovante_socio}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ds-button secondary"
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+                  >
+                    📄 Comprovante Sócio
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
           {selected.status === "PENDING" ? <><label className="review-note">Observacao da decisao (obrigatoria para recusar)<textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={500} /></label><footer>
             <button className="ds-button secondary" disabled={deciding !== null} onClick={() => void decide("reject")}>{deciding === "reject" ? "Salvando..." : "Recusar"}</button>
             <button className="ds-button primary" disabled={deciding !== null} onClick={() => void decide("approve")}>{deciding === "approve" ? "Salvando..." : <><Check /> Aprovar acesso</>}</button>

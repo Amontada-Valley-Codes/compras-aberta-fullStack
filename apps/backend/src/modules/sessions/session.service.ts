@@ -51,23 +51,17 @@ const sessionService = {
     const user = await userRepository.findByEmail(email);
 
     if (!user) {
-      throw new AppError("E-mail ou senha inválidos", 401);
+      throw new AppError("E-mail ou senha incorretos.", 401);
     }
 
     const passwordMatched = await compare(password, user.password);
 
     if (!passwordMatched) {
-      throw new AppError("E-mail ou senha inválidos", 401);
+      throw new AppError("E-mail ou senha incorretos.", 401);
     }
 
     if (!user.isActive) {
-      if (user.role === "BUSINESS") {
-        throw new AppError(
-          "Sua solicitação cadastral ainda está em análise pelo administrador. Aguarde a aprovação para acessar a plataforma.",
-          403,
-        );
-      }
-      throw new AppError("Usuário desativado pelo administrador", 403);
+      throw new AppError("E-mail ou senha incorretos.", 401);
     }
 
     return issueTokens(user);

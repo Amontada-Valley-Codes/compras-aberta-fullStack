@@ -17,7 +17,7 @@ import {
   Store,
   X,
 } from "lucide-react";
-import { AdminFlowChart, RegistrationDonut, Sparkline } from "./AdminCharts";
+import { AdminFlowChart, RegistrationDonut } from "./AdminCharts";
 import { initials, type RequestsState } from "./useAccessRequests";
 import { CountUp } from "./CountUp";
 import { formatCnpj } from "@/lib/format-br";
@@ -25,18 +25,7 @@ import type { AccessRequest } from "@/services/access-requests/access-requests.t
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Séries demonstrativas dos indicadores que ainda não vêm do backend.
-// Constantes de módulo: o Sparkline memoiza pela referência do array.
-const COMPANIES_TREND = [298, 312, 325, 341, 356, 370, 384];
-const MUNICIPALITIES_TREND = [33, 35, 36, 38, 39, 41, 42];
-const HEALTH_TREND = [97.2, 98.1, 96.8, 98.9, 99.1, 98.4, 98.7];
-
-// Sinal de cada fonte nas últimas 24 verificações (1 = ok, 0 = falha).
-const SOURCES = [
-  { name: "PNCP", records: "1.842 registros", ok: true, beats: "111111111111111111111111" },
-  { name: "TCE Ceará", records: "921 registros", ok: true, beats: "111111111101111111111111" },
-  { name: "Portais municipais", records: "2 indisponíveis", ok: false, beats: "111110111111101111100111" },
-];
+const RANKING_COLORS = ["#2563A6", "#18A3BC", "#2D8B6F", "#D9A441", "#8AB5D2"];
 
 const enter = (index: number) => ({ "--i": index }) as CSSProperties;
 
@@ -331,6 +320,71 @@ function AlertsPanel({ alerts, loading }: { alerts: Alert[]; loading: boolean })
   );
 }
 
+type MunicipalityCount = { code: number; name: string; total: number };
+
+// Agrupa as microempresas aprovadas por município (dados reais do cadastro).
+function countByMunicipality(requests: AccessRequest[]): MunicipalityCount[] {
+  const map = new Map<number, MunicipalityCount>();
+  for (const request of requests) {
+    const code = request.municipio.codigoIbge;
+    const current = map.get(code);
+    if (current) current.total += 1;
+    else map.set(code, { code, name: request.municipio.nome ?? `Município ${code}`, total: 1 });
+  }
+  return [...map.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+}
+
+function MunicipalityRanking({
+  loading,
+  ranking,
+  totalCompanies,
+}: {
+  loading: boolean;
+  ranking: MunicipalityCount[];
+  totalCompanies: number;
+}) {
+  if (loading) {
+    return (
+      <ul className="ov-alerts" aria-busy="true">
+        {[0, 1, 2].map((item) => (
+          <li key={item} className="ov-skeleton is-small" />
+        ))}
+      </ul>
+    );
+  }
+
+  if (ranking.length === 0) {
+    return (
+      <div className="ov-empty" role="status">
+        <Building2 />
+        <p>Nenhuma microempresa aprovada ainda.</p>
+      </div>
+    );
+  }
+
+  return (
+    <ul className="ov-donut-legend ov-ranking">
+      {ranking.slice(0, 5).map((item, index) => {
+        const percent = totalCompanies === 0 ? 0 : Math.round((item.total / totalCompanies) * 100);
+        return (
+          <li
+            key={item.code}
+            style={{ "--tone": RANKING_COLORS[index], "--percent": `${percent}%` } as CSSProperties}
+          >
+            <span title={item.name}>
+              <i />
+              {item.name}
+            </span>
+            <b>{item.total}</b>
+            <em>{percent}%</em>
+            <s aria-hidden="true" />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 function SectionTitle({ index, title, hint }: { index: number; title: string; hint: string }) {
   return (
     <div className="ov-section-title ov-enter" style={enter(index)}>
@@ -351,6 +405,9 @@ export function AdminOverview({
 }) {
   const now = useNow();
   const pending = state.requests.filter((item) => item.status === "PENDING");
+  const approved = state.requests.filter((item) => item.status === "APPROVED");
+  const rejected = state.requests.filter((item) => item.status === "REJECTED");
+  const ranking = countByMunicipality(approved);
   const decided = state.requests.length - pending.length;
   const oldestPending = pending.reduce<AccessRequest | null>(
     (oldest, item) => (!oldest || item.createdAt < oldest.createdAt ? item : oldest),
@@ -363,58 +420,17 @@ export function AdminOverview({
     ? new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(now)
     : null;
 
-  const alerts: Alert[] = [];
-  if (state.error) {
-    alerts.push({
-      id: "load-error",
-      tone: "danger",
-      title: "Solicitações indisponíveis",
-      detail: state.error,
-      action: "Tentar de novo",
-      onAction: () => void state.reload(),
-    });
-  }
-  if (latePending.length > 0) {
-    alerts.push({
-      id: "late",
-      tone: "warning",
-      title:
-        latePending.length === 1
-          ? "1 solicitação espera há mais de 2 dias"
-          : `${latePending.length} solicitações esperam há mais de 2 dias`,
-      detail: "Empresas aguardando a liberação do acesso.",
-      action: "Analisar",
-      onAction: () => onOpenRequest(latePending[0].id),
-    });
-  }
-  for (const source of SOURCES.filter((item) => !item.ok)) {
-    alerts.push({
-      id: `source-${source.name}`,
-      tone: "warning",
-      title: `${source.name} com instabilidade`,
-      detail: source.records,
-      action: "Ver integrações",
-      onAction: () => onNavigate("integrations"),
-    });
-  }
 
   // Resumo do dia em linguagem simples, logo abaixo do título.
   const summary = state.loading
     ? "Carregando o resumo de hoje…"
     : state.error
-      ? "Não foi possível carregar as solicitações. Veja os alertas abaixo."
-      : [
-        pending.length === 0
-          ? "Nenhuma solicitação aguardando análise"
-          : pending.length === 1
-            ? "Você tem 1 solicitação aguardando análise"
-            : `Você tem ${pending.length} solicitações aguardando análise`,
-        alerts.length === 0
-          ? "nenhum alerta."
-          : alerts.length === 1
-            ? "1 alerta para ver."
-            : `${alerts.length} alertas para ver.`,
-      ].join(" e ");
+      ? "Não foi possível carregar as solicitações."
+      : pending.length === 0
+        ? "Nenhuma solicitação aguardando análise no momento."
+        : pending.length === 1
+          ? "Você tem 1 solicitação aguardando análise."
+          : `Você tem ${pending.length} solicitações aguardando análise.`;
 
   return (
     <div className="ov-page">
@@ -439,32 +455,12 @@ export function AdminOverview({
             type="button"
             onClick={() => (oldestPending ? onOpenRequest(oldestPending.id) : onNavigate("requests"))}
           >
-            {oldestPending ? "Analisar a mais antiga" : "Ver solicitações"} <ArrowRight />
+            {oldestPending ? "Analisar pendentes" : "Ver solicitações"} <ArrowRight />
           </button>
         </div>
       </header>
 
-      <SectionTitle index={1} title="Precisa da sua atenção" hint="Comece por aqui: o que está esperando uma decisão." />
-      <section className="ov-grid ov-section">
-        <article className="ov-card ov-span-8 ov-enter" style={enter(2)}>
-          <CardHead
-            title="Fila de solicitações"
-            subtitle="As mais antigas primeiro. Clique em Analisar para abrir a ficha."
-            action={
-              <button className="ov-link" type="button" onClick={() => onNavigate("requests")}>
-                Ver todas <ArrowRight />
-              </button>
-            }
-          />
-          <PendingQueue state={state} now={now} onOpenRequest={onOpenRequest} />
-        </article>
-        <article className="ov-card ov-span-4 ov-enter" style={enter(3)}>
-          <CardHead title="Alertas" subtitle="Problemas que pedem uma ação" />
-          <AlertsPanel alerts={alerts} loading={state.loading} />
-        </article>
-      </section>
-
-      <SectionTitle index={4} title="Indicadores" hint="Clique em um card para ver os detalhes." />
+      <SectionTitle index={1} title="Indicadores" hint="Clique em um card para ver os detalhes." />
       <section className="ov-kpis ov-section" aria-label="Indicadores">
         <Kpi
           index={4}
@@ -499,39 +495,33 @@ export function AdminOverview({
           actionLabel="ver microempresas"
           icon={<Store />}
           label="Microempresas cadastradas"
-          value={384}
-          detail="42 aguardam aprovação"
-          trend="+14%"
-        >
-          <Sparkline data={COMPANIES_TREND} color="#2563A6" />
-        </Kpi>
+          value={state.loading ? 0 : approved.length}
+          detail={
+            state.loading
+              ? "Carregando…"
+              : pending.length === 0
+                ? "Todas as empresas analisadas"
+                : pending.length === 1
+                  ? "1 aguardando aprovação"
+                  : `${pending.length} aguardam aprovação`
+          }
+        />
         <Kpi
           index={6}
           tone="teal"
-          onClick={() => onNavigate("municipalities")}
-          actionLabel="ver municípios"
+          onClick={() => onNavigate("companies")}
+          actionLabel="ver microempresas por município"
           icon={<Building2 />}
-          label="Municípios integrados"
-          value={42}
-          detail="39 sincronizados hoje"
-          trend="+3"
-        >
-          <Sparkline data={MUNICIPALITIES_TREND} color="#18A3BC" />
-        </Kpi>
-        <Kpi
-          index={7}
-          tone="green"
-          onClick={() => onNavigate("integrations")}
-          actionLabel="ver integrações"
-          icon={<Database />}
-          label="Saúde das integrações"
-          value={98.7}
-          decimals={1}
-          suffix="%"
-          detail="1 fonte requer atenção"
-        >
-          <Sparkline data={HEALTH_TREND} color="#2D8B6F" />
-        </Kpi>
+          label="Municípios atendidos"
+          value={state.loading ? 0 : ranking.length}
+          detail={
+            state.loading
+              ? "Carregando…"
+              : ranking.length === 0
+                ? "Nenhum município com empresa aprovada"
+                : `Mais empresas em ${ranking[0].name}`
+          }
+        />
       </section>
 
       <SectionTitle index={8} title="Desempenho dos cadastros" hint="Passe o mouse nos gráficos para ver os detalhes." />
@@ -541,11 +531,15 @@ export function AdminOverview({
             title="Fluxo de cadastros"
             subtitle="Quantas solicitações chegaram, quantas foram aprovadas e a taxa de aprovação"
           />
-          <AdminFlowChart />
+          <AdminFlowChart requests={state.requests} />
         </article>
         <article className="ov-card ov-span-4 ov-enter" style={enter(10)}>
           <CardHead title="Situação cadastral" subtitle="Como está a base de microempresas hoje" />
-          <RegistrationDonut />
+          <RegistrationDonut
+            approved={approved.length}
+            pending={pending.length}
+            rejected={rejected.length}
+          />
         </article>
       </section>
 
@@ -557,35 +551,14 @@ export function AdminOverview({
         </article>
         <article className="ov-card ov-span-6 ov-enter" style={enter(13)}>
           <CardHead
-            title="Saúde das fontes"
-            subtitle="Últimas 24 verificações de cada fonte de dados"
-            action={
-              <button className="ov-link" type="button" onClick={() => onNavigate("integrations")}>
-                Integrações <ArrowRight />
-              </button>
-            }
+            title="Empresas por município"
+            subtitle="Municípios com mais microempresas aprovadas"
           />
-          <div className="ov-sources">
-            {SOURCES.map((source) => (
-              <div key={source.name} className={`ov-source ${source.ok ? "" : "is-warning"}`}>
-                <div className="ov-source-head">
-                  <i aria-hidden="true" />
-                  <b>{source.name}</b>
-                  <em>{source.ok ? "Operacional" : "Atenção"}</em>
-                </div>
-                <small>{source.records}</small>
-                <div className="ov-beats" aria-hidden="true">
-                  {source.beats.split("").map((beat, index) => (
-                    <span
-                      key={index}
-                      className={beat === "1" ? "" : "is-down"}
-                      style={{ "--b": index } as CSSProperties}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <MunicipalityRanking
+            loading={state.loading}
+            ranking={ranking}
+            totalCompanies={approved.length}
+          />
         </article>
       </section>
     </div>

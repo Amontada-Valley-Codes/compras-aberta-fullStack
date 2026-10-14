@@ -1119,3 +1119,12 @@
     animation: none !important;
   }
 }
+
+/* ---------- Empresas por município (ranking real) ---------- */
+.ov-donut-legend.ov-ranking {
+  grid-template-columns: 1fr;
+}
+.ov-ranking span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

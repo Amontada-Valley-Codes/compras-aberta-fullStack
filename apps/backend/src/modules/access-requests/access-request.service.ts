@@ -1,5 +1,7 @@
 import { hash } from "bcryptjs";
 
+import { prisma } from "../../lib/prisma";
+import { sendApprovalEmail } from "../../services/notification.service";
 import { AppError } from "../../utils/AppError";
 import { userRepository } from "../users/user.repository";
 import { accessRequestRepository } from "./access-request.repository";
@@ -13,23 +15,39 @@ type AccessRequestDetails = NonNullable<
   Awaited<ReturnType<typeof accessRequestRepository.findById>>
 >;
 
+function buildDocsUrls(cnpj?: string | null) {
+  if (!cnpj) return null;
+  const clean = cnpj.replace(/\D/g, "");
+  return {
+    cartao_cnpj: `/api/admin/documents/${clean}/cartao_cnpj`,
+    contrato_social: `/api/admin/documents/${clean}/contrato_social`,
+    comprovante_endereco: `/api/admin/documents/${clean}/comprovante_endereco`,
+    comprovante_socio: `/api/admin/documents/${clean}/comprovante_socio`,
+  };
+}
+
 function toResponse(request: AccessRequestDetails) {
+  const cnpj = request.cnpj || request.user?.cnpj || request.user?.business?.cnpj || null;
   return {
     id: request.id,
     status: request.status,
-    companyName: request.companyName,
-    cnpj: request.cnpj,
-    phone: request.phone,
+    companyName: request.companyName || request.user?.business?.name_businss || request.user?.name,
+    cnpj: cnpj || "",
+    phone: request.phone || "",
     message: request.message,
     municipio: {
-      codigoIbge: request.municipio.codigo_ibge,
-      nome: request.municipio.nome,
+      codigoIbge: request.municipio?.codigo_ibge ?? 0,
+      nome: request.municipio?.nome ?? "Não informado",
     },
-    requester: request.user,
+    requester: {
+      name: request.user?.name ?? "",
+      email: request.user?.email ?? "",
+    },
     reviewNote: request.reviewNote,
-    reviewedAt: request.reviewedAt,
+    reviewedAt: request.reviewedAt ? new Date(request.reviewedAt).toISOString() : null,
     reviewedBy: request.reviewedBy?.name ?? null,
-    createdAt: request.createdAt,
+    createdAt: new Date(request.createdAt).toISOString(),
+    docsUrls: buildDocsUrls(cnpj),
   };
 }
 
@@ -39,26 +57,113 @@ async function review(
   reviewedById: string,
   reviewNote?: string,
 ) {
+  const isActive = status === "APPROVED";
+
+  // 1. Tenta achar na tabela accessRequest
   const request = await accessRequestRepository.findById(id);
 
-  if (!request) {
+  if (request) {
+    const reviewed = await accessRequestRepository.review({
+      id,
+      status,
+      reviewedById,
+      reviewNote,
+    });
+
+    if (!reviewed) {
+      throw new AppError("Esta solicitação já foi analisada", 409);
+    }
+
+    // Sincroniza ativação do usuário e empresa
+    await prisma.$transaction([
+      ...(request.user?.id
+        ? [
+            prisma.user.update({
+              where: { id: request.user.id },
+              data: { isActive },
+            }),
+          ]
+        : []),
+      ...(request.cnpj
+        ? [
+            prisma.business.updateMany({
+              where: { cnpj: request.cnpj },
+              data: { isActive },
+            }),
+          ]
+        : []),
+    ]);
+
+    if (isActive && request.user?.email) {
+      sendApprovalEmail({
+        toEmail: request.user.email,
+        companyName: request.companyName,
+      });
+    }
+
+    const updated = await accessRequestRepository.findById(id);
+    return toResponse(updated!);
+  }
+
+  // 2. Se não encontrou em accessRequest, busca por user.id
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: { business: true },
+  });
+
+  if (!user || user.role !== "BUSINESS") {
     throw new AppError("Solicitação não encontrada", 404);
   }
 
-  const reviewed = await accessRequestRepository.review({
-    id,
-    status,
-    reviewedById,
-    reviewNote,
-  });
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { isActive },
+    }),
+    ...(user.cnpj
+      ? [
+          prisma.business.updateMany({
+            where: { cnpj: user.cnpj },
+            data: { isActive },
+          }),
+        ]
+      : []),
+  ]);
 
-  if (!reviewed) {
-    throw new AppError("Esta solicitação já foi analisada", 409);
+  if (isActive && user.email) {
+    sendApprovalEmail({
+      toEmail: user.email,
+      companyName: user.business?.name_businss || user.name,
+    });
   }
 
-  const updated = await accessRequestRepository.findById(id);
+  const reviewer = await prisma.user.findUnique({
+    where: { id: reviewedById },
+    select: { name: true },
+  });
 
-  return toResponse(updated!);
+  const cnpj = user.cnpj || user.business?.cnpj || "";
+  return {
+    id: user.id,
+    status: (isActive ? "APPROVED" : "REJECTED") as AccessRequestStatus,
+    companyName: user.business?.name_businss || user.name,
+    cnpj,
+    phone: "",
+    message: null,
+    municipio: {
+      codigoIbge: 0,
+      nome: "Não informado",
+    },
+    requester: {
+      name: user.name,
+      email: user.email,
+    },
+    reviewNote: reviewNote || null,
+    reviewedAt: new Date().toISOString(),
+    reviewedBy: reviewer?.name ?? null,
+    createdAt: new Date(user.createdAt).toISOString(),
+    docsUrls: buildDocsUrls(cnpj),
+  };
 }
 
 const accessRequestService = {
@@ -119,9 +224,46 @@ const accessRequestService = {
   },
 
   async list({ status }: ListAccessRequestsDTO) {
-    const requests = await accessRequestRepository.list(status);
+    const { accessRequests, businessUsers } =
+      await accessRequestRepository.listAllRequests();
 
-    return requests.map(toResponse);
+    const formattedAccessRequests = accessRequests.map(toResponse);
+
+    const formattedBusinessUsers = businessUsers.map((u) => {
+      const cnpj = u.cnpj || u.business?.cnpj || "";
+      const reqStatus: AccessRequestStatus = u.isActive ? "APPROVED" : "PENDING";
+      return {
+        id: u.id,
+        status: reqStatus,
+        companyName: u.business?.name_businss || u.name,
+        cnpj,
+        phone: "",
+        message: null,
+        municipio: {
+          codigoIbge: 0,
+          nome: "Não informado",
+        },
+        requester: {
+          name: u.name,
+          email: u.email,
+        },
+        reviewNote: null,
+        reviewedAt: null,
+        reviewedBy: null,
+        createdAt: new Date(u.createdAt).toISOString(),
+        docsUrls: buildDocsUrls(cnpj),
+      };
+    });
+
+    const all = [...formattedAccessRequests, ...formattedBusinessUsers].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    if (status) {
+      return all.filter((item) => item.status === status);
+    }
+
+    return all;
   },
 
   async approve(id: string, reviewerId: string, note?: string) {

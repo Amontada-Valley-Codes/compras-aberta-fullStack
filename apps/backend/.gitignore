@@ -7,3 +7,9 @@ uploads/
 .agents
 .claude
 .windsurf
+
+# Saída de build: o código-fonte é só TypeScript
+dist/
+/src/**/*.js
+/prisma/*.js
+/prisma.config.js

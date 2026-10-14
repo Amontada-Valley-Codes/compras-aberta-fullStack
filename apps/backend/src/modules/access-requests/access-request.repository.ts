@@ -32,7 +32,16 @@ const accessRequestDetails = {
   reviewedAt: true,
   createdAt: true,
   municipio: { select: { codigo_ibge: true, nome: true } },
-  user: { select: { name: true, email: true } },
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      cnpj: true,
+      isActive: true,
+      business: true,
+    },
+  },
   reviewedBy: { select: { name: true } },
 } as const;
 
@@ -86,6 +95,30 @@ const accessRequestRepository = {
       select: accessRequestDetails,
       orderBy: { createdAt: "desc" },
     });
+  },
+
+  async listAllRequests() {
+    const accessRequests = await prisma.accessRequest.findMany({
+      select: accessRequestDetails,
+      orderBy: { createdAt: "desc" },
+    });
+
+    const handledUserIds = accessRequests
+      .map((r) => r.user?.id)
+      .filter((id): id is string => Boolean(id));
+
+    const businessUsers = await prisma.user.findMany({
+      where: {
+        role: "BUSINESS",
+        id: handledUserIds.length > 0 ? { notIn: handledUserIds } : undefined,
+      },
+      include: {
+        business: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return { accessRequests, businessUsers };
   },
 
   // Só decide o que ainda está PENDING; a condição no WHERE evita que dois

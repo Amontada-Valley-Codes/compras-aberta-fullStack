@@ -136,13 +136,15 @@ export function AppShell({
           ))}
         </nav>
 
-        <div className="sidebar-help">
-          <span>?</span>
-          <div>
-            <strong>Precisa de ajuda?</strong>
-            <small>Acesse a central de suporte</small>
+        {!isAdmin && (
+          <div className="sidebar-help">
+            <span>?</span>
+            <div>
+              <strong>Precisa de ajuda?</strong>
+              <small>Acesse a central de suporte</small>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="sidebar-user">
           <span className="user-avatar">{userAvatar}</span>

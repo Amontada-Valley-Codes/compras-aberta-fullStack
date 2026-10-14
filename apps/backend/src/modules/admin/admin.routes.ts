@@ -4,6 +4,8 @@ import type { FastifyInstance } from "fastify";
 import { ensureAuthenticated } from "../../middlewares/ensure-authenticated";
 import { verifyUserAuthorization } from "../../middlewares/verify-user-authorization";
 import { prisma } from "../../lib/prisma";
+import { supabase } from "../../lib/supabase";
+import { sendApprovalEmail } from "../../services/notification.service";
 
 export async function adminRoutes(app: FastifyInstance) {
   app.get(
@@ -34,10 +36,10 @@ export async function adminRoutes(app: FastifyInstance) {
           documents: "4",
           status: u.isActive ? "Aprovada" : "Pendente",
           docsUrls: b ? {
-            cartao_cnpj: `/admin/business-requests/${b.cnpj}/document/cartao_cnpj`,
-            contrato_social: `/admin/business-requests/${b.cnpj}/document/contrato_social`,
-            comprovante_endereco: `/admin/business-requests/${b.cnpj}/document/comprovante_endereco`,
-            comprovante_socio: `/admin/business-requests/${b.cnpj}/document/comprovante_socio`,
+            cartao_cnpj: `/api/admin/documents/${b.cnpj}/cartao_cnpj`,
+            contrato_social: `/api/admin/documents/${b.cnpj}/contrato_social`,
+            comprovante_endereco: `/api/admin/documents/${b.cnpj}/comprovante_endereco`,
+            comprovante_socio: `/api/admin/documents/${b.cnpj}/comprovante_socio`,
           } : null
         };
       });
@@ -82,13 +84,9 @@ export async function adminRoutes(app: FastifyInstance) {
       ]);
 
       if (isActive) {
-        // Import must be at the top, or inline if dynamic, but let's just add it to the top. Wait, I will use dynamic import or just add import at the top of the file in the next replacement chunk.
-        // Actually, let's just add it at the top of the file using another chunk, or dynamically here. I'll add the import at the top.
-        const { sendApprovalEmail } = await import("../../services/notification.service.js");
-        // Dispatch in background so it doesn't block the request response
         sendApprovalEmail({
           toEmail: user.email,
-          companyName: user.business?.name_businss || user.name
+          companyName: user.business?.name_businss || user.name,
         });
       }
 
@@ -98,8 +96,28 @@ export async function adminRoutes(app: FastifyInstance) {
 
   app.get(
     "/admin/business-requests/:cnpj/document/:docType",
+    {
+      // Documentos têm dados pessoais (LGPD): só o ADMIN ou a própria empresa
+      // dona do CNPJ podem abrir.
+      onRequest: [ensureAuthenticated],
+    },
     async (request, reply) => {
-      const { cnpj, docType } = request.params as { cnpj: string; docType: string };
+      const { cnpj: rawCnpj, docType } = request.params as { cnpj: string; docType: string };
+      const cnpj = rawCnpj.replace(/\D/g, "");
+
+      const isAdmin = request.user?.role === "ADMIN";
+
+      if (!isAdmin) {
+        const owner = await prisma.user.findUnique({
+          where: { id: request.user!.id },
+          select: { cnpj: true },
+        });
+
+        // 404 em vez de 403 para não revelar se o CNPJ tem cadastro.
+        if (!owner?.cnpj || owner.cnpj.replace(/\D/g, "") !== cnpj) {
+          return reply.status(404).send({ message: "Documento não encontrado" });
+        }
+      }
 
       const business = await prisma.business.findUnique({
         where: { cnpj },
@@ -116,7 +134,7 @@ export async function adminRoutes(app: FastifyInstance) {
       });
 
       if (!business) {
-        return reply.status(404).send({ message: "Empresa não encontrada" });
+        return reply.status(404).send({ message: "Documento não encontrado" });
       }
 
       let filePath: string | null = null;
@@ -148,7 +166,6 @@ export async function adminRoutes(app: FastifyInstance) {
       }
 
       try {
-        const { supabase } = await import("../../lib/supabase.js");
         const { data, error } = await supabase.storage.from("documentos-empresas").download(filePath);
 
         if (error || !data) {

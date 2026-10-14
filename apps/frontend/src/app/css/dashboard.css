@@ -166,6 +166,10 @@
   margin-top: 8px;
   border-top: 1px solid var(--line);
 }
+/* Sem o card de ajuda (painel do admin), o usuário continua no rodapé. */
+.sidebar-nav + .sidebar-user {
+  margin-top: auto;
+}
 .user-avatar,
 .topbar-avatar {
   border-radius: 50%;
