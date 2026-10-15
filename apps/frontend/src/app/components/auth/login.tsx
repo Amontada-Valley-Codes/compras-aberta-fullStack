@@ -182,16 +182,11 @@ export const Login = ({ next }: { next?: string }) => {
 
             <div className='auth-register-prompt'>
               <span>Não possui cadastro? </span>
-              <Link href='/auth/cadastro-me' className='auth-register-link'>
-                Cadastrar empresa (ME)
+              <Link href='/auth/cadastro' className='auth-register-link'>
+                Criar conta
               </Link>
             </div>
           </form>
-
-          <p className='auth-switch'>
-            Sua empresa ainda não tem acesso?{' '}
-            <Link href='/auth/solicitar-acesso'>Solicitar acesso</Link>
-          </p>
         </div>
       </div>
     </div>
