@@ -22,6 +22,7 @@ const userService = {
       email: user.email,
       role: user.role,
       cnpj: user.cnpj,
+      municipioIbge: user.municipioIbge,
       business: user.business
         ? {
             cnpj: user.business.cnpj,
