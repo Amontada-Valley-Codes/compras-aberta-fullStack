@@ -13,6 +13,7 @@ export interface AnalysisExportChartSection {
 }
 
 export interface AnalysisExportShareData {
+  percentage: number;
   meLabel: string;
   meValue: string;
   othersLabel: string;
@@ -212,6 +213,17 @@ export async function exportChartsToPdf(summary: AnalysisExportSummary): Promise
     const renderHeight = (height / width) * renderWidth;
     ensureSpace(renderHeight + 6);
     doc.addImage(imgURI, "PNG", PAGE_MARGIN, y, renderWidth, renderHeight);
+
+    // O percentual central é um elemento HTML sobreposto ao SVG do ApexCharts
+    // e não entra no dataURI capturado para o PDF. Desenhamos esse valor sobre
+    // o centro branco da rosca para manter a mesma leitura da tela.
+    const percentage = Number(section.data.percentage);
+    if (Number.isFinite(percentage)) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(24, 41, 155);
+      doc.text(`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`, PAGE_MARGIN + renderWidth / 2, y + renderHeight / 2 + 2, { align: "center" });
+    }
 
     const textX = PAGE_MARGIN + renderWidth + 8;
     const textWidth = CONTENT_WIDTH - renderWidth - 8;

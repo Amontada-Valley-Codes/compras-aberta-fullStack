@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { BarChart3, SearchX, Table2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import type { ApexOptions } from "apexcharts";
 import { brandTokens } from "@/design-system/tokens";
 import type { ExpensesByNatureResponse, ParticipationByNatureResponse } from "@/services/analytics/analytics.types";
@@ -20,6 +22,10 @@ const chartColors = {
 };
 const compact = (value: number) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 const currency = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(value);
+
+function ChartEmptyState({ children }: { children: string }) {
+  return <div className="analysis-data-state" role="status"><SearchX aria-hidden="true" /><strong>Nenhum dado encontrado</strong><span>{children}</span></div>;
+}
 
 const base: ApexOptions = {
   chart: { toolbar: { show: false }, fontFamily: `${brandTokens.typography.family}, sans-serif` },
@@ -53,14 +59,29 @@ interface NatureBarChartProps {
   compactView?: boolean;
 }
 
+function ChartViewControls({ table, onTableChange }: { table: boolean; onTableChange: (value: boolean) => void }) {
+  return <div className="analysis-chart-controls" role="group" aria-label="Opções do gráfico">
+    <button type="button" className={!table ? "is-active" : ""} onClick={() => onTableChange(false)} aria-label="Ver gráfico" aria-pressed={!table}><BarChart3 size={15} /> <span>Gráfico</span></button>
+    <button type="button" className={table ? "is-active" : ""} onClick={() => onTableChange(true)} aria-label="Ver tabela" aria-pressed={table}><Table2 size={15} /> <span>Tabela</span></button>
+  </div>;
+}
+
+function ChartTable({ labels, values, valueFormatter }: { labels: string[]; values: number[]; valueFormatter: (value: number) => string }) {
+  return <div className="analysis-chart-table-wrap"><table className="analysis-chart-table"><thead><tr><th>Natureza da despesa</th><th>Valor</th></tr></thead><tbody>{labels.map((label, index) => <tr key={`${label}-${index}`}><td>{label}</td><td>{valueFormatter(values[index] ?? 0)}</td></tr>)}</tbody></table></div>;
+}
+
 function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, tooltipFormatter, compactView = false }: NatureBarChartProps) {
+  const [table, setTable] = useState(false);
+  const sorted = useMemo(() => labels.map((label, index) => ({ label, value: Number(values[index] ?? 0) })), [labels, values]);
+  const sortedLabels = sorted.map((item) => item.label);
+  const sortedValues = sorted.map((item) => item.value);
   const options: ApexOptions = {
     ...base,
     chart: { ...base.chart, id, type: "bar" },
     colors: [color],
     plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: "58%" } },
     xaxis: {
-      categories: labels.map((label) => wrapLabel(label)),
+      categories: sortedLabels.map((label) => wrapLabel(label)),
       tickAmount: compactView ? 3 : 4,
       labels: { formatter: (value) => axisFormatter(Number(value)), style: { colors: "#3D586D", fontSize: compactView ? "10px" : "12px" } },
     },
@@ -68,12 +89,15 @@ function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, 
     tooltip: {
       shared: true,
       intersect: false,
-      x: { formatter: (_value, opts) => labels[opts?.dataPointIndex ?? 0] ?? "" },
+      x: { formatter: (_value, opts) => sortedLabels[opts?.dataPointIndex ?? 0] ?? "" },
       y: { formatter: tooltipFormatter },
     },
   };
   const height = compactView ? 130 : Math.max(230, 60 + labels.length * 46);
-  return <Chart type="bar" height={height} options={options} series={[{ name: seriesName, data: values }]} />;
+  return <>
+    <ChartViewControls table={table} onTableChange={setTable} />
+    {table ? <ChartTable labels={sortedLabels} values={sortedValues} valueFormatter={tooltipFormatter} /> : <Chart type="bar" height={height} options={options} series={[{ name: seriesName, data: sortedValues }]} />}
+  </>;
 }
 
 const percentLabel = (value: number) => `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
@@ -81,7 +105,7 @@ const percentLabel = (value: number) => `${value.toLocaleString("pt-BR", { maxim
 export function ExpensesChart({ data, compactView = false }: { data: ExpensesByNatureResponse["data"]; compactView?: boolean }) {
   const allRows = selectExpenseRows(data);
   const rows = compactView ? allRows.slice(0, 4) : allRows;
-  if (!rows.length) return <p className="analysis-data-state">Nenhum valor previsto no orçamento para estes filtros.</p>;
+  if (!rows.length) return <ChartEmptyState>Nenhum valor previsto no orçamento para estes filtros.</ChartEmptyState>;
   return <NatureBarChart
     id="export-expenses-chart"
     color={chartColors.expenses}
@@ -96,7 +120,7 @@ export function ExpensesChart({ data, compactView = false }: { data: ExpensesByN
 
 export function ParticipationChart({ data, compactView = false }: { data: ParticipationByNatureResponse["data"]; compactView?: boolean }) {
   const rows = selectParticipationRows(data, compactView);
-  if (!rows.length) return <p className="analysis-data-state">Nenhuma microempresa participou de licitações com estes filtros.</p>;
+  if (!rows.length) return <ChartEmptyState>Nenhuma microempresa participou de licitações com estes filtros.</ChartEmptyState>;
   return <NatureBarChart
     id="export-participation-chart"
     color={chartColors.participation}
@@ -111,7 +135,7 @@ export function ParticipationChart({ data, compactView = false }: { data: Partic
 
 export function MicroenterpriseValueChart({ data }: { data: ParticipationByNatureResponse["data"] }) {
   const rows = selectMicroenterpriseValueRows(data);
-    if (!rows.length) return <p className="analysis-data-state">Nenhum valor homologado para microempresas nestes filtros.</p>;
+    if (!rows.length) return <ChartEmptyState>Nenhum valor homologado para microempresas nestes filtros.</ChartEmptyState>;
   return <NatureBarChart
     id="export-microenterprise-chart"
     color={chartColors.microenterprise}
@@ -141,7 +165,9 @@ function ShareDonutChart({
   percentage, size, chartId, meLabel, othersLabel, meColor, othersColor,
   meMarkerClass, othersMarkerClass, centerLabel, ariaLabel,
 }: ShareDonutChartProps) {
-  const safe = Math.min(100, Math.max(0, percentage));
+  const [table, setTable] = useState(false);
+  const numericPercentage = Number(percentage);
+  const safe = Number.isFinite(numericPercentage) ? Math.min(100, Math.max(0, numericPercentage)) : 0;
   const label = `${safe.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
   const options: ApexOptions = {
     ...base,
@@ -178,9 +204,12 @@ function ShareDonutChart({
       },
     },
   };
-  return <div className="local-share-chart" style={{ width: size, height: size }} role="img" aria-label={ariaLabel}>
-    <Chart type="donut" height={size} options={options} series={[safe, 100 - safe]} />
-    <span className="local-share-center"><b>{label}</b><small>{centerLabel}</small></span>
+  return <div className="analysis-share-chart-wrap">
+    <ChartViewControls table={table} onTableChange={setTable} />
+    {table ? <ChartTable labels={[meLabel, othersLabel]} values={[safe, 100 - safe]} valueFormatter={percentLabel} /> : <div className="local-share-chart" style={{ width: size, height: size }} role="img" aria-label={ariaLabel}>
+      <Chart type="donut" height={size} options={options} series={[safe, 100 - safe]} />
+      <span className="local-share-center"><b>{label}</b><small>{centerLabel}</small></span>
+    </div>}
   </div>;
 }
 

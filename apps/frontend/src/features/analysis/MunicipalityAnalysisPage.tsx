@@ -1,19 +1,20 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  ArrowLeft, Building2, CircleDollarSign,
-  Info, Search, Store,
+  ArrowLeft, CircleDollarSign, MapPinned,
+  Info, Search, SearchX, Store,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { ExpensesChart, GeneralShareChart, LocalShareChart, MicroenterpriseValueChart, ParticipationChart } from "@/features/public-data/PublicCharts";
 import { selectExpenseRows, selectMicroenterpriseValueRows, selectParticipationRows } from "@/features/public-data/chart-selectors";
-import { count, formatCnpj, money, percent } from "@/features/public-data/format";
-import { ALL_NATURES_LABEL, natureLabel, officialNatureName, titleCase } from "@/features/public-data/plain-language";
+import { count, money, percent } from "@/features/public-data/format";
+import { ALL_NATURES_LABEL, natureLabel } from "@/features/public-data/plain-language";
 import type { AnalysisData } from "@/features/public-data/public-data";
 import { AnalysisExportLinks } from "./AnalysisExportLinks";
 import type { AnalysisExportSummary } from "./export-charts-pdf";
 import { AnalysisPagination } from "./AnalysisPagination";
+import { AnalysisBidsTable } from "./AnalysisBidsTable";
 
 const EXPENSES_TITLE = "Compras por natureza da despesa";
 const EXPENSES_DESCRIPTION = "Veja o valor previsto no orçamento para cada um dos sete tipos de compra.";
@@ -29,9 +30,8 @@ const SHARE_EMPTY = "Escolha um município nos filtros acima para ver esta infor
 
 const KPI_TEXT = {
   value: { label: "Valor homologado para ME", detail: "Soma dos valores de licitações vencidas por microempresas." },
-  bids: { label: "Licitações com ME", detail: "Licitações com pelo menos uma microempresa vencedora." },
+  localValue: { label: "Compras com ME locais", detail: "Valor destinado a empresas sediadas no próprio município." },
   participations: { label: "Participações de ME", detail: "Registros de participação de microempresas." },
-  companies: { label: "ME vencedoras", detail: "Empresas diferentes que venceram ao menos uma licitação." },
 };
 
 const localShareNote = (total: string, share: number) =>
@@ -68,17 +68,16 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
     natureName,
     kpis: [
       { label: KPI_TEXT.value.label, value: money(micro.data?.data.valor_total_vencido), detail: KPI_TEXT.value.detail },
-      { label: KPI_TEXT.bids.label, value: count(micro.data?.data.quantidade_licitacoes), detail: KPI_TEXT.bids.detail },
       { label: KPI_TEXT.participations.label, value: count(micro.data?.data.quantidade_participacoes), detail: KPI_TEXT.participations.detail },
-      { label: KPI_TEXT.companies.label, value: count(micro.data?.data.quantidade_microempresas), detail: KPI_TEXT.companies.detail },
+      { label: KPI_TEXT.localValue.label, value: money(local.data?.resumo.valor_vencido_me_local), detail: KPI_TEXT.localValue.detail },
     ],
     highestNatureText: highestNature
-      ? `Em ${municipalityName}, a maior dotação prevista é "${highestNatureName}": ${money(highestNature.valor_total_dotacao)}. É uma previsão orçamentária; não indica valor homologado nem pagamento.`
+      ? `Em ${municipalityName}, a maior dotação prevista é "${highestNatureName}": ${money(highestNature.valor_total_dotacao)}.`
       : null,
     chartSections: [
+      { id: "export-microenterprise-chart", title: MICRO_VALUE_TITLE, description: MICRO_VALUE_DESCRIPTION, hasChart: microValueRows.length > 0, emptyText: MICRO_VALUE_EMPTY },
       { id: "export-expenses-chart", title: EXPENSES_TITLE, description: EXPENSES_DESCRIPTION, hasChart: expensesRows.length > 0, emptyText: EXPENSES_EMPTY },
       { id: "export-participation-chart", title: PARTICIPATION_TITLE, description: PARTICIPATION_DESCRIPTION, hasChart: participationRows.length > 0, emptyText: PARTICIPATION_EMPTY },
-      { id: "export-microenterprise-chart", title: MICRO_VALUE_TITLE, description: MICRO_VALUE_DESCRIPTION, hasChart: microValueRows.length > 0, emptyText: MICRO_VALUE_EMPTY },
     ],
     shareCharts: [
       {
@@ -88,6 +87,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         emptyText: SHARE_EMPTY,
         data: local.data?.resumo.percentual_valor_vencido_me_local != null
           ? {
+            percentage: Number(local.data.resumo.percentual_valor_vencido_me_local),
             meLabel: "Microempresas locais",
             meValue: money(local.data.resumo.valor_vencido_me_local),
             othersLabel: "Outras empresas",
@@ -103,6 +103,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         emptyText: SHARE_EMPTY,
         data: general.data?.resumo.percentual_valor_vencido_me != null
           ? {
+            percentage: Number(general.data.resumo.percentual_valor_vencido_me),
             meLabel: "Microempresas",
             meValue: money(general.data.resumo.valor_vencido_me),
             othersLabel: "Outras empresas",
@@ -143,31 +144,25 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
               { value: "2026", label: "2026" },
               { value: "2025", label: "2025" },
             ]} />
-            <button className="analysis-search-button" type="submit" aria-label="Atualizar análise"><Search size={23} /><span>Atualizar análise</span></button>
+            <button className="analysis-search-button" type="submit" aria-label="Consultar dados"><Search size={23} /><span>Consultar dados</span></button>
           </div>
         </form>
-        {municipalities.error && <p className="analysis-data-state" role="status">Lista de municípios: {municipalities.error}</p>}
-        {filters.municipalityIbge && !selectedMunicipality && <p className="analysis-data-state" role="alert">Não foi possível identificar o município selecionado. Selecione outro município para refazer a consulta.</p>}
+        {municipalities.error && <DataState error={`Lista de municípios: ${municipalities.error}`} />}
+        {filters.municipalityIbge && !selectedMunicipality && <DataState error="Não foi possível identificar o município selecionado. Selecione outro município para refazer a consulta." />}
 
         <section className="analysis-results">
-          {micro.error && <p className="analysis-data-state" role="status">Indicadores de microempresas: {micro.error}</p>}
+          {micro.error && <DataState error={`Indicadores de microempresas: ${micro.error}`} />}
           <div className="analysis-kpis">
             <AnalysisKpi icon={<CircleDollarSign />} label={KPI_TEXT.value.label} value={money(micro.data?.data.valor_total_vencido)} detail={KPI_TEXT.value.detail} />
-            <AnalysisKpi icon={<Building2 />} label={KPI_TEXT.bids.label} value={count(micro.data?.data.quantidade_licitacoes)} detail={KPI_TEXT.bids.detail} />
             <AnalysisKpi icon={<Store />} label={KPI_TEXT.participations.label} value={count(micro.data?.data.quantidade_participacoes)} detail={KPI_TEXT.participations.detail} accent />
+            <AnalysisKpi icon={<MapPinned />} label={KPI_TEXT.localValue.label} value={money(local.data?.resumo.valor_vencido_me_local)} detail={KPI_TEXT.localValue.detail} />
           </div>
 
           {highestNature && <section className="analysis-insight">
-            <p>Em {municipalityName}, a maior dotação prevista é <strong>{highestNatureName}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>. <span>É uma previsão orçamentária; não indica valor homologado nem pagamento.</span></p>
+            <p>Em {municipalityName}, a maior dotação prevista é <strong>{highestNatureName}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>.</p>
           </section>}
 
           <div className="analysis-chart-grid">
-            <AnalysisChartCard title={EXPENSES_TITLE} description={EXPENSES_DESCRIPTION} tone="blue">
-              {expensesRows.length ? <ExpensesChart data={expenses.data?.data ?? []} /> : <DataState error={expenses.error} fallback={EXPENSES_EMPTY} />}
-            </AnalysisChartCard>
-            <AnalysisChartCard title={PARTICIPATION_TITLE} description={PARTICIPATION_DESCRIPTION} tone="gold">
-              {participationRows.length ? <ParticipationChart data={participation.data?.data ?? []} /> : <DataState error={participation.error} fallback={PARTICIPATION_EMPTY} />}
-            </AnalysisChartCard>
             <AnalysisChartCard title={MICRO_VALUE_TITLE} description={MICRO_VALUE_DESCRIPTION} tone="navy">
               {microValueRows.length ? <MicroenterpriseValueChart data={participation.data?.data ?? []} /> : <DataState error={participation.error} fallback={MICRO_VALUE_EMPTY} />}
             </AnalysisChartCard>
@@ -176,31 +171,30 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
                 <div className="analysis-share-item">
                   <h3>Compras com ME locais</h3>
                   {local.data?.resumo.percentual_valor_vencido_me_local != null ? <>
-                    <LocalShareChart percentage={local.data.resumo.percentual_valor_vencido_me_local} size={190} />
-                    <strong>{percent(local.data.resumo.percentual_valor_vencido_me_local)}</strong>
+                    <LocalShareChart percentage={local.data.resumo.percentual_valor_vencido_me_local} size={230} />
                     <p>{money(local.data.resumo.valor_vencido_me_local)} em compras locais</p>
                   </> : <DataState error={local.error} fallback={SHARE_EMPTY} />}
                 </div>
                 <div className="analysis-share-item">
                   <h3>Compras com ME em geral</h3>
                   {general.data?.resumo.percentual_valor_vencido_me != null ? <>
-                    <GeneralShareChart percentage={general.data.resumo.percentual_valor_vencido_me} size={190} />
-                    <strong>{percent(general.data.resumo.percentual_valor_vencido_me)}</strong>
+                    <GeneralShareChart percentage={general.data.resumo.percentual_valor_vencido_me} size={230} />
                     <p>{money(general.data.resumo.valor_vencido_me)} em compras com ME</p>
                   </> : <DataState error={general.error} fallback={SHARE_EMPTY} />}
                 </div>
               </div>
             </AnalysisChartCard>
+            <AnalysisChartCard title={EXPENSES_TITLE} description={EXPENSES_DESCRIPTION} tone="blue">
+              {expensesRows.length ? <ExpensesChart data={expenses.data?.data ?? []} /> : <DataState error={expenses.error} fallback={EXPENSES_EMPTY} />}
+            </AnalysisChartCard>
+            <AnalysisChartCard title="Participações de ME por natureza da despesa" description="Percentual de participações de microempresas em cada tipo de compra." tone="gold">
+              {participationRows.length ? <ParticipationChart data={participation.data?.data ?? []} /> : <DataState error={participation.error} fallback={PARTICIPATION_EMPTY} />}
+            </AnalysisChartCard>
           </div>
 
           <section className="analysis-table-card" id="licitacoes">
             <header><div><h2>Licitações com microempresas</h2><p>Cada linha mostra uma microempresa vencedora e o valor homologado na licitação. São registros passados: antes de participar, confira o edital oficial.</p></div></header>
-            {rows.length ? <div className="analysis-table-scroll"><table>
-              <thead><tr><th>Nº da licitação</th><th>Empresa vencedora</th><th>CNPJ</th><th>Município</th><th>Tipo de compra</th><th>Ano</th><th>Valor homologado</th></tr></thead>
-              <tbody>{rows.map((bid, index) => <tr key={`${bid.codigo_municipio}-${bid.numero_licitacao}-${bid.cnpj}-${index}`}>
-                <td><b>{bid.numero_licitacao}</b></td><td><span className="analysis-table-ellipsis" title={bid.empresa ?? "Não informada"}>{bid.empresa ?? "Não informada"}</span></td><td>{formatCnpj(bid.cnpj)}</td><td>{titleCase(bid.municipio)}</td><td><span className="analysis-table-ellipsis" title={officialNatureName(bid.nome_natureza)}>{natureLabel(bid.codigo_natureza, bid.nome_natureza)}</span></td><td>{bid.ano_licitacao}</td><td><strong>{money(bid.valor_total_vencido)}</strong></td>
-              </tr>)}</tbody>
-            </table></div> : <DataState error={bids.error} fallback="Nenhuma licitação encontrada para estes filtros." />}
+            {rows.length ? <AnalysisBidsTable rows={rows} /> : <DataState error={bids.error} fallback="Nenhuma licitação encontrada para estes filtros." />}
             <AnalysisPagination filters={filters} rowCount={rows.length} hasNext={(bids.data?.data.length ?? 0) > filters.pageSize} />
           </section>
           <p className="analysis-footnote"><Info /> A planilha (CSV) traz todas as licitações dos filtros escolhidos. O PDF traz os gráficos desta página.</p>
@@ -225,5 +219,10 @@ function AnalysisChartCard({ title, description, tone, children }: { title: stri
 }
 
 function DataState({ error, fallback = "Sem dados para os filtros selecionados." }: { error: string | null; fallback?: string }) {
-  return <p className="analysis-data-state" role="status">{error ?? fallback}</p>;
+  const message = error ?? fallback;
+  return <div className="analysis-data-state" role="status">
+    <SearchX aria-hidden="true" />
+    <strong>{error ? "Não foi possível carregar estes dados" : "Nenhum dado encontrado"}</strong>
+    <span>{message}</span>
+  </div>;
 }

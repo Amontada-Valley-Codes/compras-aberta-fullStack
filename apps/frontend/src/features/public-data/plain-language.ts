@@ -3,16 +3,17 @@
 // PESSOA JURÍDICA"), que confundem quem não trabalha com contabilidade
 // pública. Sem "use client": usado tanto em server quanto em client components.
 
-// Nome do dia a dia para cada natureza da despesa. O nome oficial continua
-// disponível em officialNatureName() para quem precisa cruzar com outras fontes.
+// Nomes oficiais dos elementos de despesa usados pelo TCE/CE. Mantemos estes
+// textos na interface para que os gráficos possam ser conferidos diretamente
+// na fonte pública, sem trocar a nomenclatura por apelidos.
 const NATURE_LABELS: Record<string, string> = {
-  "30": "Materiais e suprimentos",
-  "32": "Itens distribuídos à população",
-  "35": "Consultoria",
-  "39": "Outros serviços de empresas",
-  "40": "Serviços de tecnologia",
+  "30": "Material de consumo",
+  "32": "Material, bem ou serviço para distribuição gratuita",
+  "35": "Serviços de consultoria",
+  "39": "Outros serviços de terceiros - pessoa jurídica",
+  "40": "Serviços de tecnologia da informação e comunicação - pessoa jurídica",
   "51": "Obras e instalações",
-  "52": "Equipamentos e móveis",
+  "52": "Equipamentos e material permanente",
 };
 
 // Tipos de compra que a fonte de dados cobre. Os gráficos mostram todos eles,

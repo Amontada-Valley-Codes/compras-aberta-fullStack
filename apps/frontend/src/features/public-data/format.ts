@@ -11,8 +11,12 @@ export const compactMoney = (value: string | number | null | undefined) => {
 export const count = (value: number | null | undefined) =>
   value == null ? "—" : value.toLocaleString("pt-BR");
 
-export const percent = (value: number | null | undefined) =>
-  value == null ? "Sem dados" : `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+export const percent = (value: number | null | undefined) => {
+  const numeric = Number(value);
+  return value == null || !Number.isFinite(numeric)
+    ? "Sem dados"
+    : `${numeric.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+};
 
 export function formatCnpj(value: string | null): string {
   const digits = value?.replace(/\D/g, "") ?? "";
