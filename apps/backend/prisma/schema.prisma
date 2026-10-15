@@ -11,6 +11,7 @@ datasource db {
 enum UserRole {
   ADMIN
   BUSINESS
+  MANAGER // Gestor público (prefeitura): acessa o painel /gestor do seu município.
 }
 
 enum AccessRequestStatus {
@@ -35,6 +36,10 @@ model user {
 
   cnpj     String?   @unique
   business business? @relation(fields: [cnpj], references: [cnpj])
+
+  // Só para MANAGER: o município cuja prefeitura o gestor representa.
+  municipioIbge Int?
+  municipio     municipios? @relation(fields: [municipioIbge], references: [codigo_ibge])
 
   refreshTokens refreshToken[]
 
@@ -120,6 +125,7 @@ model municipios {
   codigo_tce  Int?    @unique
 
   accessRequests accessRequest[]
+  gestores       user[]
 
   @@map("Municipios")
 }
