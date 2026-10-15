@@ -79,7 +79,7 @@ export async function loadAnalysisData(filters: AnalysisFilters): Promise<Analys
   };
   const unavailable = { data: null, error: "Não foi possível aplicar o filtro de município." };
   const [bids, expenses, micro, participation, local, general] = await Promise.all([
-    unresolvedMunicipality ? Promise.resolve(unavailable) : result(listDetailedBidsService({ codigo_municipio, codigo_natureza: filters.natureCode, ano: filters.year, limit: filters.pageSize + 1, offset: (filters.page - 1) * filters.pageSize })),
+    unresolvedMunicipality ? Promise.resolve(unavailable) : result(listDetailedBidsService({ codigo_municipio, codigo_natureza: filters.natureCode, ano: filters.year, limit: Math.min(filters.pageSize + 1, 100), offset: (filters.page - 1) * filters.pageSize })),
     unresolvedMunicipality ? Promise.resolve(unavailable) : result(listExpensesByNatureService(period)),
     unresolvedMunicipality ? Promise.resolve(unavailable) : result(getMicroenterpriseIndicatorService({ ...period, codigo_natureza: filters.natureCode })),
     unresolvedMunicipality ? Promise.resolve(unavailable) : result(listParticipationByNatureService(period)),
