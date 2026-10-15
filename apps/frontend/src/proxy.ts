@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth/session";
 
 const LOGIN_PATH = "/auth/login";
-const ACCESS_REQUEST_PATH = "/auth/solicitar-acesso";
+const REGISTER_PATH = "/auth/cadastro";
 
 // Checagem otimista de rota (só lê e valida a assinatura do cookie, sem
 // tocar no banco): decide quem pode ver /admin e /me e manda cada um para o
@@ -25,7 +25,7 @@ export default function proxy(request: NextRequest) {
   const isAdminArea = pathname.startsWith("/admin");
   const isBusinessArea = pathname.startsWith("/me");
   const isAccessStatusPage = pathname === ACCESS_STATUS_PATH;
-  const isPublicAuthPage = pathname === LOGIN_PATH || pathname === ACCESS_REQUEST_PATH;
+  const isPublicAuthPage = pathname === LOGIN_PATH || pathname === REGISTER_PATH;
 
   if ((isAdminArea || isBusinessArea || isAccessStatusPage) && !session) {
     const url = new URL(LOGIN_PATH, request.url);
@@ -60,5 +60,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/me/:path*", "/acesso/status", "/auth/login", "/auth/solicitar-acesso"],
+  matcher: ["/admin/:path*", "/me/:path*", "/acesso/status", "/auth/login", "/auth/cadastro"],
 };

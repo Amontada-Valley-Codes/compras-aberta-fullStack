@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
-import { RegisterME } from "@/app/components/auth/register-me";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Cadastro de Microempresa | Compras Abertas",
-  description: "Cadastre sua empresa ME/MEI/EPP para ter acesso à plataforma Compras Abertas.",
-};
-
+// O cadastro de ME agora faz parte do cadastro único (/auth/cadastro).
 export default function CadastroMEPage() {
-  return <RegisterME />;
+  redirect("/auth/cadastro?perfil=me");
 }
