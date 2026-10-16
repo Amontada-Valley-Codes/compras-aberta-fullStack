@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, ChevronDown, LogOut, Menu, Search, X } from "lucide-react";
+import { Bell, LogOut, Menu, Search, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { toast } from "@/components/ui/sonner";
 
@@ -118,7 +118,6 @@ export function AppShell({
             <small>{isAdmin ? "AMBIENTE" : "MINHA EMPRESA"}</small>
             <strong>{companyName}</strong>
           </span>
-          <ChevronDown size={16} />
         </div>
 
         <nav className="sidebar-nav" aria-label="Navegação do painel">
@@ -152,7 +151,6 @@ export function AppShell({
             <strong>{userName}</strong>
             <small>{isAdmin ? "Administrador" : "Responsável legal"}</small>
           </span>
-          <ChevronDown size={16} />
         </div>
       </aside>
 
