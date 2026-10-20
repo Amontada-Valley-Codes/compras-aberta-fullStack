@@ -81,7 +81,7 @@ function Requests({
   const decide = async (decision: "approve" | "reject") => {
     if (!selected) return;
     if (decision === "reject" && note.trim().length < 5) {
-      toast.error("Informe o motivo da recusa", { description: "A empresa vera esse motivo na tela de status." });
+      toast.error("Informe o motivo da recusa", { description: "Esse motivo será enviado por e-mail para o solicitante." });
       return;
     }
     setDeciding(decision);
@@ -98,8 +98,11 @@ function Requests({
       }
       replace(await response.json());
       setSelected(null);
-      toast.success(decision === "approve" ? "Acesso aprovado" : "Solicitacao recusada", {
-        description: decision === "approve" ? `${selected.companyName} ja pode acessar a area da empresa.` : `${selected.companyName} vera o motivo na tela de status.`,
+      toast.success(decision === "approve" ? "Acesso aprovado" : "Solicitação recusada", {
+        description:
+          decision === "approve"
+            ? `${selected.companyName} já pode acessar a plataforma. Notificação enviada para ${selected.requester.email}.`
+            : `Notificação com o motivo da recusa enviada para ${selected.requester.email}.`,
       });
     } catch {
       toast.error("Nao foi possivel registrar a decisao", { description: "Verifique sua conexao e tente novamente." });
