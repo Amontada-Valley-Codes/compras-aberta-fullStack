@@ -1,7 +1,10 @@
 import { hash } from "bcryptjs";
 
 import { prisma } from "../../lib/prisma";
-import { sendApprovalEmail } from "../../services/notification.service";
+import {
+  sendApprovalEmail,
+  sendRejectionEmail,
+} from "../../services/notification.service";
 import { AppError } from "../../utils/AppError";
 import { userRepository } from "../users/user.repository";
 import { accessRequestRepository } from "./access-request.repository";
@@ -94,11 +97,27 @@ async function review(
         : []),
     ]);
 
-    if (isActive && request.user?.email) {
-      sendApprovalEmail({
-        toEmail: request.user.email,
-        companyName: request.companyName,
-      });
+    if (request.user?.email) {
+      const companyName =
+        request.companyName ||
+        request.user.business?.name_businss ||
+        request.user.name;
+
+      if (isActive) {
+        void sendApprovalEmail({
+          toEmail: request.user.email,
+          companyName,
+          requesterName: request.user.name,
+          note: reviewNote,
+        });
+      } else {
+        void sendRejectionEmail({
+          toEmail: request.user.email,
+          companyName,
+          requesterName: request.user.name,
+          reason: reviewNote,
+        });
+      }
     }
 
     const updated = await accessRequestRepository.findById(id);
@@ -130,11 +149,24 @@ async function review(
       : []),
   ]);
 
-  if (isActive && user.email) {
-    sendApprovalEmail({
-      toEmail: user.email,
-      companyName: user.business?.name_businss || user.name,
-    });
+  if (user.email) {
+    const companyName = user.business?.name_businss || user.name;
+
+    if (isActive) {
+      void sendApprovalEmail({
+        toEmail: user.email,
+        companyName,
+        requesterName: user.name,
+        note: reviewNote,
+      });
+    } else {
+      void sendRejectionEmail({
+        toEmail: user.email,
+        companyName,
+        requesterName: user.name,
+        reason: reviewNote,
+      });
+    }
   }
 
   const reviewer = await prisma.user.findUnique({

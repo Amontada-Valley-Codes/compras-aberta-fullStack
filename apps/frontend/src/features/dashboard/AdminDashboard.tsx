@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Building2, Check, Database, FileCheck2, LayoutDashboard, Settings, Store, Users, X } from "lucide-react";
+import { Check, Database, FileCheck2, LayoutDashboard, Settings, Store, Users, X } from "lucide-react";
 import { AppShell, type NavItem } from "./AppShell";
 import { AdminOverview } from "./AdminOverview";
 import { AdminUsers } from "./AdminUsers";
@@ -33,7 +33,6 @@ export function AdminDashboard() {
     { id: "overview", label: "Visao geral", icon: <LayoutDashboard size={19} /> },
     { id: "requests", label: "Solicitacoes", icon: <FileCheck2 size={19} />, badge: pendingCount ? String(pendingCount) : undefined },
     { id: "companies", label: "Microempresas", icon: <Store size={19} /> },
-    { id: "municipalities", label: "Municipios", icon: <Building2 size={19} /> },
     { id: "users", label: "Usuarios e acessos", icon: <Users size={19} /> },
     { id: "settings", label: "Configuracoes", icon: <Settings size={19} /> },
   ];
@@ -46,7 +45,6 @@ export function AdminDashboard() {
         {active === "overview" && <AdminOverview onNavigate={navigate} onOpenRequest={openRequest} state={state} />}
         {active === "requests" && <Requests state={state} initialSelectedId={openRequestId} />}
         {active === "companies" && <Requests state={state} approvedOnly />}
-        {active === "municipalities" && <Placeholder title="Municipios integrados" />}
         {active === "users" && <AdminUsers />}
         {active === "settings" && <Placeholder title="Configuracoes" />}
       </div>
@@ -83,7 +81,7 @@ function Requests({
   const decide = async (decision: "approve" | "reject") => {
     if (!selected) return;
     if (decision === "reject" && note.trim().length < 5) {
-      toast.error("Informe o motivo da recusa", { description: "A empresa vera esse motivo na tela de status." });
+      toast.error("Informe o motivo da recusa", { description: "Esse motivo será enviado por e-mail para o solicitante." });
       return;
     }
     setDeciding(decision);
@@ -100,8 +98,11 @@ function Requests({
       }
       replace(await response.json());
       setSelected(null);
-      toast.success(decision === "approve" ? "Acesso aprovado" : "Solicitacao recusada", {
-        description: decision === "approve" ? `${selected.companyName} ja pode acessar a area da empresa.` : `${selected.companyName} vera o motivo na tela de status.`,
+      toast.success(decision === "approve" ? "Acesso aprovado" : "Solicitação recusada", {
+        description:
+          decision === "approve"
+            ? `${selected.companyName} já pode acessar a plataforma. Notificação enviada para ${selected.requester.email}.`
+            : `Notificação com o motivo da recusa enviada para ${selected.requester.email}.`,
       });
     } catch {
       toast.error("Nao foi possivel registrar a decisao", { description: "Verifique sua conexao e tente novamente." });
