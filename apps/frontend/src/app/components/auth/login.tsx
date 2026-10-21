@@ -69,7 +69,9 @@ export const Login = ({ next }: { next?: string }) => {
         description:
           data?.role === 'ADMIN'
             ? 'Você entrou no painel de administração.'
-            : 'Você entrou no painel da sua empresa.',
+            : data?.role === 'MANAGER'
+              ? 'Você entrou no painel do gestor.'
+              : 'Você entrou no painel da sua empresa.',
       })
       router.push(safeNextPath(next) ?? data?.home ?? '/')
     } catch {
