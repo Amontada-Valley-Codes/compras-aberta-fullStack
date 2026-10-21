@@ -1,0 +1,185 @@
+.how-it-works-section {
+  overflow: hidden;
+}
+
+.how-it-works-block {
+  position: relative;
+  color: #fff;
+}
+
+.how-it-works-block--manager {
+  background:
+    linear-gradient(90deg, rgba(17, 22, 155, 0.97) 0%, rgba(17, 22, 155, 0.9) 46%, rgba(17, 22, 155, 0.72) 100%),
+    url("/sections/trabalho-manual.png") center 44% / cover;
+}
+
+.how-it-works-block--business {
+  background: var(--brand-navy);
+}
+
+.how-it-works-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(56px, 8vw, 144px);
+  align-items: center;
+  min-height: 680px;
+  padding-block: 104px;
+}
+
+.how-it-works-block--business .how-it-works-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+}
+
+.how-it-works-block--business .how-it-works-heading {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.how-it-works-block--business .how-it-works-content {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.how-it-works-heading {
+  align-self: center;
+  max-width: 540px;
+}
+
+.how-it-works-eyebrow {
+  margin: 0 0 24px;
+  color: var(--brand-sky);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.how-it-works-heading h2 {
+  max-width: 680px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(38px, 4.3vw, 62px);
+  font-weight: 850;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.how-it-works-content {
+  max-width: 720px;
+}
+
+.how-it-works-steps {
+  display: grid;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how-it-works-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.how-it-works-step:not(:last-child)::before {
+  display: none;
+}
+
+.how-it-works-step-marker {
+  position: relative;
+  z-index: 1;
+  color: var(--brand-sky);
+  font-size: 62px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.how-it-works-step h3 {
+  margin: 2px 0 7px;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.how-it-works-step p {
+  max-width: 580px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+@media (max-width: 900px) {
+  .how-it-works-grid,
+  .how-it-works-block--business .how-it-works-grid {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 54px;
+    padding-block: 76px 84px;
+  }
+
+  .how-it-works-block--business .how-it-works-heading,
+  .how-it-works-block--business .how-it-works-content {
+    order: initial;
+  }
+
+  .how-it-works-heading,
+  .how-it-works-content {
+    max-width: 720px;
+  }
+
+  .how-it-works-heading h2 {
+    max-width: 620px;
+    font-size: clamp(42px, 10vw, 64px);
+  }
+}
+
+@media (max-width: 560px) {
+  .how-it-works-grid,
+  .how-it-works-block--business .how-it-works-grid {
+    gap: 38px;
+    padding-block: 62px 68px;
+  }
+
+  .how-it-works-eyebrow {
+    margin-bottom: 18px;
+    font-size: 12px;
+  }
+
+  .how-it-works-heading h2 {
+    font-size: 39px;
+  }
+
+  .how-it-works-steps {
+    gap: 22px;
+  }
+
+  .how-it-works-step {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .how-it-works-step:not(:last-child)::before {
+    display: none;
+  }
+
+  .how-it-works-step-marker {
+    font-size: 50px;
+  }
+
+  .how-it-works-step h3 {
+    margin-top: 0;
+    font-size: 18px;
+  }
+
+  .how-it-works-step p {
+    font-size: 15px;
+  }
+}

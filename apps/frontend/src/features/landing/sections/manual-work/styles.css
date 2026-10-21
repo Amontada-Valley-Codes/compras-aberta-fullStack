@@ -1,0 +1,17 @@
+.manual-work-section { overflow:hidden; padding:104px 0; background:#f7fafb; }
+.manual-work-grid { display:grid; grid-template-columns:minmax(0,.88fr) minmax(440px,1.12fr); align-items:center; gap:72px; }
+.manual-work-copy { order:2; }
+.manual-work-visual { order:1; }
+.manual-work-copy { max-width:560px; }
+.manual-work-kicker { color:var(--brand-blue); font-size:13px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
+.manual-work-copy h2 { max-width:530px; margin:16px 0 18px; color:var(--brand-navy); font-size:clamp(36px,4vw,56px); line-height:1.08; letter-spacing:-.04em; }
+.manual-work-copy > p { margin:0; color:#607687; font-size:18px; line-height:1.6; }
+.manual-work-copy ul { display:grid; gap:14px; margin:28px 0; padding:0; list-style:none; }
+.manual-work-copy li { display:flex; align-items:center; gap:12px; color:#183f60; font-size:17px; font-weight:650; }
+.manual-work-copy li > span:first-child { display:grid; flex:0 0 42px; width:42px; height:42px; place-items:center; border:1px solid #cce9ee; border-radius:14px; background:linear-gradient(145deg,#e9f8fa,#d7f0f3); color:#087586; box-shadow:0 5px 12px rgba(18,104,119,.1); }
+.manual-work-copy li svg { width:24px; height:24px; }
+.manual-work-bridge { max-width:500px; padding-top:18px; border-top:1px solid #dce9ed; color:var(--brand-navy)!important; font-size:16px!important; font-weight:650; }
+.manual-work-visual { position:relative; min-height:440px; overflow:hidden; border-radius:28px; background:#eaf3f6; box-shadow:0 18px 42px rgba(19,61,91,.13); }
+.manual-work-visual img { object-fit:cover; object-position:center; }
+@media (max-width:900px) { .manual-work-section { padding:76px 0; } .manual-work-grid { grid-template-columns:minmax(0,1fr); gap:38px; } .manual-work-copy { max-width:680px; } .manual-work-visual { min-height:400px; } }
+@media (max-width:680px) { .manual-work-section { padding:62px 0; } .manual-work-copy h2 { font-size:36px; } .manual-work-copy > p { font-size:16px; } .manual-work-copy li { font-size:15px; } .manual-work-visual { min-height:300px; border-radius:20px; } }

@@ -9,6 +9,10 @@
     "skipLibCheck": true,
     "types": ["node"],
     "isolatedModules": true,
+    // Sem outDir o tsc grava .js ao lado de cada .ts; o Prisma CLI passa a ler
+    // o prisma.config.js compilado (e falha) e o Node pode carregar código velho.
+    "outDir": "dist",
+    "rootDir": "."
   },
-
+  "include": ["src", "prisma/generated"]
 }

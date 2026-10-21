@@ -2,7 +2,14 @@ node_modules
 # Keep environment variables out of version control
 .env
 
-/generated/prisma
+prisma/generated/
+uploads/
 .agents
 .claude
 .windsurf
+
+# Saída de build: o código-fonte é só TypeScript
+dist/
+/src/**/*.js
+/prisma/*.js
+/prisma.config.js

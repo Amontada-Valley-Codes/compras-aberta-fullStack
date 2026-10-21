@@ -1,0 +1,203 @@
+import fs from "node:fs";
+import path from "node:path";
+import type { FastifyInstance } from "fastify";
+import { ensureAuthenticated } from "../../middlewares/ensure-authenticated";
+import { verifyUserAuthorization } from "../../middlewares/verify-user-authorization";
+import { prisma } from "../../lib/prisma";
+import { supabase } from "../../lib/supabase";
+import {
+  sendApprovalEmail,
+  sendRejectionEmail,
+} from "../../services/notification.service";
+
+export async function adminRoutes(app: FastifyInstance) {
+  app.get(
+    "/admin/business-requests",
+    {
+      onRequest: [ensureAuthenticated, verifyUserAuthorization(["ADMIN"])],
+    },
+    async (request, reply) => {
+      const users = await prisma.user.findMany({
+        where: { role: "BUSINESS" },
+        include: { business: true },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const requests = users.map((u) => {
+        const b = u.business;
+        return {
+          id: u.id,
+          cnpj: b?.cnpj || "N/A",
+          name: b?.name_businss || u.name,
+          legalName: b?.name_businss || u.name,
+          initials: (b?.name_businss || u.name)
+            .substring(0, 2)
+            .toUpperCase(),
+          segment: b?.porte_empresa || "N/A",
+          city: "Não informado", // Adicionar no backend dps se precisar
+          sentAt: u.createdAt.toISOString(),
+          documents: "4",
+          status: u.isActive ? "Aprovada" : "Pendente",
+          docsUrls: b ? {
+            cartao_cnpj: `/api/admin/documents/${b.cnpj}/cartao_cnpj`,
+            contrato_social: `/api/admin/documents/${b.cnpj}/contrato_social`,
+            comprovante_endereco: `/api/admin/documents/${b.cnpj}/comprovante_endereco`,
+            comprovante_socio: `/api/admin/documents/${b.cnpj}/comprovante_socio`,
+          } : null
+        };
+      });
+
+      return reply.send(requests);
+    }
+  );
+
+  app.patch(
+    "/admin/business-requests/:userId/status",
+    {
+      onRequest: [ensureAuthenticated, verifyUserAuthorization(["ADMIN"])],
+    },
+    async (request, reply) => {
+      const { userId } = request.params as { userId: string };
+      const { status, note } = request.body as {
+        status: "Aprovada" | "Recusada" | "Pendente" | "Em análise";
+        note?: string;
+      };
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { business: true },
+      });
+
+      if (!user) {
+        return reply.status(404).send({ message: "Usuário não encontrado" });
+      }
+
+      const isActive = status === "Aprovada";
+
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: userId },
+          data: { isActive },
+        }),
+        ...(user.business
+          ? [
+              prisma.business.update({
+                where: { cnpj: user.cnpj! },
+                data: { isActive },
+              }),
+            ]
+          : []),
+      ]);
+
+      const companyName = user.business?.name_businss || user.name;
+
+      if (status === "Aprovada") {
+        void sendApprovalEmail({
+          toEmail: user.email,
+          companyName,
+          requesterName: user.name,
+          note,
+        });
+      } else if (status === "Recusada") {
+        void sendRejectionEmail({
+          toEmail: user.email,
+          companyName,
+          requesterName: user.name,
+          reason: note,
+        });
+      }
+
+      return reply.send({ message: `Status atualizado para ${status}` });
+    }
+  );
+
+  app.get(
+    "/admin/business-requests/:cnpj/document/:docType",
+    {
+      // Documentos têm dados pessoais (LGPD): só o ADMIN ou a própria empresa
+      // dona do CNPJ podem abrir.
+      onRequest: [ensureAuthenticated],
+    },
+    async (request, reply) => {
+      const { cnpj: rawCnpj, docType } = request.params as { cnpj: string; docType: string };
+      const cnpj = rawCnpj.replace(/\D/g, "");
+
+      const isAdmin = request.user?.role === "ADMIN";
+
+      if (!isAdmin) {
+        const owner = await prisma.user.findUnique({
+          where: { id: request.user!.id },
+          select: { cnpj: true },
+        });
+
+        // 404 em vez de 403 para não revelar se o CNPJ tem cadastro.
+        if (!owner?.cnpj || owner.cnpj.replace(/\D/g, "") !== cnpj) {
+          return reply.status(404).send({ message: "Documento não encontrado" });
+        }
+      }
+
+      const business = await prisma.business.findUnique({
+        where: { cnpj },
+        select: {
+          cartaoCnpjPath: true,
+          cartaoCnpjMimeType: true,
+          contratoSocialPath: true,
+          contratoSocialMimeType: true,
+          comprovanteEnderecoPath: true,
+          comprovanteEnderecoMimeType: true,
+          comprovanteSocioPath: true,
+          comprovanteSocioMimeType: true,
+        },
+      });
+
+      if (!business) {
+        return reply.status(404).send({ message: "Documento não encontrado" });
+      }
+
+      let filePath: string | null = null;
+      let mimeType = "";
+
+      switch (docType) {
+        case "cartao_cnpj":
+          filePath = business.cartaoCnpjPath;
+          mimeType = business.cartaoCnpjMimeType;
+          break;
+        case "contrato_social":
+          filePath = business.contratoSocialPath;
+          mimeType = business.contratoSocialMimeType;
+          break;
+        case "comprovante_endereco":
+          filePath = business.comprovanteEnderecoPath;
+          mimeType = business.comprovanteEnderecoMimeType;
+          break;
+        case "comprovante_socio":
+          filePath = business.comprovanteSocioPath;
+          mimeType = business.comprovanteSocioMimeType;
+          break;
+        default:
+          return reply.status(400).send({ message: "Tipo de documento inválido" });
+      }
+
+      if (!filePath) {
+        return reply.status(404).send({ message: "Documento não encontrado" });
+      }
+
+      try {
+        const { data, error } = await supabase.storage.from("documentos-empresas").download(filePath);
+
+        if (error || !data) {
+          console.error("Erro ao baixar arquivo do Supabase:", error);
+          return reply.status(500).send({ message: "Erro ao acessar o documento na nuvem" });
+        }
+
+        const buffer = Buffer.from(await data.arrayBuffer());
+        reply.header("Content-Type", mimeType);
+        reply.header("Content-Disposition", `inline; filename="${docType}"`);
+        return reply.send(buffer);
+      } catch (err) {
+        console.error("Erro ao ler arquivo:", err);
+        return reply.status(500).send({ message: "Erro ao acessar o documento" });
+      }
+    }
+  );
+}

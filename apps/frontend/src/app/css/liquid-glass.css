@@ -1,0 +1,95 @@
+/*
+ * Liquid glass: superfície translúcida que desfoca e satura o que está atrás,
+ * com borda de luz (::before) e um reflexo especular (::after).
+ * O reflexo acompanha --glass-x/--glass-y; o hero alimenta essas variáveis
+ * com a posição do mouse (--mx/--my), e fora dele o reflexo fica parado.
+ *
+ * Uso: adicionar a classe .liquid-glass a um elemento que não use ::before
+ * nem ::after. Variante clara para fundos claros: .liquid-glass.is-light.
+ */
+.liquid-glass {
+  --glass-x: calc(50% + var(--mx, -0.4) * 45%);
+  --glass-y: calc(0% + var(--my, -0.6) * 40%);
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 255, 255, 0.07) 42%,
+    rgba(255, 255, 255, 0.12) 100%
+  );
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -16px 28px -18px rgba(255, 255, 255, 0.35),
+    0 16px 38px rgba(3, 8, 58, 0.32);
+}
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.75),
+    rgba(255, 255, 255, 0.1) 32%,
+    rgba(255, 255, 255, 0) 58%,
+    rgba(255, 255, 255, 0.4)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.liquid-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    140px circle at var(--glass-x) var(--glass-y),
+    rgba(255, 255, 255, 0.38),
+    transparent 65%
+  );
+  opacity: 0.85;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.liquid-glass.is-light {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.86) 0%,
+    rgba(255, 255, 255, 0.62) 45%,
+    rgba(255, 255, 255, 0.74) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(18, 59, 93, 0.06),
+    0 10px 30px rgba(18, 59, 93, 0.1);
+}
+.liquid-glass.is-light::before {
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 1),
+    rgba(37, 99, 166, 0.14) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(37, 99, 166, 0.22)
+  );
+}
+
+/* Sem suporte a backdrop-filter, o vidro vira um painel translúcido sólido. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .liquid-glass {
+    background: rgba(28, 40, 150, 0.82);
+  }
+  .liquid-glass.is-light {
+    background: rgba(255, 255, 255, 0.96);
+  }
+}

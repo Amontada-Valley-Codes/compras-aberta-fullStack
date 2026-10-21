@@ -11,18 +11,121 @@ datasource db {
 enum UserRole {
   ADMIN
   BUSINESS
-
+  MANAGER // Gestor público (prefeitura): acessa o painel /gestor do seu município.
 }
-model user {
-  id String @id @default(uuid())
-  name String 
-  email String @unique
-  password String
-  role      UserRole @default(BUSINESS)
 
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PorteEmpresa {
+  MEI
+  ME
+  EPP
+}
+
+model user {
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  role     UserRole @default(BUSINESS)
+  isActive Boolean  @default(true)
+
+  cnpj     String?   @unique
+  business business? @relation(fields: [cnpj], references: [cnpj])
+
+  // Só para MANAGER: o município cuja prefeitura o gestor representa.
+  municipioIbge Int?
+  municipio     municipios? @relation(fields: [municipioIbge], references: [codigo_ibge])
+
+  refreshTokens refreshToken[]
+
+  accessRequest          accessRequest?  @relation("AccessRequestRequester")
+  reviewedAccessRequests accessRequest[] @relation("AccessRequestReviewer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("User")
+}
+
+// Solicitação de acesso de uma microempresa. O usuário é criado junto com a
+// solicitação, mas só usa a área da empresa depois que um ADMIN aprova.
+model accessRequest {
+  id     String              @id @default(uuid())
+  status AccessRequestStatus @default(PENDING)
+
+  companyName   String
+  cnpj          String
+  phone         String
+  message       String?
+  municipioIbge Int
+  municipio     municipios @relation(fields: [municipioIbge], references: [codigo_ibge])
+
+  userId String @unique
+  user   user   @relation("AccessRequestRequester", fields: [userId], references: [id], onDelete: Cascade)
+
+  reviewedById String?
+  reviewedBy   user?     @relation("AccessRequestReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNote   String?
+  reviewedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([cnpj])
+  @@map("AccessRequest")
+}
+
+model refreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  user      user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("RefreshToken")
+}
+
+model business {
+  id String @id @default(uuid())
+
+  cnpj                     String        @unique
+  name_businss              String
+  porte_empresa             PorteEmpresa
+  isActive                 Boolean       @default(true)
+  cartaoCnpjPath              String
+  cartaoCnpjMimeType          String
+  contratoSocialPath          String
+  contratoSocialMimeType      String
+  comprovanteEnderecoPath     String
+  comprovanteEnderecoMimeType String
+  comprovanteSocioPath        String
+  comprovanteSocioMimeType    String
+  user                       user?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Business")
+}
+
+model municipios {
+  id          String  @id @default(uuid())
+  nome        String?
+  codigo_ibge Int     @unique
+  codigo_tce  Int?    @unique
+
+  accessRequests accessRequest[]
+  gestores       user[]
+
+  @@map("Municipios")
 }
