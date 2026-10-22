@@ -2,18 +2,13 @@
 
 import { useState, type Dispatch, type FormEvent, type SetStateAction } from 'react'
 
-import { formatCnpj, onlyDigits } from '@/lib/format-br'
-import type { Municipality } from '@/services/municipalities/municipalities.types'
-import { useCnpjLookup } from '../useCnpjLookup'
 import { useWizard } from '../useWizard'
-import { CNPJ_INVALID, isValidCnpj } from '../validation'
 import { WizardNav } from '../WizardNav'
 import { WizardProgress } from '../WizardProgress'
 import { WizardStep } from '../WizardStep'
 import {
   GESTOR_FIELD_STEP,
   GESTOR_STEPS,
-  STEP_ORGAO,
   STEP_REVISAO,
   STEP_SERVIDOR,
   buildGestorPayload,
@@ -22,7 +17,6 @@ import {
   type GestorData,
   type GestorField,
 } from './form'
-import { StepOrgao } from './StepOrgao'
 import { StepRevisao } from './StepRevisao'
 import { StepServidor } from './StepServidor'
 
@@ -32,20 +26,11 @@ interface GestorFlowProps {
   // O estado fica no CadastroWizard: voltar para a escolha de perfil não apaga nada.
   data: GestorData
   setData: Dispatch<SetStateAction<GestorData>>
-  municipalities: Municipality[]
-  municipalitiesError: boolean
   onExit: () => void
   onSent: (email: string) => void
 }
 
-export const GestorFlow = ({
-  data,
-  setData,
-  municipalities,
-  municipalitiesError,
-  onExit,
-  onSent,
-}: GestorFlowProps) => {
+export const GestorFlow = ({ data, setData, onExit, onSent }: GestorFlowProps) => {
   const [pending, setPending] = useState(false)
   const wizard = useWizard<GestorField>({
     reviewStep: STEP_REVISAO,
@@ -53,19 +38,6 @@ export const GestorFlow = ({
     validateStep: (step) => validateGestorStep(step, data),
   })
   const { step, furthest, errors, isReview } = wizard
-
-  // O nome do órgão e o município vêm antes do CNPJ na tela: a consulta só
-  // preenche o que ainda estiver vazio, sem trocar o que a pessoa escreveu.
-  const cnpjLookup = useCnpjLookup((company) => {
-    const ibge = company.municipio.codigoIbge
-    const knownMunicipio = ibge && municipalities.some(({ id }) => id === ibge) ? String(ibge) : ''
-    setData((prev) => ({
-      ...prev,
-      orgao: prev.orgao.trim() ? prev.orgao : company.razaoSocial,
-      municipioIbge: prev.municipioIbge || knownMunicipio,
-    }))
-    wizard.clearErrors(knownMunicipio ? ['orgao', 'municipioIbge'] : ['orgao'])
-  })
 
   function updateData(patch: Partial<GestorData>) {
     setData((prev) => ({ ...prev, ...patch }))
@@ -75,27 +47,12 @@ export const GestorFlow = ({
     wizard.clearErrors(fields)
   }
 
-  function handleCnpjChange(value: string) {
-    const cnpj = formatCnpj(value)
-    const digits = onlyDigits(cnpj)
-    updateData({ cnpj })
-
-    if (digits.length < 14) {
-      cnpjLookup.reset()
-    } else if (!isValidCnpj(digits)) {
-      cnpjLookup.reset()
-      wizard.setFieldError('cnpj', CNPJ_INVALID)
-    } else {
-      void cnpjLookup.search(digits)
-    }
-  }
-
   async function submit() {
     if (!wizard.validateAll()) return
     setPending(true)
 
     try {
-      const response = await fetch('/api/access-requests', {
+      const response = await fetch('/api/managers/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(buildGestorPayload(data)),
@@ -137,28 +94,15 @@ export const GestorFlow = ({
       <form className='auth-form' onSubmit={handleSubmit} noValidate>
         <WizardStep key={step} title={GESTOR_STEPS[step].title} hint={GESTOR_STEPS[step].hint}>
           {step === STEP_SERVIDOR && <StepServidor data={data} errors={errors} onChange={updateData} />}
-          {step === STEP_ORGAO && (
-            <StepOrgao
-              data={data}
-              errors={errors}
-              municipalities={municipalities}
-              municipalitiesError={municipalitiesError}
-              lookup={cnpjLookup.lookup}
-              onCnpjChange={handleCnpjChange}
-              onChange={updateData}
-            />
-          )}
-          {isReview && (
-            <StepRevisao data={data} municipalities={municipalities} onEdit={wizard.goTo} />
-          )}
+          {isReview && <StepRevisao data={data} onEdit={wizard.goTo} />}
         </WizardStep>
 
         <WizardNav
           alert={wizard.alert}
           isReview={isReview}
           pending={pending}
-          submitLabel='Enviar solicitação de acesso'
-          pendingLabel='Enviando solicitação…'
+          submitLabel='Criar conta de gestor'
+          pendingLabel='Criando conta…'
           onBack={() => (step === STEP_SERVIDOR ? onExit() : wizard.goTo(step - 1))}
           onBackToReview={
             !isReview && furthest === STEP_REVISAO ? () => wizard.goTo(STEP_REVISAO) : undefined
