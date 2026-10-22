@@ -40,6 +40,37 @@ const envSchema = z.object({
     .default("info"),
 
   PORT: z.coerce.number().int().min(1).default(3333),
+
+  FRONTEND_URL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v.replace(/\/+$/, "") : undefined)),
+  SMTP_HOST: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_SECURE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
+  SMTP_USER: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_PASS: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_FROM: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

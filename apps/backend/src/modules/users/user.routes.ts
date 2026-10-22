@@ -14,6 +14,16 @@ async function userRoutes(app: FastifyInstance) {
     userController.me,
   );
 
+  // Cadastro público do gestor público: cria a conta MANAGER já liberada.
+  // O botão da tela já trava enquanto envia; o limite só barra abuso.
+  app.post(
+    "/managers/register",
+    {
+      config: { rateLimit: { max: 20, timeWindow: "1 minute" } },
+    },
+    userController.registerManager,
+  );
+
   app.get(
     "/admin/users",
     {

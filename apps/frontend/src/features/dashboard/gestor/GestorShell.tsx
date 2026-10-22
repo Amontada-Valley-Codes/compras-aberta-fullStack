@@ -14,7 +14,7 @@ import { GestorHeader, type FilterOption } from "./GestorHeader";
 export function GestorShell({
   children,
   municipalities,
-  homeMunicipalityIbge,
+  defaultMunicipalityIbge,
   defaultYear,
   years,
   userName,
@@ -22,7 +22,7 @@ export function GestorShell({
   children: ReactNode;
   municipalities: FilterOption[];
   // Município aberto quando a URL não traz ?municipio= (o da conta do gestor).
-  homeMunicipalityIbge: string;
+  defaultMunicipalityIbge: string;
   defaultYear: number;
   years: readonly number[];
   userName: string;
@@ -30,7 +30,7 @@ export function GestorShell({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const requestedMunicipality = searchParams.get("municipio");
-  const municipalityIbge = requestedMunicipality && /^\d{7}$/.test(requestedMunicipality) ? requestedMunicipality : homeMunicipalityIbge;
+  const municipalityIbge = requestedMunicipality && /^\d{7}$/.test(requestedMunicipality) ? requestedMunicipality : defaultMunicipalityIbge;
   const requestedYear = Number(searchParams.get("ano"));
   const year = years.includes(requestedYear) ? requestedYear : defaultYear;
   const municipalityName = municipalities.find((item) => item.value === municipalityIbge)?.label ?? null;

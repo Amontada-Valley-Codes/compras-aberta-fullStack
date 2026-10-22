@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { CheckCircle2, ChevronLeft } from 'lucide-react'
 
 import { BrandLogo } from '@/components/brand/BrandLogo'
-import type { Municipality } from '@/services/municipalities/municipalities.types'
 import { GESTOR_INITIAL_DATA, type GestorData } from './gestor/form'
 import { GestorFlow } from './gestor/GestorFlow'
 import { ME_INITIAL_DATA, type MEData } from './me/form'
@@ -25,7 +24,7 @@ const HEADERS: Record<Profile | 'escolha', { title: string; subtitle: string }> 
   gestor: {
     title: 'Acesso para Gestor Público',
     subtitle:
-      'Preencha seus dados e os do órgão. Nossa equipe confere a solicitação antes de liberar o acesso.',
+      'Preencha seus dados. A conta fica pronta na hora.',
   },
 }
 
@@ -64,16 +63,10 @@ const RegisterIllustration = () => (
 )
 
 interface CadastroWizardProps {
-  municipalities: Municipality[]
-  municipalitiesError: boolean
   initialProfile: Profile | null
 }
 
-export const CadastroWizard = ({
-  municipalities,
-  municipalitiesError,
-  initialProfile,
-}: CadastroWizardProps) => {
+export const CadastroWizard = ({ initialProfile }: CadastroWizardProps) => {
   const [profile, setProfile] = useState<Profile | null>(initialProfile)
   // Os dados dos dois fluxos ficam aqui: trocar de perfil (ou voltar para a
   // escolha) não apaga o que já foi preenchido, inclusive os arquivos.
@@ -112,7 +105,7 @@ export const CadastroWizard = ({
 
         <div className='auth-panel'>
           {sentTo ? (
-            <RequestSent email={sentTo} />
+            <AccountCreated email={sentTo} />
           ) : (
             <>
               <Link href='/auth/login' className='auth-back'>
@@ -131,8 +124,6 @@ export const CadastroWizard = ({
                 <GestorFlow
                   data={gestorData}
                   setData={setGestorData}
-                  municipalities={municipalities}
-                  municipalitiesError={municipalitiesError}
                   onExit={() => changeProfile(null)}
                   onSent={setSentTo}
                 />
@@ -145,19 +136,20 @@ export const CadastroWizard = ({
   )
 }
 
-// Fim do fluxo do Gestor. (A ME vai direto para o login com o aviso de análise.)
-const RequestSent = ({ email }: { email: string }) => (
+// Fim do fluxo do Gestor: a conta já nasce liberada, sem análise. (A ME vai
+// direto para o login com o aviso de análise.)
+const AccountCreated = ({ email }: { email: string }) => (
   <div className='auth-result auth-step-enter'>
     <span className='auth-result-icon is-success'>
       <CheckCircle2 size={28} />
     </span>
-    <h1>Solicitação enviada!</h1>
+    <h1>Conta criada!</h1>
     <p>
-      Nossa equipe vai analisar os seus dados e os do órgão. Enquanto isso, você já pode entrar
-      com <b>{email}</b> para acompanhar a situação da solicitação.
+      Sua conta de gestor público já está pronta. Entre com <b>{email}</b> e a senha
+      cadastrada para acessar o painel da sua prefeitura.
     </p>
     <Link href='/auth/login' className='button button-primary auth-submit'>
-      Entrar para acompanhar
+      Entrar no painel
     </Link>
   </div>
 )

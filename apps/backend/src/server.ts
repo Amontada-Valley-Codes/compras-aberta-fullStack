@@ -4,6 +4,6 @@ import { env } from "./env";
 const PORT = env.PORT
 
 
-app.listen({port: PORT,}).then(() =>{
+app.listen({ port: PORT, host: "0.0.0.0" }).then(() => {
   console.log("o servidor esta rodando ", PORT)
 })

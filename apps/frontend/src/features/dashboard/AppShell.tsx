@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, ChevronDown, LogOut, Menu, Search, X } from "lucide-react";
+import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { toast } from "@/components/ui/sonner";
 
@@ -39,10 +39,12 @@ export type NavItem = {
 };
 
 type AppShellProps = {
-  role: "me" | "admin";
+  role: "me" | "admin" | "gestor-publico";
   active: string;
   onNavigate: (id: string) => void;
   items: NavItem[];
+  portalHref?: string;
+  userName?: string;
   children: ReactNode;
 };
 
@@ -51,19 +53,23 @@ export function AppShell({
   active,
   onNavigate,
   items,
+  portalHref = "/",
+  userName: userNameOverride,
   children,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const isAdmin = role === "admin";
+  const isPublicManager = role === "gestor-publico";
   const router = useRouter();
-  const { profile } = useUserProfile();
+  const { profile } = useUserProfile({ skip: isPublicManager });
 
-  const companyName = profile?.business?.nome_empresa || (isAdmin ? "Administração" : "Minha Empresa");
-  const userName = profile?.name || (isAdmin ? "Administrador" : "Responsável Legal");
-  const companyAvatar = isAdmin ? "CA" : getInitials(profile?.business?.nome_empresa, "ME");
-  const userAvatar = isAdmin ? "CM" : getInitials(profile?.name, "US");
+  const companyName = profile?.business?.nome_empresa || (isAdmin ? "Administração" : isPublicManager ? "Gestor público" : "Minha Empresa");
+  const userName = userNameOverride || profile?.name || (isAdmin ? "Administrador" : isPublicManager ? "Gestor público" : "Responsável Legal");
+  const companyAvatar = isAdmin ? "CA" : isPublicManager ? "GP" : getInitials(profile?.business?.nome_empresa, "ME");
+  const userAvatar = isAdmin ? "CM" : isPublicManager ? "GP" : getInitials(profile?.name, "US");
 
   useSessionKeepAlive();
 
@@ -99,10 +105,12 @@ export function AppShell({
   };
 
   return (
-    <div className={`app-shell is-${role}`}>
-      <aside className={`app-sidebar ${mobileOpen ? "is-open" : ""}`}>
+    <div className={`app-shell is-${role} ${isPublicManager && sidebarCollapsed ? "is-sidebar-collapsed" : ""}`}>
+      <aside
+        className={`app-sidebar ${mobileOpen ? "is-open" : ""}`}
+      >
         <div className="sidebar-head">
-          <BrandLogo href="/" />
+          <BrandLogo href="/" compact={isPublicManager && sidebarCollapsed} />
           <button
             className="icon-button sidebar-close"
             onClick={() => setMobileOpen(false)}
@@ -112,17 +120,16 @@ export function AppShell({
           </button>
         </div>
 
-        <div className="workspace-switcher">
+        {!isPublicManager && <div className="workspace-switcher">
           <span className="workspace-avatar">{companyAvatar}</span>
           <span>
             <small>{isAdmin ? "AMBIENTE" : "MINHA EMPRESA"}</small>
             <strong>{companyName}</strong>
           </span>
-          <ChevronDown size={16} />
-        </div>
+        </div>}
 
         <nav className="sidebar-nav" aria-label="Navegação do painel">
-          <small className="nav-group-label">MENU PRINCIPAL</small>
+          {!isPublicManager && <small className="nav-group-label">MENU PRINCIPAL</small>}
           {items.map((item) => (
             <button
               className={active === item.id ? "active" : ""}
@@ -136,7 +143,7 @@ export function AppShell({
           ))}
         </nav>
 
-        {!isAdmin && (
+        {!isAdmin && !isPublicManager && (
           <div className="sidebar-help">
             <span>?</span>
             <div>
@@ -150,9 +157,8 @@ export function AppShell({
           <span className="user-avatar">{userAvatar}</span>
           <span>
             <strong>{userName}</strong>
-            <small>{isAdmin ? "Administrador" : "Responsável legal"}</small>
+            <small>{isAdmin ? "Administrador" : isPublicManager ? "Gestor público" : "Responsável legal"}</small>
           </span>
-          <ChevronDown size={16} />
         </div>
       </aside>
 
@@ -173,20 +179,28 @@ export function AppShell({
           >
             <Menu size={21} />
           </button>
-          <label className="topbar-search">
-            <Search size={18} />
-            <input
-              placeholder={
-                isAdmin
-                  ? "Buscar empresa, CNPJ ou município"
-                  : "Buscar oportunidade ou município"
-              }
-              aria-label="Buscar"
-            />
-            <kbd>⌘ K</kbd>
-          </label>
+          {isPublicManager ? (
+            <button
+              className="icon-button topbar-sidebar-toggle"
+              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+              aria-label={sidebarCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+              aria-expanded={!sidebarCollapsed}
+              title={sidebarCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+            >
+              {sidebarCollapsed ? <PanelLeftOpen size={22} /> : <PanelLeftClose size={22} />}
+            </button>
+          ) : (
+            <label className="topbar-search">
+              <Search size={18} />
+              <input
+                placeholder={isAdmin ? "Buscar empresa, CNPJ ou município" : "Buscar oportunidade ou município"}
+                aria-label="Buscar"
+              />
+              <kbd>⌘ K</kbd>
+            </label>
+          )}
           <div className="topbar-actions">
-            <div className="notification-wrap">
+            {!isPublicManager && <div className="notification-wrap">
               <button
                 className="icon-button notification-button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -227,8 +241,8 @@ export function AppShell({
                   </button>
                 </div>
               )}
-            </div>
-            <Link className="portal-link" href="/">
+            </div>}
+            <Link className="portal-link" href={portalHref}>
               Portal público
             </Link>
             <button
