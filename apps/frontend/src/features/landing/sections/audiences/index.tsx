@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import AOS from "aos";
 
-type AudienceIconName = "manager" | "business" | "citizen";
+export type AudienceIconName = "manager" | "business" | "citizen";
 
 type AudienceCard = {
   audience: string;
@@ -50,7 +50,7 @@ const audienceCards: AudienceCard[] = [
   },
 ];
 
-function AudienceIcon({ name }: { name: AudienceIconName }) {
+export function AudienceIcon({ name }: { name: AudienceIconName }) {
   const common = {
     width: 42,
     height: 42,
