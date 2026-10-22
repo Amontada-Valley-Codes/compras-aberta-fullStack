@@ -154,7 +154,7 @@ export function HeroSection() {
                 </a>
                 <Link
                   className="button hero-button-secondary liquid-glass"
-                  href="/me"
+                  href="/auth/login?perfil=me"
                 >
                   Conhecer a plataforma
                 </Link>
@@ -215,7 +215,7 @@ export function HeroSection() {
                 <a className="button hero-button-primary" href="#oportunidades">
                   Encontrar licitações
                 </a>
-                <Link className="button hero-button-secondary" href="/me">
+                <Link className="button hero-button-secondary" href="/auth/login?perfil=me">
                   Conhecer os planos
                 </Link>
               </div>

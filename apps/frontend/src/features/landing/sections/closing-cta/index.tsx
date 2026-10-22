@@ -22,7 +22,7 @@ export function ClosingCtaSection() {
             <Link className="button closing-cta-primary" href="/analise">
               Conhecer a plataforma
             </Link>
-            <Link className="button closing-cta-secondary" href="/me">
+            <Link className="button closing-cta-secondary" href="/auth/login?perfil=me">
               Ver os planos
             </Link>
             <a
