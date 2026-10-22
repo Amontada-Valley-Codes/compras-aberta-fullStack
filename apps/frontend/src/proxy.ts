@@ -24,10 +24,11 @@ export default function proxy(request: NextRequest) {
 
   const isAdminArea = pathname.startsWith("/admin");
   const isBusinessArea = pathname.startsWith("/me");
+  const isManagerArea = pathname.startsWith("/gestor");
   const isAccessStatusPage = pathname === ACCESS_STATUS_PATH;
   const isPublicAuthPage = pathname === LOGIN_PATH || pathname === REGISTER_PATH;
 
-  if ((isAdminArea || isBusinessArea || isAccessStatusPage) && !session) {
+  if ((isAdminArea || isBusinessArea || isManagerArea || isAccessStatusPage) && !session) {
     const url = new URL(LOGIN_PATH, request.url);
     url.searchParams.set("next", `${pathname}${search}`);
     return NextResponse.redirect(url);
@@ -47,6 +48,11 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(home, request.url));
   }
 
+  // O painel do gestor é do MANAGER; o ADMIN também entra, para dar suporte.
+  if (isManagerArea && session.role !== "MANAGER" && session.role !== "ADMIN") {
+    return NextResponse.redirect(new URL(home, request.url));
+  }
+
   // A página de status só faz sentido para quem ainda não foi liberado.
   if (isAccessStatusPage && home !== ACCESS_STATUS_PATH) {
     return NextResponse.redirect(new URL(home, request.url));
@@ -60,5 +66,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/me/:path*", "/acesso/status", "/auth/login", "/auth/cadastro"],
+  matcher: ["/admin/:path*", "/me/:path*", "/gestor/:path*", "/acesso/status", "/auth/login", "/auth/solicitar-acesso"],
 };

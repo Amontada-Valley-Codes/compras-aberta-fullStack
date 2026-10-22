@@ -1,0 +1,1883 @@
+/*
+ * Painel do Gestor Público (/gestor).
+ *
+ * Importado só pela rota app/gestor. Reaproveita os cartões, títulos e
+ * animações da visão geral do admin (classes ov-*, em app/css/admin-overview.css)
+ * e o visual dos filtros públicos (public-filter-*). Tudo o que é próprio do
+ * gestor usa o prefixo gs- para não colidir com o resto do sistema, já que o
+ * CSS global continua carregado depois de navegar para outra rota.
+ */
+
+.gs-page {
+  min-height: 100vh;
+  background: #f5f8fa;
+}
+.gs-container {
+  width: min(1320px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.gs-main {
+  padding-block: 28px 60px;
+}
+.gs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* ---------- Cabeçalho executivo ---------- */
+.gs-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+.gs-topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 76px;
+}
+.gs-topbar-city {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding-left: 20px;
+  border-left: 1px solid var(--line);
+}
+.gs-topbar-city > svg {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #eef0ff;
+  color: var(--brand-navy);
+}
+.gs-topbar-city span {
+  display: grid;
+  min-width: 0;
+}
+.gs-topbar-city small {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #768692;
+}
+.gs-topbar-city b {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  color: var(--brand-navy);
+}
+.gs-topbar-filters {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+}
+.gs-filter {
+  border-right: 1px solid var(--line);
+}
+.gs-filter:last-child {
+  border-right: 0;
+}
+.gs-filter--municipality {
+  width: 230px;
+}
+.gs-filter--year {
+  width: 128px;
+}
+.gs-filter .public-filter-trigger {
+  height: 50px;
+  padding: 0 16px;
+}
+.gs-filter .public-filter-leading {
+  width: 19px;
+  height: 19px;
+}
+.gs-filter .public-filter-copy small {
+  font-size: 10px;
+}
+.gs-filter .public-filter-value {
+  font-size: 14px;
+}
+.gs-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gs-print-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--brand-blue), #1d3fb8);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(37, 99, 166, 0.24);
+  transition: transform 0.2s ease;
+}
+.gs-print-button svg {
+  width: 17px;
+}
+.gs-print-button:hover {
+  transform: translateY(-2px);
+}
+.gs-print-button:focus-visible,
+.gs-portal-link:focus-visible {
+  outline: 3px solid rgba(37, 99, 166, 0.45);
+  outline-offset: 2px;
+}
+.gs-portal-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-navy);
+  white-space: nowrap;
+}
+.gs-portal-link:hover {
+  text-decoration: underline;
+}
+.gs-logout-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: #4f616d;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.gs-logout-button svg {
+  width: 16px;
+}
+.gs-logout-button:hover {
+  color: var(--danger);
+  border-color: #efc9c9;
+}
+.gs-logout-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.gs-logout-button:focus-visible {
+  outline: 3px solid rgba(37, 99, 166, 0.45);
+  outline-offset: 2px;
+}
+.gs-topbar-actions--end {
+  margin-left: auto;
+}
+
+/* Aviso de conta sem município / falha ao abrir o painel. */
+.gs-notice {
+  max-width: 560px;
+  margin: 40px auto;
+  padding: 36px 32px;
+  text-align: center;
+}
+.gs-notice svg {
+  width: 40px;
+  height: 40px;
+  color: #a87310;
+}
+.gs-notice h1 {
+  margin: 14px 0 8px;
+  font-size: 22px;
+  color: var(--brand-navy);
+}
+.gs-notice p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #5e6d78;
+}
+/* Barra fina no rodapé do cabeçalho enquanto os dados do novo filtro chegam. */
+.gs-topbar-progress {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--brand-sky), var(--brand-blue), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.gs-topbar[data-pending] .gs-topbar-progress {
+  opacity: 1;
+  animation: gs-progress 1.1s linear infinite;
+}
+.gs-topbar[data-pending] ~ .gs-main {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+/* ---------- Título ---------- */
+.gs-heading h1 {
+  font-size: 32px;
+}
+
+/* ---------- Cards de indicadores ---------- */
+.gs-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+.gs-metric {
+  --tone: var(--brand-blue);
+  --tone-soft: #eef0ff;
+  display: flex;
+  flex-direction: column;
+}
+.gs-metric.is-green {
+  --tone: #2d8b6f;
+  --tone-soft: var(--success-soft);
+}
+.gs-metric.is-gold {
+  --tone: #a87310;
+  --tone-soft: var(--brand-gold-soft);
+}
+.gs-metric.is-teal {
+  --tone: #12879c;
+  --tone-soft: #e3f6f9;
+}
+.gs-metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.gs-metric-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--tone-soft);
+  color: var(--tone);
+}
+.gs-metric-icon svg {
+  width: 20px;
+}
+.gs-metric-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tone-soft);
+  color: var(--tone);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.gs-metric > small {
+  font-size: 14px;
+  color: #6f808b;
+}
+.gs-metric > b {
+  margin: 4px 0 4px;
+  font-size: 26px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.gs-metric > p {
+  margin: 0;
+  font-size: 13px;
+  color: #8b98a0;
+}
+.gs-metric > .gs-metric-tip {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--brand-gold-soft);
+  color: #7a560d;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.gs-metric-tip svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+
+/* ---------- Gráficos ---------- */
+.gs-retention-legend {
+  grid-template-columns: 1fr;
+}
+.gs-retention-legend span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Tabela de fornecedores ---------- */
+.gs-table-scroll {
+  /* relative: textos ocultos (gs-sr-only) dentro da tabela ficam presos aqui,
+     senão escapam da rolagem e alargam a página no celular. */
+  position: relative;
+  overflow-x: auto;
+}
+.gs-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+}
+.gs-table th {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: #f7fafc;
+  color: #6f808b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gs-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eef3f6;
+  color: #3c4c57;
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+.gs-table tbody tr {
+  transition: background 0.2s ease;
+}
+.gs-table tbody tr:hover {
+  background: #f8fbfd;
+}
+.gs-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.gs-table .is-number {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.gs-table strong {
+  color: var(--brand-navy);
+}
+.gs-rank {
+  width: 36px;
+  color: #a2b0b9;
+  font-weight: 800;
+}
+.gs-company {
+  display: block;
+  max-width: 320px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  color: var(--graphite);
+}
+.gs-company-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #8b98a0;
+}
+.gs-cnpj {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: #6f808b;
+}
+.gs-origin {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.gs-origin small {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.gs-origin.is-local {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.gs-origin.is-external {
+  background: #eef2f5;
+  color: #55646f;
+}
+.gs-origin.is-unknown {
+  border: 1px dashed #c9d5dd;
+  color: #8b98a0;
+  font-weight: 600;
+}
+.gs-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: #8b98a0;
+}
+
+/* ---------- Estados e rodapé ---------- */
+.gs-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 18px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+.gs-state svg {
+  width: 26px;
+  height: 26px;
+  color: #a2b0b9;
+}
+.gs-state strong {
+  color: var(--brand-navy);
+}
+.gs-main > .gs-state {
+  margin-bottom: 24px;
+}
+.gs-footnote {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #82909a;
+}
+.gs-footnote svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+.gs-print-only {
+  display: none;
+}
+
+/* ---------- Carregamento (loading.tsx) ---------- */
+.gs-skeleton {
+  display: block;
+  border-radius: 14px;
+  background: linear-gradient(100deg, #e9eff3 30%, #f6f9fb 50%, #e9eff3 70%);
+  background-size: 300% 100%;
+  animation: ov-shimmer 1.4s linear infinite;
+}
+.gs-skeleton-logo {
+  width: 154px;
+  height: 44px;
+}
+.gs-skeleton-filters {
+  width: 420px;
+  height: 50px;
+  margin-left: auto;
+  border-radius: 999px;
+}
+.gs-skeleton-title {
+  width: min(420px, 80%);
+  height: 38px;
+  margin: 10px 0 12px;
+}
+.gs-skeleton-subtitle {
+  width: min(640px, 100%);
+  height: 20px;
+  margin-bottom: 40px;
+}
+.gs-skeleton-card {
+  height: 170px;
+}
+.gs-skeleton-grid {
+  margin: 44px 0 32px;
+}
+.gs-skeleton-chart {
+  height: 360px;
+}
+.gs-skeleton-table {
+  height: 420px;
+}
+
+@keyframes gs-progress {
+  from {
+    background-position: -50% 0;
+  }
+  to {
+    background-position: 150% 0;
+  }
+}
+
+/* ---------- Estrutura com menu lateral (GestorShell) ---------- */
+.gs-app {
+  /* Altura do cabeçalho fixo: o menu lateral fica logo abaixo dele. */
+  --sm-top: 77px;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(520px 420px at 6% 18%, rgba(108, 227, 248, 0.22), transparent 70%),
+    radial-gradient(560px 460px at 2% 82%, rgba(17, 22, 155, 0.1), transparent 70%),
+    radial-gradient(640px 520px at 96% 6%, rgba(217, 164, 65, 0.1), transparent 70%),
+    #f3f6fa;
+  background-attachment: fixed;
+}
+.gs-app .gs-topbar {
+  background: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+}
+.gs-app .gs-topbar-inner {
+  padding-inline: 20px 28px;
+}
+.gs-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: none;
+}
+.gs-body {
+  display: flex;
+  align-items: flex-start;
+}
+.gs-content {
+  flex: 1;
+  min-width: 0;
+}
+.gs-content > .gs-main {
+  width: min(1360px, 100%);
+  margin-inline: auto;
+  padding-inline: 20px 28px;
+}
+.gs-topbar[data-pending] ~ .gs-body .gs-content {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+.gs-page .ov-span-12 {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Faixa de números (licitações, fornecedores) ---------- */
+.gs-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+.gs-stats > div {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-sm);
+}
+.gs-stats small {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7b8a94;
+}
+.gs-stats b {
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+}
+.gs-stats b.gs-stat-text {
+  font-size: 17px;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+.gs-stats em {
+  font-size: 12.5px;
+  font-style: normal;
+  color: #8b98a0;
+}
+
+/* ---------- Barra de busca e filtros ---------- */
+.gs-list {
+  display: grid;
+  /* minmax(0, …): a tabela rola dentro do próprio container em vez de
+     alargar a página no celular. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.gs-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+.gs-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 280px;
+  min-width: 0;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.gs-search:focus-within {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(17, 22, 155, 0.1);
+}
+.gs-search svg {
+  flex: none;
+  width: 17px;
+  color: #8b98a0;
+}
+.gs-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--graphite);
+  font-size: 14px;
+}
+.gs-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #4f616d;
+  cursor: pointer;
+}
+.gs-check input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand-navy);
+}
+.gs-segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f1f5f8;
+}
+.gs-segmented button {
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: #5e6d78;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.gs-segmented button[aria-pressed="true"] {
+  background: #fff;
+  color: var(--brand-navy);
+  box-shadow: 0 2px 8px rgba(17, 22, 155, 0.12);
+}
+.gs-segmented button:focus-visible,
+.gs-more:focus-visible,
+.gs-row-action:focus-visible,
+.gs-company-link:focus-visible,
+.gs-back:focus-visible {
+  outline: 3px solid rgba(37, 99, 166, 0.45);
+  outline-offset: 2px;
+}
+.gs-list-count {
+  margin: 0;
+  font-size: 12.5px;
+  color: #8b98a0;
+}
+.gs-more {
+  justify-self: center;
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--brand-navy);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.gs-more:hover {
+  border-color: var(--brand-navy);
+}
+
+/* ---------- Tabelas: links, vencedores, participação ---------- */
+.gs-company-link {
+  color: var(--graphite);
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.gs-company-link:hover {
+  color: var(--brand-navy);
+  text-decoration: underline;
+}
+.gs-bid-number {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.gs-nowrap {
+  white-space: nowrap;
+}
+.gs-muted {
+  color: #a2b0b9;
+}
+.gs-share {
+  display: inline-grid;
+  justify-items: end;
+  gap: 4px;
+}
+.gs-share i {
+  display: block;
+  width: 72px;
+  height: 4px;
+  border-radius: 4px;
+  background: #eef3f6;
+  overflow: hidden;
+}
+.gs-share s {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand-blue);
+}
+.gs-winners {
+  display: grid;
+  gap: 3px;
+}
+.gs-winners small {
+  font-size: 12px;
+  color: #8b98a0;
+}
+.gs-winner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 340px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13.5px;
+}
+.gs-winner i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #b9c6d0;
+}
+.gs-winner.is-local i {
+  background: #2d8b6f;
+}
+.gs-winner.is-external i {
+  background: #8aa4bc;
+}
+.gs-row-action {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--brand-navy);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.gs-row-action svg {
+  width: 17px;
+}
+.gs-row-action:hover {
+  background: #eef0ff;
+  transform: translateX(2px);
+}
+.gs-items-table {
+  min-width: 960px;
+}
+.gs-item-description {
+  max-width: 460px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.gs-items-table small {
+  color: #8b98a0;
+}
+.gs-insight {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f4f6ff;
+  color: #3f4f73;
+  font-size: 14px;
+}
+.gs-insight strong {
+  color: var(--brand-navy);
+}
+.gs-note--top {
+  margin: 0 0 12px;
+}
+
+/* ---------- Detalhes (licitação, fornecedor) ---------- */
+.gs-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  color: #4f616d;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 6px;
+}
+.gs-back svg {
+  width: 16px;
+  transition: transform 0.2s ease;
+}
+.gs-back:hover {
+  color: var(--brand-navy);
+}
+.gs-back:hover svg {
+  transform: translateX(-3px);
+}
+.gs-winner-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gs-winner-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.gs-winner-list li > div {
+  display: grid;
+  min-width: 0;
+}
+.gs-winner-list small {
+  font-size: 12px;
+  color: #8b98a0;
+}
+.gs-winner-list strong {
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.gs-bars {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gs-bars li {
+  display: grid;
+  grid-template-columns: minmax(90px, 220px) minmax(60px, 1fr) auto;
+  grid-template-areas: "label bar value" "label bar meta";
+  align-items: center;
+  column-gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+.gs-bars li.is-current {
+  background: #f4f6ff;
+}
+.gs-bars span {
+  grid-area: label;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  line-height: 1.3;
+  font-size: 14px;
+  font-weight: 700;
+  color: #3c4c57;
+}
+.gs-bars i {
+  grid-area: bar;
+  display: block;
+  height: 8px;
+  border-radius: 8px;
+  background: #eef3f6;
+  overflow: hidden;
+}
+.gs-bars s {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5b9bd5, var(--brand-navy));
+}
+.gs-bars b {
+  grid-area: value;
+  justify-self: end;
+  font-size: 14px;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+}
+.gs-bars small {
+  grid-area: meta;
+  justify-self: end;
+  font-size: 12px;
+  color: #8b98a0;
+}
+.gs-bars li.gs-bars-more {
+  display: block;
+  font-size: 13px;
+  color: #8b98a0;
+}
+
+/* ---------- Carregamento ---------- */
+.gs-loading-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  font-size: 13.5px;
+  color: #5e6d78;
+}
+.gs-loading-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--brand-blue);
+  animation: gs-pulse 1.2s ease-in-out infinite;
+}
+@keyframes gs-pulse {
+  50% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+}
+
+/* ---------- Peças comuns às páginas do PNCP ---------- */
+.gs-page {
+  --gs-map-empty: #eef2f7;
+  --gs-map-origin: #d9a441;
+}
+.gs-select {
+  height: 42px;
+  max-width: 100%;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+  color: var(--graphite);
+  font-size: 13.5px;
+  appearance: none;
+  cursor: pointer;
+}
+.gs-select:focus-visible {
+  outline: 3px solid rgba(37, 99, 166, 0.45);
+  outline-offset: 2px;
+}
+.gs-chip {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #eef0ff;
+  color: var(--brand-navy);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.gs-clamp {
+  display: -webkit-box;
+  max-width: 460px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  line-height: 1.4;
+}
+.gs-clamp--1 {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+.gs-partial {
+  margin: -18px 0 22px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--brand-gold);
+  border-radius: 8px;
+  background: var(--brand-gold-soft);
+  color: #7a560d;
+  font-size: 13px;
+}
+.gs-good {
+  color: var(--success) !important;
+}
+.gs-stats > div.is-good {
+  border-color: #bfe3d2;
+  background: linear-gradient(140deg, #fff, var(--success-soft));
+}
+.gs-stats > div.is-good b {
+  color: var(--success);
+}
+.gs-stats > div.is-alert {
+  border-color: #f0c9c9;
+  background: linear-gradient(140deg, #fff, var(--danger-soft));
+}
+.gs-stats > div.is-alert b {
+  color: var(--danger);
+}
+.gs-bars i {
+  position: relative;
+}
+.gs-bars i:has(.is-secondary) s:first-child {
+  background: #c9dcf5;
+}
+.gs-bars s.is-secondary {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #2f6fe6, var(--brand-navy));
+}
+.gs-facts {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gs-facts li {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.gs-facts b {
+  font-size: 19px;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+}
+.gs-facts span {
+  font-size: 13.5px;
+  color: #5e6d78;
+}
+
+/* ---------- Editais ---------- */
+.gs-tenders {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 16px;
+}
+.gs-tender {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gs-tender-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.gs-deadline {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.gs-deadline.is-urgent {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.gs-tender h3 {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.4;
+  color: var(--graphite);
+  text-wrap: pretty;
+}
+.gs-tender-unit {
+  margin: 0;
+  font-size: 12.5px;
+  color: #8b98a0;
+}
+.gs-tender dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid #eef3f6;
+}
+.gs-tender dt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8b98a0;
+}
+.gs-tender dt svg {
+  width: 13px;
+}
+.gs-tender dd {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand-navy);
+}
+.gs-tender .ov-link {
+  margin-top: auto;
+  align-self: flex-start;
+}
+.gs-tenders-table {
+  min-width: 1000px;
+}
+
+/* ---------- Contratos ---------- */
+.gs-alert-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gs-alert-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid #f3e2bf;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #fff, var(--brand-gold-soft));
+}
+.gs-alert-list li.is-urgent {
+  border-color: #f0c9c9;
+  background: linear-gradient(120deg, #fff, var(--danger-soft));
+}
+.gs-alert-list li > svg {
+  width: 20px;
+  color: #a87310;
+}
+.gs-alert-list li.is-urgent > svg {
+  color: var(--danger);
+}
+.gs-alert-list li > div {
+  display: grid;
+  min-width: 0;
+}
+.gs-alert-list li > div b {
+  max-width: none;
+  color: var(--graphite);
+}
+.gs-alert-list small {
+  font-size: 12px;
+  color: #8b98a0;
+}
+.gs-alert-list li > span {
+  display: grid;
+  justify-items: end;
+}
+.gs-alert-list li > span strong {
+  color: #a87310;
+}
+.gs-alert-list li.is-urgent > span strong {
+  color: var(--danger);
+}
+.gs-alert-list em {
+  font-style: normal;
+  font-weight: 800;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.gs-contracts-table {
+  min-width: 1040px;
+}
+.gs-validity {
+  min-width: 190px;
+}
+.gs-progress {
+  display: block;
+  height: 5px;
+  margin: 6px 0 4px;
+  border-radius: 5px;
+  background: #eef3f6;
+  overflow: hidden;
+}
+.gs-progress s {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #5b9bd5;
+}
+.gs-progress.is-ending90 s {
+  background: var(--brand-gold);
+}
+.gs-progress.is-ending30 s {
+  background: var(--danger);
+}
+.gs-progress.is-ended s {
+  background: #b9c6d0;
+}
+.gs-status {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5e6d78;
+}
+.gs-status.is-ending30 {
+  color: var(--danger);
+}
+.gs-status.is-ending90 {
+  color: #a87310;
+}
+.gs-status.is-ended {
+  color: #a2b0b9;
+}
+.gs-plan-table {
+  min-width: 920px;
+}
+
+/* ---------- Mapa ---------- */
+.gs-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  gap: 22px;
+  align-items: start;
+}
+.gs-map-canvas {
+  position: relative;
+  min-width: 0;
+}
+.gs-map-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.gs-map-cities path {
+  stroke: #fff;
+  stroke-width: 0.7;
+  transition: filter 0.15s ease;
+  cursor: pointer;
+}
+.gs-map-cities path.is-hover {
+  stroke: var(--brand-navy);
+  stroke-width: 1.6;
+  filter: brightness(1.08);
+}
+.gs-map-flows {
+  pointer-events: none;
+}
+.gs-map-flows path {
+  fill: none;
+  stroke: #d9a441;
+  stroke-linecap: round;
+  stroke-opacity: 0.75;
+  stroke-dasharray: 6 5;
+  animation: gs-flow 1.6s linear infinite;
+}
+.gs-map-flows path.is-hover {
+  stroke: #a87310;
+  stroke-opacity: 1;
+}
+.gs-map-flows circle {
+  fill: #fff;
+  stroke: #a87310;
+  stroke-width: 1.5;
+}
+.gs-map-flows .gs-map-origin-dot {
+  fill: #a87310;
+  stroke: #fff;
+  stroke-width: 2;
+}
+@keyframes gs-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+.gs-map-tooltip {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  max-width: 240px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(17, 22, 70, 0.92);
+  color: #fff;
+  font-size: 12.5px;
+  line-height: 1.45;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 12px));
+  box-shadow: 0 10px 24px rgba(17, 22, 70, 0.25);
+}
+.gs-map-tooltip b {
+  font-size: 13.5px;
+}
+.gs-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #6f808b;
+}
+.gs-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.gs-map-legend i {
+  display: inline-block;
+  width: 22px;
+  height: 10px;
+  border-radius: 4px;
+}
+.gs-map-legend i.is-origin {
+  background: var(--gs-map-origin);
+}
+.gs-map-legend i.is-scale {
+  background: linear-gradient(90deg, rgb(191, 219, 254), rgb(17, 22, 155));
+}
+.gs-map-legend i.is-flow {
+  height: 0;
+  border-top: 3px dashed #d9a441;
+  border-radius: 0;
+}
+.gs-map-side h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-navy);
+}
+.gs-map-side h3 + * + h3,
+.gs-map-outside {
+  margin-top: 18px;
+}
+.gs-map-ranking,
+.gs-map-outside {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: city;
+}
+.gs-map-ranking li,
+.gs-map-outside li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  cursor: default;
+  transition: background 0.15s ease;
+}
+.gs-map-ranking li:hover,
+.gs-map-ranking li.is-hover {
+  background: #f1f5ff;
+}
+.gs-map-ranking li.is-origin {
+  background: var(--brand-gold-soft);
+}
+.gs-map-ranking span,
+.gs-map-outside span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #3c4c57;
+}
+.gs-map-ranking b,
+.gs-map-outside b {
+  font-size: 13.5px;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+}
+.gs-map-ranking small,
+.gs-map-outside small {
+  grid-column: 1 / -1;
+  font-size: 11.5px;
+  color: #8b98a0;
+}
+
+/* ---------- Fluxo: situação do dinheiro e funil ---------- */
+.gs-flow {
+  display: grid;
+  gap: 18px;
+}
+.gs-flow-bar {
+  display: flex;
+  height: 14px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: #eef3f6;
+}
+.gs-flow-bar.is-summary {
+  height: 22px;
+  border-radius: 8px;
+}
+.gs-flow-segment {
+  height: 100%;
+}
+.gs-flow-segment + .gs-flow-segment {
+  border-left: 2px solid #fff;
+}
+.gs-flow-segment.is-contracted,
+.gs-flow-legend .is-contracted i {
+  background: #2f6fe6;
+}
+.gs-flow-segment.is-awarded,
+.gs-flow-legend .is-awarded i {
+  background: #2d8b6f;
+}
+.gs-flow-segment.is-pending,
+.gs-flow-legend .is-pending i {
+  background: #e3b45a;
+}
+.gs-flow-summary {
+  display: grid;
+  gap: 12px;
+}
+.gs-flow-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gs-flow-legend li {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 8px;
+}
+.gs-flow-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.gs-flow-legend span {
+  font-size: 13px;
+  color: #5e6d78;
+}
+.gs-flow-legend b,
+.gs-flow-legend small {
+  grid-column: 2;
+}
+.gs-flow-legend b {
+  font-size: 17px;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+}
+.gs-flow-legend small {
+  font-size: 12px;
+  color: #8b98a0;
+}
+.gs-flow-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid #eef3f6;
+}
+.gs-flow-head p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-navy);
+}
+.gs-flow-rows {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gs-flow-rows li {
+  display: grid;
+  grid-template-columns: minmax(120px, 260px) minmax(80px, 1fr) minmax(150px, auto);
+  align-items: center;
+  gap: 16px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.gs-flow-rows li:hover {
+  background: #f6f9fc;
+}
+.gs-flow-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3c4c57;
+}
+.gs-flow-value {
+  display: grid;
+  justify-items: end;
+}
+.gs-flow-value b {
+  font-size: 14px;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+}
+.gs-flow-value small {
+  font-size: 12px;
+  color: #8b98a0;
+}
+.gs-funnel {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gs-funnel li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 300px);
+  grid-template-areas: "bar text" "bar rate";
+  align-items: center;
+  column-gap: 18px;
+}
+.gs-funnel-bar {
+  grid-area: bar;
+  display: flex;
+  align-items: center;
+  width: var(--w);
+  height: 48px;
+  padding-left: 14px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #11169b, #2f6fe6 60%, #6ce3f8);
+  transition: width 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.gs-funnel li:nth-child(2) .gs-funnel-bar {
+  background: linear-gradient(90deg, #1d3fb8, #3b7be8 60%, #8fd8f6);
+}
+.gs-funnel li:nth-child(3) .gs-funnel-bar {
+  background: linear-gradient(90deg, #12879c, #3fb3c4);
+}
+.gs-funnel li:nth-child(4) .gs-funnel-bar {
+  background: linear-gradient(90deg, #2d8b6f, #5fbf9b);
+}
+.gs-funnel-bar span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--brand-navy);
+  font-size: 13px;
+  font-weight: 800;
+}
+.gs-funnel-text {
+  grid-area: text;
+  display: grid;
+}
+.gs-funnel-text small {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #7b8a94;
+}
+.gs-funnel-text b {
+  font-size: 20px;
+  color: var(--brand-navy);
+  font-variant-numeric: tabular-nums;
+}
+.gs-funnel-text em {
+  font-size: 12.5px;
+  font-style: normal;
+  color: #8b98a0;
+}
+.gs-funnel-rate {
+  grid-area: rate;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--success);
+}
+.gs-funnel-rate svg {
+  width: 14px;
+}
+.gs-funnel-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 6px;
+  font-size: 13.5px;
+  color: #5e6d78;
+}
+
+@media (max-width: 1100px) {
+  .gs-map-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .gs-flow-rows li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+  }
+  .gs-flow-rows .gs-flow-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .gs-funnel li {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "bar" "text" "rate";
+    row-gap: 6px;
+  }
+  .gs-alert-list li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .gs-alert-list li > span,
+  .gs-alert-list li > em {
+    grid-column: 2;
+    justify-items: start;
+  }
+  .gs-tender dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-map-flows path {
+    animation: none;
+  }
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 1280px) {
+  .gs-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .gs-app .gs-topbar-city {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  /* O menu vira gaveta e passa a cobrir também o cabeçalho. */
+  .gs-app {
+    --sm-top: 0px;
+  }
+  .gs-content > .gs-main {
+    padding-inline: 16px;
+  }
+  .gs-winner-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .gs-winner-list li .gs-origin {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .gs-topbar-inner {
+    flex-wrap: wrap;
+    padding-block: 12px;
+  }
+  .gs-topbar-filters {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+  .gs-filter--municipality {
+    flex: 1;
+    width: auto;
+  }
+  .gs-topbar-actions {
+    margin-left: auto;
+  }
+}
+@media (max-width: 760px) {
+  .gs-container {
+    width: calc(100% - 32px);
+  }
+  .gs-topbar-city {
+    display: none;
+  }
+  .gs-print-button span,
+  .gs-logout-button span,
+  .gs-portal-link {
+    display: none;
+  }
+  .gs-print-button {
+    padding: 0 13px;
+  }
+  .gs-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .gs-heading h1 {
+    font-size: 26px;
+  }
+  .gs-skeleton-filters {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-topbar[data-pending] .gs-topbar-progress,
+  .gs-skeleton,
+  .gs-loading-dot {
+    animation: none;
+  }
+}
+
+/* ---------- Impressão: relatório para reunião de secretariado ---------- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+  .gs-page {
+    min-height: 0;
+    background: #fff;
+  }
+  .gs-topbar {
+    position: static;
+    box-shadow: none;
+    border-bottom: 2px solid var(--brand-navy);
+  }
+  .gs-topbar-filters,
+  .gs-topbar-actions,
+  .gs-topbar-progress,
+  .gs-no-print {
+    display: none !important;
+  }
+  .gs-topbar-inner {
+    min-height: 0;
+    padding-block: 6px;
+  }
+  .gs-container {
+    width: 100%;
+  }
+  .gs-app {
+    background: #fff;
+  }
+  .gs-body {
+    display: block;
+  }
+  .gs-content > .gs-main {
+    width: 100%;
+    padding-inline: 0;
+  }
+  .gs-back,
+  .gs-toolbar,
+  .gs-more,
+  .gs-row-action {
+    display: none !important;
+  }
+  .gs-main {
+    padding-block: 12px 0;
+  }
+  .gs-print-only {
+    display: block;
+  }
+  .gs-print-meta {
+    margin: 0 0 8px;
+    font-size: 11px;
+    color: #6f808b;
+  }
+  .gs-page .ov-enter {
+    animation: none !important;
+  }
+  .gs-page .ov-card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  .gs-page .ov-section {
+    margin-bottom: 16px;
+  }
+  /* Título de seção nunca fica sozinho no pé da página. */
+  .gs-page .ov-section-title {
+    break-after: avoid;
+  }
+  .gs-page .ov-section-title p {
+    display: none;
+  }
+  /* O Apex desenha o SVG com a largura da tela; no papel o card muda de
+     largura, então o gráfico é centralizado para o texto do donut alinhar. */
+  .gs-page .apexcharts-canvas {
+    margin-inline: auto;
+  }
+  .gs-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .gs-charts .ov-span-6 {
+    grid-column: span 12;
+  }
+  .gs-table {
+    min-width: 0;
+    font-size: 11px;
+  }
+  .gs-table th,
+  .gs-table td {
+    padding: 7px 6px;
+  }
+  .gs-table td {
+    font-size: 11px;
+  }
+  .gs-origin {
+    white-space: normal;
+    font-size: 10.5px;
+  }
+  .gs-table-scroll {
+    overflow: visible;
+  }
+  .gs-company {
+    max-width: 220px;
+  }
+  .gs-page * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
