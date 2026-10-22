@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import AOS from "aos";
 
-type AudienceIconName = "manager" | "business" | "citizen";
+export type AudienceIconName = "manager" | "business" | "citizen";
 
 type AudienceCard = {
   audience: string;
@@ -24,7 +24,7 @@ const audienceCards: AudienceCard[] = [
     description:
       "Consulte receitas, despesas e fornecedores em uma visão organizada para acompanhar os recursos públicos e planejar com mais segurança.",
     cta: "Conhecer a solução",
-    href: "/admin",
+    href: "/gestor",
     icon: "manager",
     tone: "blue",
   },
@@ -34,7 +34,7 @@ const audienceCards: AudienceCard[] = [
     description:
       "Receba alertas de oportunidades personalizados para sua empresa e tenha acesso a todas as licitações disponíveis na plataforma. Conheça o histórico de compras dos municípios e os prazos de pagamento para planejar suas vendas com mais confiança.",
     cta: "Explorar oportunidades",
-    href: "/me",
+    href: "/auth/login?perfil=me",
     icon: "business",
     tone: "gold",
   },
@@ -50,7 +50,7 @@ const audienceCards: AudienceCard[] = [
   },
 ];
 
-function AudienceIcon({ name }: { name: AudienceIconName }) {
+export function AudienceIcon({ name }: { name: AudienceIconName }) {
   const common = {
     width: 42,
     height: 42,

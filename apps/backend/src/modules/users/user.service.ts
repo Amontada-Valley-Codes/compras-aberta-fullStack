@@ -8,6 +8,12 @@ interface CreateAdminInput {
   password: string;
 }
 
+interface RegisterManagerInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
 const userService = {
   async getProfile(userId: string) {
     const user = await userRepository.findById(userId);
@@ -54,6 +60,26 @@ const userService = {
     return userRepository.createAdmin({
       name: name.trim(),
       email: cleanEmail,
+      password: passwordHash,
+    });
+  },
+
+  // Diferente da empresa, o gestor público não passa por solicitação de
+  // acesso: a conta já nasce MANAGER e ativa, e o login leva direto ao painel.
+  // Espera dados já normalizados pelo registerManagerSchema (e-mail em
+  // minúsculas).
+  async registerManager({ name, email, password }: RegisterManagerInput) {
+    const existing = await userRepository.findByEmail(email);
+
+    if (existing) {
+      throw new AppError("E-mail já cadastrado", 409);
+    }
+
+    const passwordHash = await hash(password, 10);
+
+    return userRepository.createManager({
+      name,
+      email,
       password: passwordHash,
     });
   },

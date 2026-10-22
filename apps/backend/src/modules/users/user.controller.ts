@@ -2,11 +2,22 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { userService } from "./user.service";
 import { AppError } from "../../utils/AppError";
+import { email, password } from "../../utils/validation";
 
 const createAdminSchema = z.object({
   name: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().trim().toLowerCase().pipe(z.email("E-mail inválido")),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+});
+
+const registerManagerSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(3, "Nome deve ter pelo menos 3 caracteres")
+    .max(120, "Nome deve ter no máximo 120 caracteres"),
+  email,
+  password,
 });
 
 const userController = {
@@ -29,6 +40,12 @@ const userController = {
     const data = createAdminSchema.parse(request.body);
     const admin = await userService.createAdmin(data);
     return reply.status(201).send(admin);
+  },
+
+  async registerManager(request: FastifyRequest, reply: FastifyReply) {
+    const data = registerManagerSchema.parse(request.body);
+    const manager = await userService.registerManager(data);
+    return reply.status(201).send(manager);
   },
 
   async deleteAdmin(request: FastifyRequest, reply: FastifyReply) {

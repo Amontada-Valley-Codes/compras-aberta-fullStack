@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { listMunicipalitiesService } from "@/services/municipalities/list-municipalities.service";
-import type { Municipality } from "@/services/municipalities/municipalities.types";
 import { CadastroWizard } from "./components/CadastroWizard";
 
 export const metadata: Metadata = {
@@ -18,22 +16,5 @@ export default async function CadastroPage({ searchParams }: CadastroPageProps) 
   const { perfil } = await searchParams;
   const initialProfile = perfil === "me" || perfil === "gestor" ? perfil : null;
 
-  // A lista é usada pelo Gestor Público. Sem ela o formulário ainda abre, mas o
-  // select avisa que não carregou (e o backend recusa o envio sem município).
-  let municipalities: Municipality[] = [];
-  let municipalitiesError = false;
-
-  try {
-    municipalities = await listMunicipalitiesService();
-  } catch {
-    municipalitiesError = true;
-  }
-
-  return (
-    <CadastroWizard
-      municipalities={municipalities}
-      municipalitiesError={municipalitiesError}
-      initialProfile={initialProfile}
-    />
-  );
+  return <CadastroWizard initialProfile={initialProfile} />;
 }

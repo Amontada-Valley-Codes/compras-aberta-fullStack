@@ -9,6 +9,7 @@ import { FaqSection } from "./sections/faq";
 import { LandingFooter } from "./sections/footer";
 import { LandingHeader } from "./sections/header";
 import { HowItWorksSection } from "./sections/how-it-works";
+import { PlansSection } from "./sections/plans";
 
 export function LandingPage() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -21,6 +22,7 @@ export function LandingPage() {
         <DataExplorerSection />
         <AudiencesSection />
         <HowItWorksSection />
+        <PlansSection />
         <FaqSection />
         <ClosingCtaSection />
       </main>

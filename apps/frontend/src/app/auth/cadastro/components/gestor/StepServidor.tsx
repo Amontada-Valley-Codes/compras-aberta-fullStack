@@ -1,6 +1,5 @@
-import { Mail, Phone, User } from 'lucide-react'
+import { Mail, User } from 'lucide-react'
 
-import { formatPhone } from '@/lib/format-br'
 import { FieldError, fieldA11y } from '../FieldError'
 import { PasswordFields } from '../PasswordFields'
 import type { FieldErrors } from '../useWizard'
@@ -36,7 +35,7 @@ export const StepServidor = ({ data, errors, onChange }: StepServidorProps) => {
         <FieldError field='name' message={errors.name} />
       </div>
 
-      <div className='auth-field'>
+      <div className='auth-field auth-field-full'>
         <label htmlFor='email'>E-mail Institucional</label>
         <div className={wrapClass(errors.email)}>
           <input
@@ -52,25 +51,6 @@ export const StepServidor = ({ data, errors, onChange }: StepServidorProps) => {
           <Mail size={18} />
         </div>
         <FieldError field='email' message={errors.email} />
-      </div>
-
-      <div className='auth-field'>
-        <label htmlFor='phone'>Telefone / Celular</label>
-        <div className={wrapClass(errors.phone)}>
-          <input
-            id='phone'
-            name='phone'
-            type='tel'
-            inputMode='tel'
-            placeholder='(00) 00000-0000'
-            autoComplete='tel'
-            value={data.phone}
-            onChange={(e) => onChange({ phone: formatPhone(e.target.value) })}
-            {...fieldA11y('phone', errors.phone)}
-          />
-          <Phone size={18} />
-        </div>
-        <FieldError field='phone' message={errors.phone} />
       </div>
 
       <PasswordFields

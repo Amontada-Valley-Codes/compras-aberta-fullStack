@@ -84,6 +84,24 @@ const userRepository = {
     });
   },
 
+  async createManager(data: { name: string; email: string; password: string }) {
+    return prisma.user.create({
+      data: {
+        ...data,
+        role: "MANAGER",
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        municipioIbge: true,
+        createdAt: true,
+      },
+    });
+  },
+
   async countAdmins() {
     return prisma.user.count({
       where: { role: "ADMIN", isActive: true },
