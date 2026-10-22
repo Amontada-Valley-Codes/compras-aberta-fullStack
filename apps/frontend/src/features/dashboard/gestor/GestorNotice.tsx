@@ -4,8 +4,8 @@ import { LogOut, ShieldAlert } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useLogout } from "./useGestorSession";
 
-// Tela para quando o painel não pode abrir: gestor sem município vinculado ou
-// falha ao consultar o perfil no backend. Sempre oferece "Sair".
+// Tela para quando o painel não pode abrir por falha ao consultar o perfil no
+// backend. Sempre oferece "Sair".
 export function GestorNotice({ title, message }: { title: string; message: string }) {
   const { logout, loggingOut } = useLogout();
 

@@ -54,6 +54,10 @@ export function useUserProfile() {
   });
 
   useEffect(() => {
+    if (skip) {
+      setLoading(false);
+      return;
+    }
     const handleUpdate = (data: UserProfile | null) => {
       setProfile(data);
     };
@@ -82,7 +86,7 @@ export function useUserProfile() {
     return () => {
       listeners = listeners.filter((l) => l !== handleUpdate);
     };
-  }, []);
+  }, [skip]);
 
   const cnpj = profile?.business?.cnpj ?? profile?.cnpj ?? null;
 
