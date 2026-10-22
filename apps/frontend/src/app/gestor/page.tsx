@@ -18,5 +18,5 @@ export default async function GestorPage({
   if (!context.municipality) return <GestorMissingMunicipality />;
 
   const data = await loadGestorOverview(context.municipality, context.year);
-  return <GestorDashboard data={data} municipalityIbge={context.municipalityIbge} isAdmin={context.isAdmin} />;
+  return <GestorDashboard data={data} municipalityIbge={context.municipalityIbge} />;
 }

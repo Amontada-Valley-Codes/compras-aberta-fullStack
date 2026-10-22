@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { FaWhatsapp } from "react-icons/fa6";
 import { RevealWords } from "../../RevealWords";
 

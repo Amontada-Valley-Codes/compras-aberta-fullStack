@@ -18,7 +18,7 @@ export default async function GestorBidsPage({
   const context = await resolveGestorContext(searchParams);
   if (!context) return null;
   if (!context.municipality) return <GestorMissingMunicipality />;
-  const { municipality, year, municipalityIbge, isAdmin } = context;
+  const { municipality, year, municipalityIbge } = context;
 
   const [bids, participations, directory] = await Promise.all([
     loadBids(municipality.tceCode, year).catch(() => null),
@@ -56,7 +56,7 @@ export default async function GestorBidsPage({
 
           <article className="ov-card ov-section ov-enter" style={enter(2)}>
             {!participations && <p className="gs-note gs-note--top">Não foi possível carregar as empresas vencedoras agora; a lista mostra só os dados das licitações.</p>}
-            <GestorBidsTable rows={rows} query={gestorQuery(year, municipalityIbge, isAdmin)} />
+            <GestorBidsTable rows={rows} query={gestorQuery(year, municipalityIbge)} />
           </article>
         </>
       )}

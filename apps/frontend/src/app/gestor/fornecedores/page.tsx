@@ -18,7 +18,7 @@ export default async function GestorSuppliersPage({
   const context = await resolveGestorContext(searchParams);
   if (!context) return null;
   if (!context.municipality) return <GestorMissingMunicipality />;
-  const { municipality, year, municipalityIbge, isAdmin } = context;
+  const { municipality, year, municipalityIbge } = context;
 
   const [participations, directory] = await Promise.all([
     loadParticipations(municipality.tceCode).catch(() => null),
@@ -57,7 +57,7 @@ export default async function GestorSuppliersPage({
           </section>
 
           <article className="ov-card ov-section ov-enter" style={enter(2)}>
-            <GestorSuppliersRanking rows={suppliers} query={gestorQuery(year, municipalityIbge, isAdmin)} showCategory={false} />
+            <GestorSuppliersRanking rows={suppliers} query={gestorQuery(year, municipalityIbge)} showCategory={false} />
           </article>
         </>
       )}
