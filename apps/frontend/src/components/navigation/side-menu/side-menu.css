@@ -1,0 +1,441 @@
+/*
+ * Menu lateral com vidro líquido (components/navigation/side-menu).
+ * Classes com prefixo sm- para não colidir com o resto do sistema.
+ *
+ * Variáveis que quem usa pode ajustar no elemento pai:
+ *   --sm-top        distância do topo (altura de um cabeçalho fixo)
+ *   --sm-accent     cor dos ícones e do texto do item ativo
+ */
+
+.sm-root {
+  --sm-accent: var(--brand-navy, #11169b);
+  --sm-expanded: 252px;
+  --sm-collapsed: 88px;
+  --sm-width: var(--sm-expanded);
+  --sm-ease: cubic-bezier(0.22, 0.9, 0.24, 1);
+  position: relative;
+  z-index: 30;
+  flex: none;
+  /* Ocupa toda a altura do conteúdo: é o espaço em que o painel (sticky)
+     desliza para acompanhar a rolagem da página. */
+  align-self: stretch;
+  width: var(--sm-width);
+  padding: 14px 0 14px 14px;
+}
+.sm-root[data-ready="true"] {
+  transition: width 0.42s var(--sm-ease);
+}
+.sm-root[data-collapsed="true"] {
+  --sm-width: var(--sm-collapsed);
+}
+/* Recolhido: com o mouse (ou o foco) o menu se expande e empurra o conteúdo. */
+@media (min-width: 901px) {
+  .sm-root[data-collapsed="true"]:is(:hover, :has(:focus-visible)) {
+    --sm-width: var(--sm-expanded);
+  }
+  /* Pequena espera antes de abrir, para não abrir ao cruzar o menu sem querer. */
+  .sm-root[data-ready="true"][data-collapsed="true"]:hover,
+  .sm-root[data-ready="true"][data-collapsed="true"]:hover .sm-panel {
+    transition-delay: 0.08s;
+  }
+}
+
+/* ---------- Painel de vidro líquido ---------- */
+.sm-panel {
+  position: sticky;
+  top: calc(var(--sm-top, 0px) + 14px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: calc(var(--sm-width) - 14px);
+  height: calc(100dvh - var(--sm-top, 0px) - 28px);
+  padding: 12px;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 26px;
+  /* Vidro: bem translúcido, com desfoque e saturação fortes do que está atrás. */
+  background:
+    linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.62) 0%,
+      rgba(255, 255, 255, 0.26) 38%,
+      rgba(226, 238, 255, 0.34) 72%,
+      rgba(255, 255, 255, 0.5) 100%
+    );
+  -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(1.04);
+  backdrop-filter: blur(28px) saturate(210%) brightness(1.04);
+  box-shadow:
+    /* reflexo de luz no topo e na base, como uma lâmina de vidro espessa */
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+    inset 1.5px 0 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(17, 22, 155, 0.08),
+    inset 0 24px 40px -30px rgba(255, 255, 255, 0.95),
+    inset 0 -30px 44px -32px rgba(108, 227, 248, 0.55),
+    0 1px 2px rgba(17, 22, 155, 0.06),
+    0 20px 48px rgba(17, 22, 155, 0.14);
+}
+.sm-root[data-ready="true"] .sm-panel {
+  transition:
+    width 0.42s var(--sm-ease),
+    box-shadow 0.3s ease;
+}
+/* Borda de luz (refração nas arestas). */
+.sm-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.35) 22%,
+    rgba(17, 22, 155, 0.12) 46%,
+    rgba(255, 255, 255, 0.1) 64%,
+    rgba(108, 227, 248, 0.7) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* Brilho fixo no canto superior, que dá volume ao vidro (não segue o mouse). */
+.sm-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 55% at 0% 0%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(90% 40% at 100% 100%, rgba(108, 227, 248, 0.18), transparent 70%);
+  pointer-events: none;
+}
+.sm-root[data-collapsed="true"]:is(:hover, :has(:focus-visible)) .sm-panel {
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+    inset 1.5px 0 0 rgba(255, 255, 255, 0.55),
+    inset 0 24px 40px -30px rgba(255, 255, 255, 0.95),
+    inset 0 -30px 44px -32px rgba(108, 227, 248, 0.55),
+    0 24px 56px rgba(17, 22, 155, 0.2);
+}
+
+/* ---------- Listas ---------- */
+.sm-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.sm-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sm-footer {
+  padding-top: 10px;
+  border-top: 1px solid rgba(17, 22, 155, 0.08);
+}
+
+/* ---------- Itens ---------- */
+.sm-link {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 4px 10px 4px 4px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: #3a456e;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+/* Pílula de vidro que cresce sob o item no hover. */
+.sm-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(235, 242, 255, 0.55));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 6px 16px rgba(17, 22, 155, 0.1);
+  opacity: 0;
+  transform: scale(0.86, 0.7);
+  transform-origin: left center;
+  transition:
+    opacity 0.22s ease,
+    transform 0.32s var(--sm-ease);
+}
+.sm-link:hover::before,
+.sm-link:focus-visible::before {
+  opacity: 1;
+  transform: none;
+}
+.sm-link:focus-visible {
+  outline: 2px solid var(--sm-accent);
+  outline-offset: 2px;
+}
+.sm-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  color: var(--sm-accent);
+  transition:
+    transform 0.32s cubic-bezier(0.3, 1.5, 0.45, 1),
+    background 0.25s ease,
+    color 0.25s ease;
+}
+.sm-icon svg {
+  width: 20px;
+  height: 20px;
+}
+/* Hover: o ícone só aumenta, sem girar nem deslocar. */
+.sm-link:hover .sm-icon {
+  transform: scale(1.14);
+}
+.sm-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition:
+    opacity 0.25s ease,
+    transform 0.3s var(--sm-ease),
+    color 0.2s ease;
+}
+.sm-link:hover .sm-label {
+  color: var(--sm-accent);
+}
+.sm-badge {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--sm-accent);
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  text-align: center;
+  transition: opacity 0.2s ease;
+}
+
+/* Item ativo: degradê de azul claro, com o ícone num azul um pouco mais forte. */
+.sm-link[data-active="true"] {
+  color: #12307f;
+}
+.sm-link[data-active="true"]::before {
+  opacity: 1;
+  transform: none;
+  background: linear-gradient(120deg, rgba(219, 233, 255, 0.95) 0%, rgba(190, 216, 255, 0.85) 55%, rgba(206, 238, 255, 0.9) 100%);
+  /* Sem sombra externa: só o brilho interno do vidro. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(64, 120, 230, 0.16);
+}
+.sm-link[data-active="true"] .sm-icon {
+  background: linear-gradient(140deg, #3b7be8 0%, #5aa2ff 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.sm-link[data-active="true"]:hover .sm-label {
+  color: #12307f;
+}
+
+/* Recolhido e sem hover: só ícones. Ao expandir, os títulos entram em cascata. */
+.sm-root[data-collapsed="true"]:not(:hover, :has(:focus-visible)) .sm-label,
+.sm-root[data-collapsed="true"]:not(:hover, :has(:focus-visible)) .sm-badge {
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
+}
+/* Recolhido, o item vira um quadrado do tamanho da coluna de ícones: sem o
+   espaço do título, a pílula (hover/ativo) cabe no painel e o ícone fica
+   centralizado. */
+@media (min-width: 901px) {
+  .sm-root[data-collapsed="true"]:not(:hover, :has(:focus-visible)) .sm-link {
+    grid-template-columns: 40px 0 0;
+    gap: 0;
+    padding: 4px 5px;
+  }
+}
+.sm-root[data-ready="true"] .sm-link {
+  transition:
+    grid-template-columns 0.42s var(--sm-ease),
+    gap 0.42s var(--sm-ease),
+    padding 0.42s var(--sm-ease);
+}
+.sm-root[data-collapsed="true"]:is(:hover, :has(:focus-visible)) .sm-label {
+  transition-delay: calc(0.12s + var(--sm-i, 0) * 0.035s);
+}
+
+/* ---------- Botão de três barras ---------- */
+.sm-toggle {
+  position: relative;
+  display: inline-grid;
+  place-content: center;
+  gap: 4px;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(17, 22, 155, 0.1);
+  border-radius: 13px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.9), rgba(236, 240, 255, 0.7));
+  -webkit-backdrop-filter: blur(12px) saturate(170%);
+  backdrop-filter: blur(12px) saturate(170%);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 4px 12px rgba(17, 22, 155, 0.08);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.sm-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 8px 18px rgba(17, 22, 155, 0.14);
+}
+.sm-toggle:focus-visible {
+  outline: 2px solid var(--brand-navy, #11169b);
+  outline-offset: 2px;
+}
+.sm-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand-navy, #11169b);
+  transform-origin: center;
+  transition:
+    transform 0.3s var(--sm-ease, ease),
+    width 0.3s var(--sm-ease, ease),
+    opacity 0.2s ease;
+}
+/* Recolhido: barras escalonadas indicam que o menu está fechado. */
+.sm-toggle[data-collapsed="true"] span:nth-child(2) {
+  width: 12px;
+}
+.sm-toggle[data-collapsed="true"] span:nth-child(3) {
+  width: 7px;
+}
+.sm-toggle:hover span {
+  width: 18px;
+}
+/* Gaveta aberta no celular: as barras viram um X. */
+.sm-toggle[data-open="true"] span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+  width: 18px;
+}
+.sm-toggle[data-open="true"] span:nth-child(2) {
+  opacity: 0;
+}
+.sm-toggle[data-open="true"] span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+  width: 18px;
+}
+
+.sm-backdrop {
+  display: none;
+}
+
+/* ---------- Celular e tablet: gaveta ---------- */
+@media (max-width: 900px) {
+  /* O .sm-root cria o contexto de empilhamento do painel: precisa ficar
+     acima do fundo escurecido (.sm-backdrop) e de cabeçalhos fixos. */
+  .sm-root,
+  .sm-root[data-collapsed="true"] {
+    --sm-width: 0px;
+    z-index: 60;
+    width: 0;
+    padding: 0;
+  }
+  .sm-panel,
+  .sm-root[data-collapsed="true"] .sm-panel {
+    position: fixed;
+    top: calc(var(--sm-top, 0px) + 10px);
+    left: max(10px, env(safe-area-inset-left, 0px));
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    z-index: 60;
+    width: min(286px, calc(100vw - 32px));
+    height: auto;
+    transform: translateX(calc(-100% - 24px));
+    transition: transform 0.38s var(--sm-ease);
+  }
+  .sm-root[data-open="true"] .sm-panel {
+    transform: none;
+  }
+  .sm-root .sm-panel .sm-label,
+  .sm-root .sm-panel .sm-badge {
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+  .sm-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    border: 0;
+    background: rgba(13, 18, 60, 0.28);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    cursor: pointer;
+    animation: sm-fade 0.25s ease;
+  }
+}
+
+@keyframes sm-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Sem backdrop-filter, o vidro vira um painel quase opaco. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sm-panel {
+    background: rgba(255, 255, 255, 0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sm-root,
+  .sm-panel,
+  .sm-link::before,
+  .sm-icon,
+  .sm-label,
+  .sm-toggle,
+  .sm-toggle span {
+    transition: none !important;
+  }
+  .sm-link:hover .sm-icon {
+    transform: none;
+  }
+}
+
+@media print {
+  .sm-root,
+  .sm-toggle,
+  .sm-backdrop {
+    display: none !important;
+  }
+}

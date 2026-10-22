@@ -9,7 +9,8 @@ import { adminRoutes } from "./modules/admin/admin.routes";
 import { userRoutes } from "./modules/users/user.routes";
 
 // O cadastro de usuário BUSINESS acontece só por POST /access-requests, que
-// cria a conta já vinculada a uma solicitação pendente de aprovação.
+// cria a conta já vinculada a uma solicitação pendente de aprovação. O gestor
+// público (MANAGER) se cadastra por POST /managers/register, sem aprovação.
 async function routes(app: FastifyInstance) {
   await app.register(accessRequestRoutes);
   await app.register(sessionRoutes);
