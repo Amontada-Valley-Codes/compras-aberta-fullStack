@@ -28,6 +28,8 @@ interface PublicFilterSelectProps {
   icon: FilterIcon;
   variant: "landing" | "analysis";
   disabled?: boolean;
+  value?: string;
+  onValueChange?: (value: string) => void;
 }
 
 const allValue = "__all__";
@@ -41,8 +43,11 @@ export function PublicFilterSelect({
   icon,
   variant,
   disabled = false,
+  value: controlledValue,
+  onValueChange,
 }: PublicFilterSelectProps) {
-  const [value, setValue] = useState(defaultValue || allValue);
+  const [internalValue, setInternalValue] = useState(defaultValue || allValue);
+  const value = controlledValue === undefined ? internalValue : controlledValue || allValue;
   const [search, setSearch] = useState("");
   const showSearch = options.length > 5;
   const Icon =
@@ -76,7 +81,10 @@ export function PublicFilterSelect({
       <Select.Root
         value={value}
         disabled={disabled}
-        onValueChange={setValue}
+        onValueChange={(nextValue) => {
+          setInternalValue(nextValue);
+          onValueChange?.(nextValue === allValue ? "" : nextValue);
+        }}
         onOpenChange={(open) => {
           if (!open) setSearch("");
         }}

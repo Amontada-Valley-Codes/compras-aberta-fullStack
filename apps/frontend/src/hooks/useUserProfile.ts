@@ -22,12 +22,17 @@ export interface UserProfile {
 let cachedProfile: UserProfile | null = null;
 let listeners: Array<(profile: UserProfile | null) => void> = [];
 
-export function useUserProfile() {
-  const [profile, setProfile] = useState<UserProfile | null>(cachedProfile);
-  const [loading, setLoading] = useState(!cachedProfile);
+export function useUserProfile(options?: { skip?: boolean }) {
+  const skip = options?.skip ?? false;
+  const [profile, setProfile] = useState<UserProfile | null>(skip ? null : cachedProfile);
+  const [loading, setLoading] = useState(!cachedProfile && !skip);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (skip) {
+      setLoading(false);
+      return;
+    }
     const handleUpdate = (data: UserProfile | null) => {
       setProfile(data);
     };
@@ -56,7 +61,7 @@ export function useUserProfile() {
     return () => {
       listeners = listeners.filter((l) => l !== handleUpdate);
     };
-  }, []);
+  }, [skip]);
 
   return { profile, loading, error };
 }
