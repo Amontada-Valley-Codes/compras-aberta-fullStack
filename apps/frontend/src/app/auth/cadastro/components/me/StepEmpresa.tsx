@@ -68,6 +68,27 @@ export const StepEmpresa = ({ data, errors, lookup, onCnpjChange, onChange }: St
         </div>
         <FieldError field='porte_empresa' message={errors.porte_empresa} />
       </div>
+
+      {lookup.status === 'found' && lookup.data.atividadePrincipal && (
+        <div className='auth-field auth-field-full'>
+          <label>CNAE Principal identificado na Receita Federal</label>
+          <div className='auth-input-wrap'>
+            <input
+              type='text'
+              readOnly
+              value={
+                lookup.data.cnaePrincipal?.codigo
+                  ? `${lookup.data.cnaePrincipal.codigo} — ${lookup.data.cnaePrincipal.descricao}`
+                  : lookup.data.atividadePrincipal
+              }
+            />
+            <FileText size={18} />
+          </div>
+          <small style={{ display: 'block', marginTop: 6, opacity: 0.78, fontSize: '0.8rem' }}>
+            Usaremos o CNAE do seu CNPJ para encontrar licitações compatíveis automaticamente no seu painel (você poderá complementar depois nas configurações).
+          </small>
+        </div>
+      )}
     </div>
   )
 }

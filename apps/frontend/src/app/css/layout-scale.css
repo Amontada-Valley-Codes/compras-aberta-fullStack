@@ -413,16 +413,185 @@
   font-size: 13px;
 }
 
+.recommendation-list > button {
+  grid-template-columns: 58px minmax(0, 1fr) 165px 20px;
+  gap: 16px;
+  padding: 16px 10px;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+}
+
+.recommendation-list > button:hover {
+  background: #f8fafc;
+}
+
+.match-ring {
+  width: 54px;
+  height: 54px;
+  border: 3px solid #2563eb;
+  background: #eff6ff;
+}
+
+.match-ring b {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.match-ring small {
+  font-size: 10px;
+  color: #475569;
+}
+
+.recommendation-info {
+  gap: 5px;
+}
+
 .recommendation-info strong,
 .recommendation-value strong {
-  font-size: 15px;
+  font-size: 15.5px;
+  font-weight: 650;
+  color: #0f172a;
 }
 
 .recommendation-info>small,
 .recommendation-info em,
 .recommendation-value small,
 .recommendation-value em {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.ranking-row {
+  padding: 14px 4px;
+  gap: 14px;
+}
+
+.ranking-row > span {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.ranking-row > div {
+  gap: 4px 12px;
+}
+
+.ranking-row b {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ranking-row > strong {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ranking-row small {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.ranking-row div > i {
+  height: 6px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.activity-list > span,
+.activity-card > span {
+  padding: 14px 4px;
+  gap: 14px;
+}
+
+.activity-list > span > i,
+.activity-card > span > i {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.activity-list i svg,
+.activity-card i svg {
+  width: 18px;
+  height: 18px;
+}
+
+.activity-list b,
+.activity-card b {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.activity-list small,
+.activity-card small {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.activity-list span > em {
   font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.activity-list.large span > div em {
+  font-size: 11.5px;
+}
+
+.activity-list.large b {
+  font-size: 16px;
+}
+
+.activity-list.large span > button {
+  font-size: 13.5px;
+}
+
+.document-list article b {
+  font-size: 15px;
+}
+
+.document-list article small {
+  font-size: 13px;
+}
+
+.document-list article > em {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.document-list article > button,
+.document-list article > label {
+  font-size: 13.5px;
+}
+
+.alert-settings h2,
+.profile-grid h2 {
+  font-size: 17px;
+}
+
+.alert-settings p,
+.alert-settings > span {
+  font-size: 14px;
+}
+
+.profile-grid label,
+.review-note {
+  font-size: 13.5px;
+}
+
+.profile-grid input,
+.review-note textarea {
+  font-size: 14.5px;
+  height: 44px;
 }
 
 .filter-bar input,
@@ -438,6 +607,28 @@
 }
 
 .opportunity-results article>p {
+  font-size: 15px;
+}
+
+.opportunity-results article > small {
+  font-size: 12px;
+}
+
+.match-pill {
+  font-size: 12px;
+  padding: 6px 11px;
+}
+
+.reason-list span {
+  font-size: 12.5px;
+  padding: 6px 10px;
+}
+
+.opportunity-results footer small {
+  font-size: 12px;
+}
+
+.opportunity-results footer b {
   font-size: 15px;
 }
 
@@ -468,7 +659,7 @@
 }
 
 .detail-card>header p {
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .auth-shell {
