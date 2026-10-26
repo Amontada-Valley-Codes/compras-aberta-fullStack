@@ -16,12 +16,12 @@ export function LandingFooter() {
           <b>Plataforma</b>
           <a href="#oportunidades">Licitações</a>
           <Link href="/analise">Transparência</Link>
-          <Link href="/admin">Municípios</Link>
+          <Link href="/analise">Municípios</Link>
         </div>
         <div>
           <b>Acessos</b>
-          <Link href="/me">Área da microempresa</Link>
-          <Link href="/admin">Área administrativa</Link>
+          <Link href="/auth/login?perfil=me">Área da microempresa</Link>
+          <Link href="/gestor">Área administrativa</Link>
           <a href="#">Acessibilidade</a>
         </div>
         <div>
