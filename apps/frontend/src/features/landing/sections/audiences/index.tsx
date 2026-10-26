@@ -24,7 +24,7 @@ const audienceCards: AudienceCard[] = [
     description:
       "Consulte receitas, despesas e fornecedores em uma visão organizada para acompanhar os recursos públicos e planejar com mais segurança.",
     cta: "Conhecer a solução",
-    href: "/admin",
+    href: "/gestor",
     icon: "manager",
     tone: "blue",
   },
@@ -34,7 +34,7 @@ const audienceCards: AudienceCard[] = [
     description:
       "Receba alertas de oportunidades personalizados para sua empresa e tenha acesso a todas as licitações disponíveis na plataforma. Conheça o histórico de compras dos municípios e os prazos de pagamento para planejar suas vendas com mais confiança.",
     cta: "Explorar oportunidades",
-    href: "/me",
+    href: "/auth/login?perfil=me",
     icon: "business",
     tone: "gold",
   },

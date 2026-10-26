@@ -17,12 +17,12 @@ const processBlocks: ProcessBlock[] = [
     variant: "manager",
     steps: [
       {
-        title: "Solicite seu acesso",
-        description: "Informe seus dados profissionais e os dados do órgão ou município que representa.",
+        title: "Receba o acesso do administrador",
+        description: "O administrador da plataforma vincula o município e libera o acesso para a equipe responsável.",
       },
       {
-        title: "Envie os documentos",
-        description: "Anexe os documentos exigidos para confirmar sua identidade e seu vínculo com a gestão pública.",
+        title: "Confirme seus dados",
+        description: "Confira os dados do órgão e os documentos compartilhados pelo administrador responsável.",
       },
       {
         title: "Acompanhe a análise",
