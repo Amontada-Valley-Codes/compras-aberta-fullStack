@@ -98,23 +98,58 @@ function mapRawToBid(raw: RawPncpItem, nowMs: number): MePncpBid {
     ? new Date(raw.dataEncerramentoProposta).getTime()
     : null;
 
-  const isOpen =
-    closingMs !== null
-      ? closingMs >= nowMs
-      : raw.situacaoCompraNome?.toLowerCase().includes("divulgada") ?? false;
+  const situationLower = (raw.situacaoCompraNome ?? "").toLowerCase();
+  const isInactiveSituation =
+    situationLower.includes("suspens") ||
+    situationLower.includes("revogad") ||
+    situationLower.includes("anulad") ||
+    situationLower.includes("cancelad") ||
+    situationLower.includes("encerrad") ||
+    situationLower.includes("fracassad") ||
+    situationLower.includes("desert");
 
-  const daysLeft =
-    closingMs !== null ? Math.ceil((closingMs - nowMs) / DAY_MS) : null;
+  const isOpen =
+    !isInactiveSituation && closingMs !== null && !Number.isNaN(closingMs)
+      ? closingMs >= nowMs
+      : false;
+
+  let daysLeft: number | null = null;
+  if (closingMs !== null && !Number.isNaN(closingMs)) {
+    const diffMs = closingMs - nowMs;
+    if (diffMs < 0) {
+      daysLeft = -1;
+    } else {
+      const nowDateBr = new Date(nowMs - 3 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+      const closeDateBr = new Date(closingMs - 3 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+      daysLeft =
+        nowDateBr === closeDateBr ? 0 : Math.max(1, Math.ceil(diffMs / DAY_MS));
+    }
+  }
 
   const cleanUrl = (u?: string | null) => {
     if (!u || typeof u !== "string") return null;
     const trimmed = u.trim();
-    if (!trimmed) return null;
-    return trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
+    if (!trimmed || /\s/.test(trimmed) || !trimmed.includes(".")) return null;
+    const candidate = /^https?:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+    try {
+      const parsed = new URL(candidate);
+      if (!parsed.hostname || !parsed.hostname.includes(".")) return null;
+      return parsed.toString();
+    } catch {
+      return null;
+    }
   };
 
   const disputeUrl = cleanUrl(raw.linkSistemaOrigem);
   const electronicProcessUrl = cleanUrl(raw.linkProcessoEletronico);
+  const agencyCnpj = raw.orgaoEntidade?.cnpj ?? "";
+  const agencyName = raw.orgaoEntidade?.razaoSocial ?? "Órgão público";
 
   return {
     id: raw.numeroControlePNCP,
@@ -132,10 +167,9 @@ function mapRawToBid(raw: RawPncpItem, nowMs: number): MePncpBid {
     legalBasisDescription: raw.amparoLegal?.descricao?.trim() ?? null,
     srp: Boolean(raw.srp),
     situation: raw.situacaoCompraNome || "Divulgada no PNCP",
-    agencyCnpj: raw.orgaoEntidade.cnpj,
-    agencyName: raw.orgaoEntidade.razaoSocial,
-    unitName:
-      raw.unidadeOrgao?.nomeUnidade?.trim() || raw.orgaoEntidade.razaoSocial,
+    agencyCnpj,
+    agencyName,
+    unitName: raw.unidadeOrgao?.nomeUnidade?.trim() || agencyName,
     city: raw.unidadeOrgao?.municipioNome?.trim() || "Ceará",
     uf: raw.unidadeOrgao?.ufSigla?.trim() || "CE",
     ibgeCode:
@@ -152,8 +186,8 @@ function mapRawToBid(raw: RawPncpItem, nowMs: number): MePncpBid {
     daysLeft,
     disputeUrl,
     electronicProcessUrl,
-    pncpGovUrl: `https://pncp.gov.br/app/editais/${raw.orgaoEntidade.cnpj}/${raw.anoCompra}/${raw.sequencialCompra}`,
-    systemName: detectSystemName(raw.linkSistemaOrigem, raw.usuarioNome),
+    pncpGovUrl: `https://pncp.gov.br/app/editais/${agencyCnpj}/${raw.anoCompra}/${raw.sequencialCompra}`,
+    systemName: detectSystemName(disputeUrl, raw.usuarioNome),
   };
 }
 

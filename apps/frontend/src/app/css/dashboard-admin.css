@@ -1028,12 +1028,13 @@
   }
 
   .metric-card {
-    min-height: 130px;
-    padding: 13px;
+    min-height: 108px;
+    padding: 14px;
   }
 
+  .metric-value-row>b,
   .metric-card>b {
-    font-size: 19px;
+    font-size: 22px;
   }
 
   .dashboard-grid.halves,

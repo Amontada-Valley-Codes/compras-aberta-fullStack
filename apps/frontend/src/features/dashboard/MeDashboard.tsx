@@ -12,10 +12,8 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
-  ChevronRight,
   Clock3,
   ExternalLink,
-  FileCheck2,
   FileText,
   Filter,
   Gavel,
@@ -24,9 +22,9 @@ import {
   MapPin,
   RefreshCw,
   Search,
-  ShieldCheck,
   Sparkles,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { AppShell, type NavItem } from "./AppShell";
 import { OpportunityDonut, SpendingAreaChart } from "./DashboardCharts";
@@ -38,6 +36,219 @@ import {
 import { useUserProfile, type CompanyCnae } from "@/hooks/useUserProfile";
 import { formatCnpj } from "@/lib/format-br";
 import { openDocumentInNewTab } from "@/utils/openInNewTab";
+
+const UPPERCASE_ACRONYMS = new Set([
+  "ce",
+  "me",
+  "epp",
+  "mei",
+  "srp",
+  "pncp",
+  "ti",
+  "ubs",
+  "upa",
+  "samu",
+  "caps",
+  "fms",
+  "fmas",
+  "sme",
+  "sesa",
+  "seinfra",
+  "seduc",
+  "saae",
+  "cagece",
+  "cnpj",
+  "cpf",
+  "ltda",
+  "sus",
+  "fnde",
+  "pnae",
+  "fundeb",
+  "cras",
+  "creas",
+  "uti",
+  "led",
+  "pvc",
+  "epi",
+  "epis",
+  "glp",
+  "km",
+  "br",
+  "uf",
+  "rh",
+  "cnh",
+  "inss",
+  "fgts",
+  "icms",
+  "iss",
+]);
+
+const LOWERCASE_PARTICLES = new Set([
+  "de",
+  "da",
+  "do",
+  "das",
+  "dos",
+  "e",
+  "em",
+  "na",
+  "no",
+  "nas",
+  "nos",
+  "para",
+  "por",
+  "com",
+  "sem",
+  "sob",
+  "sobre",
+  "a",
+  "o",
+  "as",
+  "os",
+  "ao",
+  "aos",
+  "à",
+  "às",
+  "pela",
+  "pelo",
+  "pelas",
+  "pelos",
+]);
+
+const ACCENT_RESTORE_MAP: Record<string, string> = {
+  contratacao: "contratação",
+  contratacoes: "contratações",
+  aquisicao: "aquisição",
+  aquisicoes: "aquisições",
+  servico: "serviço",
+  servicos: "serviços",
+  manutencao: "manutenção",
+  manutencoes: "manutenções",
+  locacao: "locação",
+  locacoes: "locações",
+  confeccao: "confecção",
+  confeccoes: "confecções",
+  construcao: "construção",
+  construcoes: "construções",
+  ampliacao: "ampliação",
+  adequacao: "adequação",
+  implantacao: "implantação",
+  execucao: "execução",
+  prestacao: "prestação",
+  genero: "gênero",
+  generos: "gêneros",
+  alimenticio: "alimentício",
+  alimenticios: "alimentícios",
+  educacao: "educação",
+  saude: "saúde",
+  administracao: "administração",
+  assistencia: "assistência",
+  municipio: "município",
+  municipios: "municípios",
+  publica: "pública",
+  publico: "público",
+  publicas: "públicas",
+  publicos: "públicos",
+  eletronico: "eletrônico",
+  eletronica: "eletrônica",
+  pregao: "pregão",
+  licitacao: "licitação",
+  licitacoes: "licitações",
+  preco: "preço",
+  precos: "preços",
+  camara: "câmara",
+  agua: "água",
+  aguas: "águas",
+  veiculo: "veículo",
+  veiculos: "veículos",
+  peca: "peça",
+  pecas: "peças",
+  combustivel: "combustível",
+  combustiveis: "combustíveis",
+  medico: "médico",
+  medicos: "médicos",
+  medica: "médica",
+  medicas: "médicas",
+  odontologico: "odontológico",
+  odontologicos: "odontológicos",
+  farmaceutico: "farmacêutico",
+  farmaceuticos: "farmacêuticos",
+  tecnico: "técnico",
+  tecnicos: "técnicos",
+  tecnica: "técnica",
+  tecnicas: "técnicas",
+  informatica: "informática",
+  mobiliario: "mobiliário",
+  pedagogico: "pedagógico",
+  pedagogicos: "pedagógicos",
+  didatico: "didático",
+  didaticos: "didáticos",
+  basica: "básica",
+  basico: "básico",
+  basicas: "básicas",
+  basicos: "básicos",
+  atencao: "atenção",
+  protecao: "proteção",
+  gestao: "gestão",
+  operacao: "operação",
+  conservacao: "conservação",
+  pavimentacao: "pavimentação",
+  iluminacao: "iluminação",
+  urbanizacao: "urbanização",
+  sanitario: "sanitário",
+  sanitarios: "sanitários",
+  hidraulico: "hidráulico",
+  hidraulicos: "hidráulicos",
+  eletrico: "elétrico",
+  eletricos: "elétricos",
+  eletrica: "elétrica",
+  eletricas: "elétricas",
+  orgao: "órgão",
+  orgaos: "órgãos",
+  referencia: "referência",
+  especificacao: "especificação",
+  especificacoes: "especificações",
+  necessario: "necessário",
+  necessarios: "necessários",
+   vigilancia: "vigilância",
+  emergencia: "emergência",
+  dispensacao: "dispensação",
+  refeicao: "refeição",
+  refeicoes: "refeições",
+};
+
+function restoreWordFormat(word: string, titleCase = false, isFirstWord = false): string {
+  const match = word.match(/^([^a-zA-ZÀ-ÿ0-9]*)([a-zA-ZÀ-ÿ0-9]+(?:\/[a-zA-ZÀ-ÿ0-9]+)?)([^a-zA-ZÀ-ÿ0-9]*)$/);
+  if (!match) return word;
+  const [, prefix, core, suffix] = match;
+
+  if (core.includes("/")) {
+    const parts = core
+      .split("/")
+      .map((part, idx) => restoreWordFormat(part, titleCase, isFirstWord && idx === 0));
+    return `${prefix}${parts.join("/")}${suffix}`;
+  }
+
+  const lower = core.toLowerCase();
+  if (UPPERCASE_ACRONYMS.has(lower)) {
+    return `${prefix}${lower.toUpperCase()}${suffix}`;
+  }
+
+  const accented = ACCENT_RESTORE_MAP[lower] ?? lower;
+
+  if (titleCase) {
+    if (!isFirstWord && LOWERCASE_PARTICLES.has(accented)) {
+      return `${prefix}${accented}${suffix}`;
+    }
+    return `${prefix}${accented.charAt(0).toUpperCase()}${accented.slice(1)}${suffix}`;
+  }
+
+  if (isFirstWord) {
+    return `${prefix}${accented.charAt(0).toUpperCase()}${accented.slice(1)}${suffix}`;
+  }
+
+  return `${prefix}${accented}${suffix}`;
+}
 
 function formatCurrencyBr(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value) || value <= 0) {
@@ -51,16 +262,139 @@ function formatCurrencyBr(value: number | null | undefined): string {
 }
 
 function formatCleanTitle(raw: string): string {
-  const trimmed = raw.trim().replace(/\s+/g, " ");
-  if (!trimmed) return "Objeto não informado";
-  const letters = trimmed.replace(/[^a-zA-ZÀ-ÿ]/g, "");
+  if (!raw) return "Objeto não informado";
+  let cleaned = raw
+    .trim()
+    // Remove tags entre colchetes no início ex: [ Licitação Concorrência ]
+    .replace(/^\s*(?:\[[^\]]+\]\s*[-–—:•]*\s*)+/g, "")
+    // Remove prefixo "OBJETO:" ou numeração inicial "1.1 -"
+    .replace(/^\s*(?:objeto\s*(?:da\s+(?:licita[çc][ãa]o|contrata[çc][ãa]o|compra))?\s*[:\-–—]\s*)/i, "")
+    .replace(/^\s*\d+(?:\.\d+)*\s*[)\-–—:]\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) return "Objeto não informado";
+
+  const letters = cleaned.replace(/[^a-zA-ZÀ-ÿ]/g, "");
   const upperCount = letters.replace(/[^A-ZÀ-Ý]/g, "").length;
-  // Se mais de 70% do texto vier em CAIXA ALTA do PNCP, normaliza para leitura confortável
-  if (letters.length > 0 && upperCount / letters.length > 0.7) {
-    const lower = trimmed.toLowerCase();
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  const isMostlyUpper = letters.length > 0 && upperCount / letters.length > 0.55;
+
+  const words = cleaned.split(" ");
+  let capitalizeNext = true;
+
+  const formattedWords = words.map((w, idx) => {
+    const token = isMostlyUpper ? w.toLowerCase() : w;
+    const result = restoreWordFormat(token, false, idx === 0 || capitalizeNext);
+    capitalizeNext = /[.!?;:]$/.test(w);
+    return result;
+  });
+
+  cleaned = formattedWords.join(" ");
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+function extractBidTitleAndSummary(raw: string): {
+  title: string;
+  summary: string;
+} {
+  const full = formatCleanTitle(raw);
+  let headline = full;
+
+  // Remove aberturas jurídicas repetitivas para deixar o título do card direto e padronizado
+  const verbosePrefixes = [
+    /^registro de preços para (?:a )?(?:futura e eventual |eventual e futura |futura |eventual )?(?:contratação de empresa (?:especializada )?(?:para (?:a )?|na )?)?/i,
+    /^formação de registro de preços para (?:a )?(?:futura e eventual )?/i,
+    /^seleção de (?:melhor )?proposta (?:mais vantajosa )?(?:visando|para) (?:a )?(?:futura e eventual )?(?:contratação de empresa (?:especializada )?para )?/i,
+    /^escolha da proposta mais vantajosa (?:visando|para) (?:a )?(?:futura e eventual )?(?:contratação de empresa (?:especializada )?para )?/i,
+    /^contratação de (?:empresa|pessoa jurídica) (?:especializada )?(?:para (?:a )?(?:futura e eventual )?|na prestação de |no fornecimento de )?/i,
+    /^credenciamento de pessoa(?:s)? jurídica(?:s)? (?:especializada(?:s)? )?(?:para (?:a )?|visando (?:a )?)?/i,
+    /^pré-qualificação [^,.;]{0,45}?(?:destinada à |visando a |para (?:a )?)(?:contratação de )?/i,
+    /^futura e eventual contratação de empresa (?:especializada )?para (?:a )?/i,
+    /^futura e eventual /i,
+  ];
+
+  for (const regex of verbosePrefixes) {
+    const next = headline.replace(regex, "").trim();
+    if (next.length >= 18 && next.length < headline.length) {
+      headline = next;
+      break;
+    }
   }
-  return trimmed;
+
+  // Remove sufixos burocráticos longos do título principal (eles continuam visíveis no resumo/ficha)
+  headline = headline
+    .replace(
+      /[.,;]\s*(?:conforme|de acordo com|segundo|nos termos d[oa]|em conformidade com)\s+(?:as\s+)?(?:especificações|condições|quantidades|exigências|termo de referência|edital|anexo).*$/i,
+      "",
+    )
+    .trim();
+
+  if (!headline) headline = full;
+  headline = headline.charAt(0).toUpperCase() + headline.slice(1);
+
+  return {
+    title: headline,
+    summary: full,
+  };
+}
+
+function formatOrgName(raw: string | null | undefined): string {
+  if (!raw) return "Órgão público";
+  const cleaned = raw
+    .trim()
+    .replace(/^\s*(?:\[[^\]]+\]\s*)+/g, "")
+    .replace(/\s*[-–—/]\s*[A-Z]{2}\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) return "Órgão público";
+
+  const words = cleaned.split(" ");
+  return words
+    .map((w, idx) => restoreWordFormat(w.toLowerCase(), true, idx === 0))
+    .join(" ");
+}
+
+function formatBuyerLocation(
+  city: string | null | undefined,
+  uf: string | null | undefined,
+  unitName: string | null | undefined,
+): string {
+  const cityLabel = `${city || "Ceará"}${uf ? `/${uf}` : ""}`;
+  if (!unitName) return cityLabel;
+
+  const org = formatOrgName(unitName);
+  const norm = (s: string) =>
+    s
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  const normCity = norm(city || "");
+  const normOrg = norm(org);
+
+  // Evita redundâncias sujas como "Aquiraz/CE • Prefeitura municipal de aquiraz" ou "Município de jaguaribara"
+  if (
+    !normOrg ||
+    normOrg === normCity ||
+    normOrg === `municipio de ${normCity}` ||
+    normOrg === `prefeitura de ${normCity}` ||
+    normOrg === `prefeitura municipal de ${normCity}` ||
+    normOrg === "prefeitura municipal" ||
+    normOrg === "governo municipal"
+  ) {
+    return `${cityLabel} • Prefeitura`;
+  }
+
+  // Remove sufixo redundante "de <Cidade>" em secretarias (ex: "Secretaria de Saúde de Paracuru" -> "Secretaria de Saúde")
+  const strippedCityOrg = normCity
+    ? org.replace(
+        new RegExp(`\\s+(?:de|do|da|dos|das)\\s+${city?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+        "",
+      )
+    : org;
+
+  return `${cityLabel} • ${strippedCityOrg.trim()}`;
 }
 
 function formatCompactMoney(value: number): string {
@@ -96,6 +430,31 @@ function formatDateBr(iso: string | null | undefined, withTime = true): string {
   });
 }
 
+function formatDeadlineBadge(bid: Pick<MePncpBid, "isOpen" | "daysLeft">): {
+  label: string;
+  tone: "urgent" | "warning" | "open" | "closed";
+} {
+  if (!bid.isOpen) {
+    return { label: "Prazo encerrado", tone: "closed" };
+  }
+  if (bid.daysLeft === null) {
+    return { label: "Recebendo propostas", tone: "open" };
+  }
+  if (bid.daysLeft <= 0) {
+    return { label: "Encerra hoje!", tone: "urgent" };
+  }
+  if (bid.daysLeft === 1) {
+    return { label: "Encerra amanhã", tone: "urgent" };
+  }
+  if (bid.daysLeft <= 3) {
+    return { label: `Faltam ${bid.daysLeft} dias`, tone: "urgent" };
+  }
+  if (bid.daysLeft <= 7) {
+    return { label: `Faltam ${bid.daysLeft} dias`, tone: "warning" };
+  }
+  return { label: `Faltam ${bid.daysLeft} dias`, tone: "open" };
+}
+
 function getFavoritesKey(cnpj?: string | null) {
   const clean = (cnpj ?? "").replace(/\D/g, "");
   return `compras-abertas:me-favs:${clean || "default"}`;
@@ -110,7 +469,6 @@ export function MeDashboard({
   const [rawBids, setRawBids] = useState<MePncpBid[]>([]);
   const [loadingBids, setLoadingBids] = useState(true);
   const [bidsError, setBidsError] = useState<string | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
   const [active, setActive] = useState(
     initialOpportunityId ? "opportunities" : "overview",
@@ -131,10 +489,12 @@ export function MeDashboard({
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           setFavorites(new Set(parsed));
+          return;
         }
       }
+      setFavorites(new Set());
     } catch {
-      // ignora erro de leitura
+      setFavorites(new Set());
     }
   }, [cnpj]);
 
@@ -160,10 +520,8 @@ export function MeDashboard({
       if (!res.ok) throw new Error("Falha ao consultar o PNCP");
       const data = (await res.json()) as {
         bids: MePncpBid[];
-        updatedAt: string;
       };
       setRawBids(data.bids ?? []);
-      setUpdatedAt(data.updatedAt ?? null);
     } catch {
       setBidsError(
         "Não foi possível carregar as licitações do PNCP neste momento. Tente atualizar em instantes.",
@@ -285,15 +643,10 @@ export function MeDashboard({
     <AppShell role="me" active={active} onNavigate={navigate} items={navItems}>
       {active === "overview" && (
         <MeOverview
-          bids={enrichedBids}
           openBids={openBids}
           matchedOpenBids={matchedOpenBids}
           loading={loadingBids}
           error={bidsError}
-          updatedAt={updatedAt}
-          favoriteCount={favorites.size}
-          companyCnaes={companyCnaes}
-          onRefresh={fetchPncpBids}
           onNavigate={navigate}
           onOpenBid={openBidDetail}
         />
@@ -352,45 +705,26 @@ export function MeDashboard({
 }
 
 function MeOverview({
-  bids,
   openBids,
   matchedOpenBids,
   loading,
   error,
-  updatedAt,
-  favoriteCount,
-  companyCnaes,
-  onRefresh,
   onNavigate,
   onOpenBid,
 }: {
-  bids: EnrichedMeBid[];
   openBids: EnrichedMeBid[];
   matchedOpenBids: EnrichedMeBid[];
   loading: boolean;
   error: string | null;
-  updatedAt: string | null;
-  favoriteCount: number;
-  companyCnaes: CompanyCnae[];
-  onRefresh: () => void;
   onNavigate: (id: string) => void;
   onOpenBid: (bid: EnrichedMeBid) => void;
 }) {
-  const { profile, preferences } = useUserProfile();
+  const { profile } = useUserProfile();
 
   const userFirstName = profile?.name?.trim().split(" ")[0] || "Empresário(a)";
-  const companyName = profile?.business?.nome_empresa || "sua empresa";
   const porte = profile?.business?.porte_empresa || "ME";
-  const cnpj = profile?.business?.cnpj || profile?.cnpj || "";
-  const city = profile?.business?.municipio?.nome || "Ceará";
-
-  const mainCnaeLabel =
-    companyCnaes[0]
-      ? `${companyCnaes[0].codigo ? `${companyCnaes[0].codigo} — ` : ""}${companyCnaes[0].descricao}`
-      : preferences.customCnaeText || null;
 
   // KPIs calculados com dados 100% reais do PNCP
-  const expiredCount = bids.length - openBids.length;
   const urgentOpenBids = useMemo(
     () =>
       openBids.filter(
@@ -471,25 +805,6 @@ function MeOverview({
       <PageHeading
         eyebrow={`PAINEL DA MICROEMPRESA • ${porte}`}
         title={`Olá, ${userFirstName}!`}
-        description={`Acompanhe em tempo real as licitações publicadas no PNCP e os editais que dão Match com o CNAE de ${companyName}.`}
-        action={
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button
-              className="ds-button secondary"
-              onClick={onRefresh}
-              disabled={loading}
-            >
-              <RefreshCw size={16} />{" "}
-              {loading ? "Consultando PNCP…" : "Atualizar PNCP"}
-            </button>
-            <button
-              className="ds-button primary"
-              onClick={() => onNavigate("opportunities")}
-            >
-              Ver licitações no PNCP <ArrowRight size={17} />
-            </button>
-          </div>
-        }
       />
 
       {error && (
@@ -505,7 +820,6 @@ function MeOverview({
           icon={<Sparkles />}
           label="Dão Match com seu CNAE"
           value={loading ? "…" : String(matchedOpenBids.length)}
-          detail="licitações abertas compatíveis agora"
           trend={
             openBids.length > 0
               ? `${Math.round((matchedOpenBids.length / openBids.length) * 100)}% das abertas`
@@ -516,7 +830,6 @@ function MeOverview({
           icon={<Gavel />}
           label="Licitações no PNCP (CE)"
           value={loading ? "…" : String(openBids.length)}
-          detail={`${expiredCount} vencidas/encerradas recentes`}
         />
         <Metric
           icon={<TrendingUp />}
@@ -526,14 +839,12 @@ function MeOverview({
               : "Valor total em disputa"
           }
           value={loading ? "…" : formatCompactMoney(totalEstimatedOpenValue)}
-          detail={`soma estimada em ${relevantBidsForValue.length} editais`}
           tone="gold"
         />
         <Metric
           icon={<Clock3 />}
           label="Encerram em até 5 dias"
           value={loading ? "…" : String(urgentOpenBids.length)}
-          detail={`${favoriteCount} salva(s) nos seus favoritos`}
         />
       </section>
 
@@ -542,17 +853,6 @@ function MeOverview({
           <CardHeader
             title="Volume financeiro em editais abertos por município"
             subtitle="Valores estimados reais publicados no PNCP (Total x Compatível com seu CNAE)"
-            action={
-              updatedAt ? (
-                <small style={{ opacity: 0.7 }}>
-                  Atualizado às{" "}
-                  {new Date(updatedAt).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </small>
-              ) : undefined
-            }
           />
           <SpendingAreaChart
             categories={cityChartData.categories}
@@ -561,10 +861,7 @@ function MeOverview({
           />
         </article>
         <article className="dashboard-card chart-card">
-          <CardHeader
-            title="Editais abertos por modalidade"
-            subtitle="Distribuição real no PNCP agora"
-          />
+          <CardHeader title="Editais abertos por modalidade" />
           <OpportunityDonut
             labels={modalityChartData.labels}
             series={modalityChartData.series}
@@ -580,69 +877,85 @@ function MeOverview({
               ? "Licitações que deram Match com seu CNAE"
               : "Licitações abertas em destaque no PNCP"
           }
-          subtitle="Clique em uma licitação para abrir a ficha completa e acessar a disputa ou o PNCP"
           action={
             <button onClick={() => onNavigate("opportunities")}>
               Ver todas ({openBids.length}) <ArrowRight />
             </button>
           }
         />
-        <div className="recommendation-list">
-          {loading ? (
-            <p style={{ padding: "1rem 0", opacity: 0.75 }}>
-              Consultando licitações em tempo real no PNCP…
-            </p>
-          ) : recommendedBids.length === 0 ? (
-            <p style={{ padding: "1rem 0", opacity: 0.75 }}>
-              Nenhuma licitação aberta retornada no momento.
-            </p>
-          ) : (
-            recommendedBids.map((item) => (
-              <button key={item.id} onClick={() => onOpenBid(item)}>
-                <span className="match-ring">
-                  <b>{item.match.isMatch ? `${item.match.score}%` : "PNCP"}</b>
-                  <small>{item.match.isMatch ? "match" : "aberta"}</small>
-                </span>
-                <span className="recommendation-info">
-                  <small>
-                    {item.modality} • Edital nº {item.purchaseNumber}
-                  </small>
-                  <strong>{formatCleanTitle(item.object)}</strong>
-                  <em>
-                    <MapPin size={14} /> {item.city}/{item.uf} <i />{" "}
-                    {formatCleanTitle(item.unitName)}
-                  </em>
-                </span>
-                <span className="recommendation-value">
-                  <small>Valor estimado</small>
-                  <strong>{formatCurrencyBr(item.estimatedValue)}</strong>
-                  <em
-                    className={
-                      item.daysLeft !== null && item.daysLeft <= 3
-                        ? "urgent"
-                        : ""
-                    }
-                  >
-                    <CalendarClock size={14} />{" "}
-                    {item.daysLeft === null
-                      ? "Prazo no edital"
-                      : item.daysLeft <= 0
-                        ? "Encerra hoje"
-                        : `Faltam ${item.daysLeft} dias`}
-                  </em>
-                </span>
-                <ChevronRight className="row-arrow" />
-              </button>
-            ))
-          )}
-        </div>
+        {loading ? (
+          <p className="match-spotlight-empty">
+            Consultando licitações no PNCP…
+          </p>
+        ) : recommendedBids.length === 0 ? (
+          <p className="match-spotlight-empty">
+            Nenhuma licitação aberta retornada no momento.
+          </p>
+        ) : (
+          <div className="match-spotlight-grid">
+            {recommendedBids.map((item) => {
+              const { title: headline } = extractBidTitleAndSummary(item.object);
+              const deadline = formatDeadlineBadge(item);
+              const hasValue =
+                item.estimatedValue !== null &&
+                item.estimatedValue !== undefined &&
+                !Number.isNaN(item.estimatedValue) &&
+                item.estimatedValue > 0;
+
+              return (
+                <button
+                  type="button"
+                  key={item.id}
+                  className="match-spotlight-item"
+                  onClick={() => onOpenBid(item)}
+                >
+                  <div className="match-spotlight-top">
+                    <div className="match-spotlight-badges">
+                      <span
+                        className={`match-pill ${item.match.isMatch ? "is-match" : ""}`}
+                      >
+                        <Sparkles size={13} />
+                        {item.match.isMatch
+                          ? `${item.match.score}% compatível`
+                          : "Edital aberto"}
+                      </span>
+                      <span className="modality-pill">{item.modality}</span>
+                    </div>
+                    <span className={`deadline-pill ${deadline.tone}`}>
+                      <CalendarClock size={13} />
+                      {deadline.label}
+                    </span>
+                  </div>
+
+                  <strong className="match-spotlight-title">{headline}</strong>
+
+                  <div className="match-spotlight-footer">
+                    <span className="match-spotlight-location">
+                      <MapPin size={14} />
+                      <span>
+                        {formatBuyerLocation(item.city, item.uf, item.unitName)}
+                      </span>
+                    </span>
+                    <span
+                      className={`match-spotlight-price ${hasValue ? "has-value" : "is-muted"}`}
+                    >
+                      {hasValue
+                        ? formatCurrencyBr(item.estimatedValue)
+                        : "Valor no edital"}
+                      <ArrowRight size={15} />
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="dashboard-grid halves bottom-grid">
         <article className="dashboard-card compact-card">
           <CardHeader
             title="Municípios com mais editais abertos"
-            subtitle="Dados reais do PNCP no Ceará"
             action={
               <button onClick={() => onNavigate("opportunities")}>
                 Filtrar por cidade
@@ -676,7 +989,6 @@ function MeOverview({
         <article className="dashboard-card compact-card">
           <CardHeader
             title="Alertas de licitações e prazos"
-            subtitle="Baseado no seu CNAE e nos prazos do PNCP"
             action={
               <button onClick={() => onNavigate("alerts")}>
                 Abrir central de alertas
@@ -1965,7 +2277,7 @@ function PageHeading({
 }: {
   eyebrow: string;
   title: string;
-  description: string;
+  description?: string;
   action?: React.ReactNode;
 }) {
   return (
@@ -1973,7 +2285,7 @@ function PageHeading({
       <div>
         <span>{eyebrow}</span>
         <h1>{title}</h1>
-        <p>{description}</p>
+        {description && <p>{description}</p>}
       </div>
       {action}
     </header>
@@ -1991,7 +2303,7 @@ function Metric({
   icon: React.ReactNode;
   label: string;
   value: string;
-  detail: string;
+  detail?: string;
   trend?: string;
   tone?: string;
 }) {
@@ -1999,11 +2311,13 @@ function Metric({
     <article className={`metric-card ${tone ?? ""}`}>
       <div className="metric-top">
         <span>{icon}</span>
+        <small>{label}</small>
+      </div>
+      <div className="metric-value-row">
+        <b>{value}</b>
         {trend && <em>{trend}</em>}
       </div>
-      <small>{label}</small>
-      <b>{value}</b>
-      <p>{detail}</p>
+      {detail && <p>{detail}</p>}
     </article>
   );
 }

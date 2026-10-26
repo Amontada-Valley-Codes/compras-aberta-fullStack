@@ -60,11 +60,14 @@ const STOPWORDS = new Set([
   "mercadoria",
   "geral",
   "especificados",
+  "especificado",
   "anteriormente",
   "outros",
   "outras",
   "artigos",
+  "artigo",
   "equipamentos",
+  "equipamento",
   "materiais",
   "material",
   "atividades",
@@ -73,12 +76,46 @@ const STOPWORDS = new Set([
   "predominancia",
   "especializado",
   "especializada",
+  "especializados",
+  "especializadas",
   "manutencao",
+  "manutencoes",
   "reparacao",
+  "reparacoes",
   "instalacao",
+  "instalacoes",
   "fabricacao",
   "aluguel",
   "locacao",
+  "locacoes",
+  "pessoal",
+  "pessoais",
+  "domestico",
+  "domestica",
+  "domesticos",
+  "domesticas",
+  "nacional",
+  "nacionais",
+  "publico",
+  "publica",
+  "publicos",
+  "publicas",
+  "administrativo",
+  "administrativa",
+  "comercial",
+  "comerciais",
+  "industrial",
+  "industriais",
+  "profissional",
+  "profissionais",
+  "empresa",
+  "empresas",
+  "fornecimento",
+  "prestacao",
+  "contratacao",
+  "aquisicao",
+  "registro",
+  "precos",
   "para",
   "como",
   "pela",
@@ -88,6 +125,16 @@ const STOPWORDS = new Set([
   "exceto",
   "sob",
   "encomenda",
+  "uso",
+  "tipo",
+  "fins",
+  "area",
+  "areas",
+  "rede",
+  "redes",
+  "bens",
+  "pecas",
+  "partes",
 ]);
 
 // Mapa semântico que expande termos comuns de CNAE para os termos usados nos
@@ -494,31 +541,44 @@ export function evaluateBidMatch(
 
   let bestScore = 0;
   let bestCnae: string | null = null;
-  const matchedKeywordsSet = new Set<string>();
+  let bestKeywords: string[] = [];
+  const paddedBidText = ` ${bidText} `;
 
   for (const source of allCnaeSources) {
-    const normSource = normalizeText(source.text);
+    const normSource = ` ${normalizeText(source.text)} `;
     const tokens = extractTokens(source.text);
     let sourceScore = 0;
+    const sourceKeywords = new Set<string>();
 
     // 1. Correspondência direta de radicais/tokens do CNAE no objeto do edital
     for (const token of tokens) {
       const stem = token.length >= 6 ? token.slice(0, token.length - 1) : token;
-      if (bidText.includes(stem)) {
-        matchedKeywordsSet.add(token);
+      const matched =
+        stem.length <= 5
+          ? paddedBidText.includes(` ${token} `) ||
+            paddedBidText.includes(` ${stem}s `)
+          : paddedBidText.includes(` ${stem}`);
+      if (matched) {
+        sourceKeywords.add(token);
         sourceScore += source.isPrincipal ? 28 : 22;
       }
     }
 
     // 2. Correspondência semântica por segmento de compras públicas
     for (const seg of SEGMENT_SYNONYMS) {
-      const triggered = seg.triggers.some((t) => normSource.includes(t));
+      const triggered = seg.triggers.some((t) =>
+        normSource.includes(` ${normalizeText(t)}`),
+      );
       if (!triggered) continue;
 
       for (const kw of seg.keywords) {
         const normKw = normalizeText(kw);
-        if (bidText.includes(normKw)) {
-          matchedKeywordsSet.add(kw);
+        const kwMatched =
+          normKw.length <= 4
+            ? paddedBidText.includes(` ${normKw} `)
+            : paddedBidText.includes(` ${normKw}`);
+        if (kwMatched) {
+          sourceKeywords.add(kw);
           sourceScore += source.isPrincipal ? 32 : 25;
         }
       }
@@ -527,14 +587,17 @@ export function evaluateBidMatch(
     if (sourceScore > bestScore) {
       bestScore = sourceScore;
       bestCnae = source.label;
+      bestKeywords = Array.from(sourceKeywords);
     }
   }
+
+  const extraMatchedKeywords = new Set<string>(bestKeywords);
 
   // 3. Palavras-chave extras adicionadas pelo usuário no perfil
   for (const term of extraTerms) {
     const normTerm = normalizeText(term);
-    if (normTerm.length >= 3 && bidText.includes(normTerm)) {
-      matchedKeywordsSet.add(term);
+    if (normTerm.length >= 3 && paddedBidText.includes(` ${normTerm}`)) {
+      extraMatchedKeywords.add(term);
       bestScore += 35;
       if (!bestCnae) {
         bestCnae = `Palavra-chave: ${term}`;
@@ -543,14 +606,13 @@ export function evaluateBidMatch(
   }
 
   if (bestScore > 0) {
-    // Bônus se for no mesmo município da empresa ou modalidade Pregão/Dispensa
     if (sameCity) bestScore += 12;
     const finalScore = Math.min(98, Math.max(62, bestScore));
     return {
       isMatch: true,
       score: finalScore,
       matchedCnae: bestCnae,
-      matchedKeywords: Array.from(matchedKeywordsSet).slice(0, 5),
+      matchedKeywords: Array.from(extraMatchedKeywords).slice(0, 5),
       sameCity,
     };
   }

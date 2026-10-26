@@ -43,9 +43,9 @@ function getPrefsStorageKey(cnpj?: string | null) {
   return `compras-abertas:me-cnae-prefs:${clean || "default"}`;
 }
 
-export function useUserProfile() {
+export function useUserProfile({ skip = false }: { skip?: boolean } = {}) {
   const [profile, setProfile] = useState<UserProfile | null>(cachedProfile);
-  const [loading, setLoading] = useState(!cachedProfile);
+  const [loading, setLoading] = useState(!cachedProfile && !skip);
   const [error, setError] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<CompanyCnaePreferences>({
     customCnaeText: "",
