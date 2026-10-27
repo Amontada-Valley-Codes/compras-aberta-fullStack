@@ -88,7 +88,7 @@ const validationErrorResponse: JsonSchema = {
     "Parâmetros inválidos. `issues.fieldErrors` traz, por campo, a lista de problemas encontrados.",
   type: "object",
   properties: {
-    message: { type: "string", example: "Validation error" },
+    message: { type: "string", example: "Validation" },
     issues: {
       type: "object",
       properties: {
