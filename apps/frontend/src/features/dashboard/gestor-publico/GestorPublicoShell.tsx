@@ -5,7 +5,6 @@ import {
   Building2,
   FileBarChart,
   LayoutDashboard,
-  Map,
   Scale,
   Users,
 } from "lucide-react";
@@ -16,7 +15,6 @@ const items: NavItem[] = [
   { id: "municipios", label: "Municípios", icon: <Building2 size={19} /> },
   { id: "fornecedores", label: "Fornecedores", icon: <Users size={19} /> },
   { id: "comparativos", label: "Comparativos", icon: <Scale size={19} /> },
-  { id: "diagnostico-territorial", label: "Diagnóstico territorial", icon: <Map size={19} /> },
   { id: "relatorios", label: "Relatórios", icon: <FileBarChart size={19} /> },
 ];
 
