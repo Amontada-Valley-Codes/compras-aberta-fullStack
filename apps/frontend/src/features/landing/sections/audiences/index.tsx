@@ -34,7 +34,7 @@ const audienceCards: AudienceCard[] = [
     description:
       "Receba alertas de oportunidades personalizados para sua empresa e tenha acesso a todas as licitações disponíveis na plataforma. Conheça o histórico de compras dos municípios e os prazos de pagamento para planejar suas vendas com mais confiança.",
     cta: "Explorar oportunidades",
-    href: "/auth/login?perfil=me",
+    href: "/me",
     icon: "business",
     tone: "gold",
   },
