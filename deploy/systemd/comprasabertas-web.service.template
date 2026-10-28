@@ -8,10 +8,11 @@ After=network.target comprasabertas-api.service
 Type=simple
 User=__APP_USER__
 WorkingDirectory=__APP_DIR__/web
-Environment=NODE_ENV=production
-Environment=PORT=3000
-Environment=HOSTNAME=127.0.0.1
-ExecStart=/usr/local/bin/node server.js
+EnvironmentFile=-__APP_DIR__/../.comprasabertas.env
+EnvironmentFile=-__APP_DIR__/.env
+EnvironmentFile=-__APP_DIR__/api/.env
+Environment="PATH=/home/__APP_USER__/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/bin/env NODE_ENV=production PORT=3000 HOSTNAME=127.0.0.1 API_BASE_URL=http://127.0.0.1:3001 BACKEND_URL=http://127.0.0.1:3001 /usr/local/bin/node apps/frontend/server.js
 Restart=on-failure
 RestartSec=5s
 TimeoutStopSec=30s

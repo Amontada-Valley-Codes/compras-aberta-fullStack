@@ -12,19 +12,30 @@ SITE_NOME="comprasabertas-app"
 cd "$DIR"
 
 echo "==> api: dependências de produção"
-(cd api && npm ci --omit=dev --no-audit --no-fund)
+mkdir -p api/uploads api/dist/uploads
+(cd api && npm install --omit=dev --ignore-scripts --no-audit --no-fund)
 
+if [ -f .env ]; then
+  ln -sfn "$DIR/.env" "$DIR/api/.env"
+elif [ -f ../.comprasabertas.env ]; then
+  ln -sfn "$(cd .. && pwd)/.comprasabertas.env" "$DIR/api/.env"
+elif [ ! -f api/.env ]; then
+  echo "AVISO: não existe $DIR/.env; defina DATABASE_URL e JWT_SECRET no servidor"
+fi
 
-[ -f .env ] || echo "AVISO: não existe $DIR/.env; o serviço de dados vai usar o CSV de exemplo"
+echo "==> desativando serviços de exemplo antigos (se existirem)"
+for old in atlas-web atlas-api atlas-data comprasabertas-data; do
+  sudo systemctl disable --now "$old" >/dev/null 2>&1 || true
+done
 
 echo "==> systemd: instalando as units"
-for s in web api data; do
+for s in web api; do
   sed -e "s#__APP_DIR__#$DIR#g" -e "s#__APP_USER__#$APP_USER#g" "deploy/systemd/comprasabertas-$s.service.template" \
     | sudo tee "/etc/systemd/system/comprasabertas-$s.service" >/dev/null
 done
 sudo systemctl daemon-reload
-sudo systemctl enable  comprasabertas-api comprasabertas-web >/dev/null 2>&1
-sudo systemctl restart  comprasabertas-api comprasabertas-web
+sudo systemctl enable comprasabertas-api comprasabertas-web >/dev/null 2>&1
+sudo systemctl restart comprasabertas-api comprasabertas-web
 
 echo "==> nginx: site $SITE_NOME"
 SITE="/etc/nginx/sites-available/$SITE_NOME"
@@ -58,9 +69,9 @@ fi
 
 echo "==> conferindo se subiu"
 for i in 1 2 3 4 5 6; do
-  if curl -fsS http://127.0.0.1:3001/api/health >/dev/null; then break; fi
-  echo "aguardando a api... ($i)"; sleep 3
+  if curl -fsS http://127.0.0.1:3001/api/health >/dev/null 2>&1 && curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1; then break; fi
+  echo "aguardando api/web... ($i)"; sleep 3
 done
 echo -n "api direta:      "; curl -fsS http://127.0.0.1:3001/api/health; echo
 echo -n "via nginx local: "; curl -fsS -H "Host: $DOMINIO" http://127.0.0.1/api/health; echo
-sudo systemctl is-active  comprasabertas-api comprasabertas-web
+sudo systemctl is-active comprasabertas-api comprasabertas-web
