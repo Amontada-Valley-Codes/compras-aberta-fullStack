@@ -3,16 +3,18 @@
 import { useMemo, useState } from "react";
 import * as Select from "@radix-ui/react-select";
 import {
+  ArrowUpDown,
   CalendarDays,
   ChartNoAxesColumnIncreasing,
   Check,
   ChevronDown,
   ChevronUp,
+  Gavel,
   MapPinned,
   ReceiptText,
 } from "lucide-react";
 
-type FilterIcon = "municipality" | "nature" | "year";
+type FilterIcon = "municipality" | "nature" | "year" | "modality" | "sort";
 
 interface FilterOption {
   value: string;
@@ -26,7 +28,7 @@ interface PublicFilterSelectProps {
   options: FilterOption[];
   defaultValue?: string;
   icon: FilterIcon;
-  variant: "landing" | "analysis";
+  variant?: "landing" | "analysis" | "dashboard";
   disabled?: boolean;
   value?: string;
   onValueChange?: (value: string) => void;
@@ -41,7 +43,7 @@ export function PublicFilterSelect({
   options,
   defaultValue = "",
   icon,
-  variant,
+  variant = "analysis",
   disabled = false,
   value: controlledValue,
   onValueChange,
@@ -55,9 +57,13 @@ export function PublicFilterSelect({
       ? MapPinned
       : icon === "year"
         ? CalendarDays
-        : variant === "landing"
-          ? ReceiptText
-          : ChartNoAxesColumnIncreasing;
+        : icon === "modality"
+          ? Gavel
+          : icon === "sort"
+            ? ArrowUpDown
+            : variant === "landing"
+              ? ReceiptText
+              : ChartNoAxesColumnIncreasing;
   const visibleOptions = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
     return term
@@ -72,7 +78,7 @@ export function PublicFilterSelect({
       : options.find((item) => item.value === value)?.label;
 
   return (
-    <div className="public-filter-select">
+    <div className={`public-filter-select ${variant === "dashboard" ? "is-dashboard" : ""}`}>
       <input
         type="hidden"
         name={name}
@@ -103,7 +109,7 @@ export function PublicFilterSelect({
         </Select.Trigger>
         <Select.Portal>
           <Select.Content
-            className="public-filter-content"
+            className={`public-filter-content ${variant === "dashboard" ? "is-dashboard" : ""}`}
             position="popper"
             sideOffset={6}
             collisionPadding={12}

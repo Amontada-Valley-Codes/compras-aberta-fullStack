@@ -13,7 +13,8 @@ interface OpenCnpjResponse {
   nome_fantasia: string;
   situacao_cadastral: string;
   porte_empresa: string;
-  cnaes?: { descricao: string; is_principal: boolean }[];
+  cnae_principal?: string;
+  cnaes?: { codigo?: string; descricao: string; is_principal: boolean }[];
   municipio: string;
   uf: string;
   email: string;
@@ -87,14 +88,25 @@ const cnpjService = {
   async find({ cnpj }: FindCnpjDTO) {
     const data = await cnpjCache.getOrLoad(cnpj, () => fetchCnpj(cnpj));
 
+    const cnaes = (data.cnaes ?? []).map((item) => ({
+      codigo: item.codigo ?? (item.is_principal ? data.cnae_principal ?? "" : ""),
+      descricao: item.descricao,
+      isPrincipal: Boolean(item.is_principal),
+    }));
+
+    const principal = cnaes.find((cnae) => cnae.isPrincipal) ?? cnaes[0] ?? null;
+
     return {
       cnpj: data.cnpj,
       razaoSocial: data.razao_social,
       nomeFantasia: data.nome_fantasia || null,
       situacaoCadastral: data.situacao_cadastral,
       porte: data.porte_empresa || null,
-      atividadePrincipal:
-        data.cnaes?.find((cnae) => cnae.is_principal)?.descricao ?? null,
+      atividadePrincipal: principal?.descricao ?? null,
+      cnaePrincipal: principal
+        ? { codigo: principal.codigo, descricao: principal.descricao }
+        : null,
+      cnaes,
       municipio: {
         nome: data.municipio,
         uf: data.uf,

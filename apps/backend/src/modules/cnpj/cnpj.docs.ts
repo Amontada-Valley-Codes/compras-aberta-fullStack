@@ -34,6 +34,32 @@ const findCnpjDocs = {
         "Descrição do CNAE principal.",
         "Comércio varejista de mercadorias em geral",
       ),
+      cnaePrincipal: {
+        type: "object",
+        nullable: true,
+        description: "Código e descrição do CNAE principal.",
+        properties: {
+          codigo: field.string("Código CNAE.", "4711302"),
+          descricao: field.string(
+            "Descrição do CNAE.",
+            "Comércio varejista de mercadorias em geral",
+          ),
+        },
+        required: ["codigo", "descricao"],
+      },
+      cnaes: {
+        type: "array",
+        description: "Lista de CNAEs (principal e secundários) registrados na Receita.",
+        items: object("Item de CNAE.", {
+          codigo: field.string("Código CNAE.", "4711302"),
+          descricao: field.string("Descrição da atividade.", "Comércio varejista de mercadorias em geral"),
+          isPrincipal: {
+            type: "boolean",
+            description: "Indica se é o CNAE principal.",
+            example: true,
+          },
+        }),
+      },
       municipio: object("Município do endereço.", {
         nome: field.string("Nome como gravado na Receita.", "AMONTADA"),
         uf: field.string("UF.", "CE"),
