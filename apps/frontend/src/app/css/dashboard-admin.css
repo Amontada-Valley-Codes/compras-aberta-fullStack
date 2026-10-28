@@ -1062,13 +1062,16 @@
     grid-row: 1/3;
   }
 
+  .opp-card-footer,
   .opportunity-results footer {
-    gap: 13px;
+    gap: 12px;
     flex-wrap: wrap;
   }
 
+  .opp-card-cta,
   .opportunity-results footer button {
     width: 100%;
+    justify-content: center;
     margin: 0;
   }
 

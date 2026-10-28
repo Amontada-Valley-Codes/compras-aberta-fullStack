@@ -567,36 +567,6 @@
   font-size: 15px;
 }
 
-.opportunity-results h2 {
-  font-size: 20px;
-}
-
-.opportunity-results article>p {
-  font-size: 15px;
-}
-
-.opportunity-results article > small {
-  font-size: 12px;
-}
-
-.match-pill {
-  font-size: 12px;
-  padding: 6px 11px;
-}
-
-.reason-list span {
-  font-size: 12.5px;
-  padding: 6px 10px;
-}
-
-.opportunity-results footer small {
-  font-size: 12px;
-}
-
-.opportunity-results footer b {
-  font-size: 15px;
-}
-
 .admin-table th {
   font-size: 12px;
 }

@@ -15,7 +15,6 @@ import {
   Clock3,
   ExternalLink,
   FileText,
-  Filter,
   Gavel,
   Heart,
   LayoutDashboard,
@@ -33,6 +32,7 @@ import {
   type EnrichedMeBid,
   type MePncpBid,
 } from "./me/cnae-match";
+import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { useUserProfile, type CompanyCnae } from "@/hooks/useUserProfile";
 import { formatCnpj } from "@/lib/format-br";
 import { openDocumentInNewTab } from "@/utils/openInNewTab";
@@ -324,7 +324,7 @@ function extractBidTitleAndSummary(raw: string): {
   // Remove sufixos burocráticos longos do título principal (eles continuam visíveis no resumo/ficha)
   headline = headline
     .replace(
-      /[.,;]\s*(?:conforme|de acordo com|segundo|nos termos d[oa]|em conformidade com)\s+(?:as\s+)?(?:especificações|condições|quantidades|exigências|termo de referência|edital|anexo).*$/i,
+      /[.,;]\s*(?:conforme|de acordo com|segundo|nos termos d[oa]|em conformidade com)\s+(?:as\s+|os\s+|a\s+|o\s+)?(?:especificações|condições|quantidades|exigências|termo de referência|edital|anexo|lei|decreto).*$/i,
       "",
     )
     .trim();
@@ -593,13 +593,13 @@ export function MeDashboard({
       },
       {
         id: "opportunities",
-        label: "Licitações PNCP",
+        label: "Licitações",
         icon: <Gavel size={19} />,
         badge: openBids.length > 0 ? String(openBids.length) : undefined,
       },
       {
         id: "alerts",
-        label: "Alertas (Match CNAE)",
+        label: "Alertas",
         icon: <Bell size={19} />,
         badge:
           matchedOpenBids.length > 0
@@ -661,7 +661,6 @@ export function MeDashboard({
           selected={selectedBid}
           onSelect={(bid) => setSelectedBidId(bid ? bid.id : null)}
           companyCnaes={companyCnaes}
-          onNavigate={navigate}
         />
       )}
       {active === "favorites" && (
@@ -674,7 +673,6 @@ export function MeDashboard({
           selected={selectedBid}
           onSelect={(bid) => setSelectedBidId(bid ? bid.id : null)}
           companyCnaes={companyCnaes}
-          onNavigate={navigate}
           favoritesOnly
         />
       )}
@@ -1078,7 +1076,6 @@ function Opportunities({
   selected,
   onSelect,
   companyCnaes,
-  onNavigate,
   favoritesOnly = false,
 }: {
   bids: EnrichedMeBid[];
@@ -1089,7 +1086,6 @@ function Opportunities({
   selected: EnrichedMeBid | null;
   onSelect: (bid: EnrichedMeBid | null) => void;
   companyCnaes: CompanyCnae[];
-  onNavigate: (id: string) => void;
   favoritesOnly?: boolean;
 }) {
   const [query, setQuery] = useState("");
@@ -1097,24 +1093,28 @@ function Opportunities({
     "open",
   );
   const [onlyCnaeMatch, setOnlyCnaeMatch] = useState(false);
-  const [cityFilter, setCityFilter] = useState("Todos");
-  const [modalityFilter, setModalityFilter] = useState("Todas");
+  const [cityFilter, setCityFilter] = useState("");
+  const [modalityFilter, setModalityFilter] = useState("");
   const [sortBy, setSortBy] = useState<"match" | "deadline" | "value">("match");
 
-  const cities = useMemo(() => {
+  const cityOptions = useMemo(() => {
     const set = new Set<string>();
     for (const b of bids) {
       if (b.city) set.add(b.city);
     }
-    return ["Todos", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+    return Array.from(set)
+      .sort((a, b) => a.localeCompare(b, "pt-BR"))
+      .map((city) => ({ value: city, label: city }));
   }, [bids]);
 
-  const modalities = useMemo(() => {
+  const modalityOptions = useMemo(() => {
     const set = new Set<string>();
     for (const b of bids) {
       if (b.modality) set.add(b.modality);
     }
-    return ["Todas", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+    return Array.from(set)
+      .sort((a, b) => a.localeCompare(b, "pt-BR"))
+      .map((mod) => ({ value: mod, label: mod }));
   }, [bids]);
 
   const filteredList = useMemo(() => {
@@ -1124,9 +1124,8 @@ function Opportunities({
       if (statusFilter === "open" && !item.isOpen) return false;
       if (statusFilter === "expired" && item.isOpen) return false;
       if (onlyCnaeMatch && !item.match.isMatch) return false;
-      if (cityFilter !== "Todos" && item.city !== cityFilter) return false;
-      if (modalityFilter !== "Todas" && item.modality !== modalityFilter)
-        return false;
+      if (cityFilter && item.city !== cityFilter) return false;
+      if (modalityFilter && item.modality !== modalityFilter) return false;
       if (q) {
         const hay =
           `${item.object} ${item.purchaseNumber} ${item.process ?? ""} ${item.agencyName} ${item.city} ${item.modality}`.toLowerCase();
@@ -1174,6 +1173,9 @@ function Opportunities({
 
   const openCount = bids.filter((b) => b.isOpen).length;
   const expiredCount = bids.length - openCount;
+  const hasActiveFilters = Boolean(
+    query.trim() || cityFilter || modalityFilter || onlyCnaeMatch,
+  );
 
   return (
     <div className="dashboard-page">
@@ -1189,123 +1191,138 @@ function Opportunities({
             ? "Acompanhe os editais que você salvou para analisar ou disputar."
             : "Consulte editais abertos e vencidos diretamente do PNCP, filtre pelo Match com o CNAE da sua empresa e acesse o portal de disputa."
         }
-        action={
-          !favoritesOnly ? (
-            <button
-              className="ds-button secondary"
-              onClick={() => onNavigate("alerts")}
-            >
-              <Bell size={17} /> Ver alertas de Match CNAE
-            </button>
-          ) : undefined
-        }
       />
 
-      {/* Abas rápidas de Status: Abertas x Vencidas x Todas */}
-      <section
-        className="dashboard-card"
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          padding: "14px 18px",
-        }}
-      >
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <section className="dashboard-card opp-toolbar">
+        <div className="opp-toolbar-top">
+          <div
+            className="opp-status-tabs"
+            role="tablist"
+            aria-label="Filtrar por situação da licitação"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === "open"}
+              className={`opp-status-tab ${statusFilter === "open" ? "is-active" : ""}`}
+              onClick={() => setStatusFilter("open")}
+            >
+              Abertas <span>{openCount}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === "expired"}
+              className={`opp-status-tab ${statusFilter === "expired" ? "is-active" : ""}`}
+              onClick={() => setStatusFilter("expired")}
+            >
+              Encerradas <span>{expiredCount}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === "all"}
+              className={`opp-status-tab ${statusFilter === "all" ? "is-active" : ""}`}
+              onClick={() => setStatusFilter("all")}
+            >
+              Todas <span>{bids.length}</span>
+            </button>
+          </div>
+
           <button
             type="button"
-            className={`ds-button ${statusFilter === "open" ? "primary" : "secondary"}`}
-            onClick={() => setStatusFilter("open")}
+            role="switch"
+            aria-checked={onlyCnaeMatch}
+            className={`opp-match-switch ${onlyCnaeMatch ? "is-active" : ""}`}
+            onClick={() => setOnlyCnaeMatch((prev) => !prev)}
           >
-            Abertas para propostas ({openCount})
-          </button>
-          <button
-            type="button"
-            className={`ds-button ${statusFilter === "expired" ? "primary" : "secondary"}`}
-            onClick={() => setStatusFilter("expired")}
-          >
-            Vencidas / Encerradas ({expiredCount})
-          </button>
-          <button
-            type="button"
-            className={`ds-button ${statusFilter === "all" ? "primary" : "secondary"}`}
-            onClick={() => setStatusFilter("all")}
-          >
-            Todas ({bids.length})
+            <Sparkles size={15} />
+            <span>Compatíveis com meu CNAE</span>
+            <i aria-hidden="true" />
           </button>
         </div>
 
-        <label
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "0.9rem",
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={onlyCnaeMatch}
-            onChange={(e) => setOnlyCnaeMatch(e.target.checked)}
-          />
-          <Sparkles size={16} /> Somente compatíveis com meu CNAE (Match)
-        </label>
-      </section>
+        <div className="opp-toolbar-controls">
+          <label className="opp-search-field">
+            <Search size={18} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar por objeto, edital ou órgão…"
+            />
+            {query && (
+              <button
+                type="button"
+                className="opp-search-clear"
+                onClick={() => setQuery("")}
+                aria-label="Limpar busca"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </label>
 
-      <section className="dashboard-card filter-bar">
-        <label>
-          <Search />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por objeto, número da compra ou órgão comprador…"
+          <PublicFilterSelect
+            name="municipio"
+            label="Município"
+            allLabel="Todos (CE)"
+            icon="municipality"
+            variant="dashboard"
+            value={cityFilter}
+            options={cityOptions}
+            onValueChange={setCityFilter}
           />
-        </label>
-        <select
-          value={cityFilter}
-          onChange={(event) => setCityFilter(event.target.value)}
-          aria-label="Filtrar por município"
-        >
-          {cities.map((c) => (
-            <option key={c} value={c}>
-              {c === "Todos" ? "Município: Todos (CE)" : c}
-            </option>
-          ))}
-        </select>
-        <select
-          value={modalityFilter}
-          onChange={(event) => setModalityFilter(event.target.value)}
-          aria-label="Filtrar por modalidade"
-        >
-          {modalities.map((m) => (
-            <option key={m} value={m}>
-              {m === "Todas" ? "Modalidade: Todas" : m}
-            </option>
-          ))}
-        </select>
-      </section>
 
-      <div className="result-summary">
-        <p>
-          <b>{filteredList.length} licitações</b> exibidas
-        </p>
-        <span>
-          Ordenar por{" "}
-          <select
+          <PublicFilterSelect
+            name="modalidade"
+            label="Modalidade"
+            allLabel="Todas"
+            icon="modality"
+            variant="dashboard"
+            value={modalityFilter}
+            options={modalityOptions}
+            onValueChange={setModalityFilter}
+          />
+
+          <PublicFilterSelect
+            name="ordenar"
+            label="Ordenar por"
+            icon="sort"
+            variant="dashboard"
             value={sortBy}
-            onChange={(e) =>
-              setSortBy(e.target.value as "match" | "deadline" | "value")
+            options={[
+              { value: "match", label: "Maior compatibilidade" },
+              { value: "deadline", label: "Prazo mais próximo" },
+              { value: "value", label: "Maior valor" },
+            ]}
+            onValueChange={(val) =>
+              setSortBy((val as "match" | "deadline" | "value") || "match")
             }
+          />
+        </div>
+      </section>
+
+      <div className="opp-results-meta">
+        <p>
+          <b>{filteredList.length}</b>{" "}
+          {filteredList.length === 1
+            ? "licitação encontrada"
+            : "licitações encontradas"}
+        </p>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            className="opp-clear-filters"
+            onClick={() => {
+              setQuery("");
+              setCityFilter("");
+              setModalityFilter("");
+              setOnlyCnaeMatch(false);
+            }}
           >
-            <option value="match">Maior compatibilidade (CNAE)</option>
-            <option value="deadline">Prazo de encerramento</option>
-            <option value="value">Maior valor estimado</option>
-          </select>
-        </span>
+            Limpar filtros
+          </button>
+        )}
       </div>
 
       {error && (
@@ -1324,114 +1341,104 @@ function Opportunities({
         </section>
       ) : (
         <section className="opportunity-results">
-          {filteredList.map((item) => (
-            <article
-              key={item.id}
-              onClick={() => onSelect(item)}
-              style={{ cursor: "pointer" }}
-            >
-              <div className="result-head">
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <span
-                    className="match-pill"
-                    style={{
-                      background: item.isOpen
-                        ? "rgba(22, 163, 74, 0.12)"
-                        : "rgba(100, 116, 139, 0.15)",
-                      color: item.isOpen ? "#15803d" : "#475569",
-                    }}
-                  >
-                    {item.isOpen ? "● Aberta" : "● Vencida / Encerrada"}
-                  </span>
-                  {item.match.isMatch && (
-                    <span className="match-pill">
-                      <Sparkles /> {item.match.score}% Match CNAE
+          {filteredList.map((item) => {
+            const { title: headline } = extractBidTitleAndSummary(item.object);
+            const deadline = formatDeadlineBadge(item);
+            const hasValue =
+              item.estimatedValue !== null &&
+              item.estimatedValue !== undefined &&
+              !Number.isNaN(item.estimatedValue) &&
+              item.estimatedValue > 0;
+            const isFav = favorites.has(item.id);
+
+            return (
+              <article
+                key={item.id}
+                className="opp-card"
+                onClick={() => onSelect(item)}
+              >
+                <div className="opp-card-top">
+                  <div className="opp-card-badges">
+                    {item.match.isMatch && (
+                      <span className="match-pill is-match">
+                        <Sparkles size={13} />
+                        {item.match.score}% compatível
+                      </span>
+                    )}
+                    <span className="modality-pill">{item.modality}</span>
+                    <span className={`deadline-pill ${deadline.tone}`}>
+                      <CalendarClock size={13} />
+                      {deadline.label}
                     </span>
-                  )}
-                </div>
-                <button
-                  className={favorites.has(item.id) ? "favorited" : ""}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleFavorite(item.id);
-                  }}
-                  aria-label={
-                    favorites.has(item.id)
-                      ? "Remover dos favoritos"
-                      : "Adicionar aos favoritos"
-                  }
-                >
-                  <Heart
-                    fill={favorites.has(item.id) ? "currentColor" : "none"}
-                  />
-                </button>
-              </div>
-              <small>
-                {item.modality} • Edital nº {item.purchaseNumber}
-              </small>
-              <h2>{formatCleanTitle(item.object)}</h2>
-              <p>
-                <MapPin /> {item.city}/{item.uf} — {formatCleanTitle(item.unitName)}
-              </p>
-              <div className="reason-list">
-                {item.match.isMatch ? (
-                  <span>
-                    <Check /> Dá Match com seu CNAE
-                    {item.match.matchedKeywords.length > 0
-                      ? ` (${item.match.matchedKeywords.slice(0, 2).join(", ")})`
-                      : ""}
-                  </span>
-                ) : (
-                  <span>
-                    <Filter size={13} /> Outra área de atuação
-                  </span>
-                )}
-                {item.srp && (
-                  <span>
-                    <Check /> Registro de Preços (SRP)
-                  </span>
-                )}
-                {item.disputeUrl && (
-                  <span>
-                    <ExternalLink size={13} />{" "}
-                    {item.systemName ?? "Portal de disputa disponível"}
-                  </span>
-                )}
-              </div>
-              <footer>
-                <span>
-                  <small>Valor estimado</small>
-                  <b>{formatCurrencyBr(item.estimatedValue)}</b>
-                </span>
-                <span>
-                  <small>
-                    {item.isOpen ? "Propostas até" : "Encerrou em"}
-                  </small>
-                  <b
-                    className={
-                      item.isOpen &&
-                      item.daysLeft !== null &&
-                      item.daysLeft <= 3
-                        ? "deadline"
-                        : ""
+                  </div>
+                  <button
+                    type="button"
+                    className={`opp-fav-btn ${isFav ? "favorited" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleFavorite(item.id);
+                    }}
+                    aria-label={
+                      isFav
+                        ? "Remover dos favoritos"
+                        : "Adicionar aos favoritos"
                     }
                   >
-                    {formatDateBr(item.closingAt ?? item.publishedAt, false)}
-                  </b>
-                </span>
-                <button
-                  type="button"
-                  className="ds-button primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelect(item);
-                  }}
-                >
-                  Ver licitação <ArrowRight />
-                </button>
-              </footer>
-            </article>
-          ))}
+                    <Heart size={16} fill={isFav ? "currentColor" : "none"} />
+                  </button>
+                </div>
+
+                <div className="opp-card-body">
+                  <h2 className="opp-card-title">{headline}</h2>
+                  <p className="opp-card-location">
+                    <MapPin size={14} />
+                    <span>
+                      {formatBuyerLocation(item.city, item.uf, item.unitName)}
+                    </span>
+                  </p>
+                </div>
+
+                <footer className="opp-card-footer">
+                  <div className="opp-card-meta">
+                    <span>
+                      <small>Valor estimado</small>
+                      <strong className={hasValue ? "" : "is-muted"}>
+                        {hasValue
+                          ? formatCurrencyBr(item.estimatedValue)
+                          : "No edital"}
+                      </strong>
+                    </span>
+                    <span>
+                      <small>
+                        {item.isOpen ? "Propostas até" : "Encerrou em"}
+                      </small>
+                      <strong
+                        className={
+                          item.isOpen &&
+                          item.daysLeft !== null &&
+                          item.daysLeft <= 3
+                            ? "is-urgent"
+                            : ""
+                        }
+                      >
+                        {formatDateBr(item.closingAt ?? item.publishedAt, false)}
+                      </strong>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="opp-card-cta"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelect(item);
+                    }}
+                  >
+                    Ver licitação <ArrowRight size={15} />
+                  </button>
+                </footer>
+              </article>
+            );
+          })}
         </section>
       )}
 

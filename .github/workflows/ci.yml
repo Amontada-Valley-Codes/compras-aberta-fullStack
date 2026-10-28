@@ -1,0 +1,38 @@
+name: CI
+
+# Roda em todo Pull Request para a main e também é reaproveitado pelo deploy (workflow_call).
+# Node 24 e Python 3.12 são as mesmas versões instaladas nos containers das squads.
+on:
+  pull_request:
+    branches: [main]
+  workflow_call:
+
+jobs:
+  web:
+    name: web (Next)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run build
+      
+
+  api:
+    name: api (fastify)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm i
+      - run: npm run build:backend
+
+  
