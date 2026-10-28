@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ArrowLeft,
@@ -114,7 +115,9 @@ export function MeDashboard({
         />
       )}
       {active === "documents" && <Documents />}
-      {active === "alerts" && <Alerts />}
+      {active === "alerts" && (
+        <Alerts onNavigate={navigate} onOpenOpportunity={openOpportunity} />
+      )}
       {active === "profile" && <CompanyProfile />}
     </AppShell>
   );
@@ -130,6 +133,7 @@ function MeOverview({
   favoriteCount: number;
 }) {
   const { profile } = useUserProfile();
+  const router = useRouter();
 
   const userFirstName = profile?.name?.trim().split(" ")[0] || "Empresário(a)";
   const companyName = profile?.business?.nome_empresa || "sua empresa";
@@ -257,7 +261,7 @@ function MeOverview({
           <CardHeader
             title="Municípios em destaque"
             subtitle="Maior demanda no seu segmento"
-            action={<button>Ver análise</button>}
+            action={<button onClick={() => router.push("/analise")}>Ver análise</button>}
           />
           {[
             ["Amontada", "R$ 684 mil", "12 oportunidades", 92],
@@ -815,7 +819,19 @@ function Documents() {
   );
 }
 
-function Alerts() {
+function Alerts({
+  onNavigate,
+  onOpenOpportunity,
+}: {
+  onNavigate: (id: string) => void;
+  onOpenOpportunity: (item: Opportunity) => void;
+}) {
+  // Abre a oportunidade citada no alerta (dados de demonstração).
+  const openById = (id: string) => {
+    const item = opportunities.find((opportunity) => opportunity.id === id);
+    if (item) onOpenOpportunity(item);
+  };
+
   return (
     <div className="dashboard-page">
       <PageHeading
@@ -836,7 +852,7 @@ function Alerts() {
                 Aquisição de gêneros para alimentação escolar • Amontada
               </small>
             </div>
-            <button>Ver oportunidade</button>
+            <button onClick={() => openById("OP-2048")}>Ver oportunidade</button>
           </span>
           <span>
             <i className="blue">
@@ -849,7 +865,7 @@ function Alerts() {
                 Manutenção de computadores e rede municipal • Itarema
               </small>
             </div>
-            <button>Ver oportunidade</button>
+            <button onClick={() => openById("OP-2071")}>Ver oportunidade</button>
           </span>
           <span>
             <i className="green">
@@ -860,7 +876,7 @@ function Alerts() {
               <b>Seu cartão CNPJ foi validado</b>
               <small>A equipe concluiu a análise ontem, às 16:40</small>
             </div>
-            <button>Ver documentos</button>
+            <button onClick={() => onNavigate("documents")}>Ver documentos</button>
           </span>
         </div>
         <aside className="dashboard-card alert-settings">
@@ -875,7 +891,9 @@ function Alerts() {
               <Check /> {item}
             </span>
           ))}
-          <button className="ds-button secondary">Editar preferências</button>
+          <button className="ds-button secondary" onClick={() => onNavigate("profile")}>
+            Editar preferências
+          </button>
         </aside>
       </section>
     </div>
