@@ -169,7 +169,7 @@ export const Login = ({ next }: { next?: string }) => {
                 <input type='checkbox' />
                 Lembrar-me
               </label>
-              <Link href='#' className='auth-forgot'>
+              <Link href='/contato#acesso' className='auth-forgot'>
                 Esqueceu a senha?
               </Link>
             </div>

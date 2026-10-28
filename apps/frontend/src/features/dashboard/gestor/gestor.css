@@ -43,15 +43,30 @@
   gap: 20px;
   min-height: 76px;
 }
+/* Nome da prefeitura, que também é o seletor de município (botão do Radix). */
 .gs-topbar-city {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
-  padding-left: 20px;
+  padding: 4px 0 4px 20px;
+  border: 0;
   border-left: 1px solid var(--line);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-.gs-topbar-city > svg {
+.gs-topbar-city[data-disabled] {
+  cursor: progress;
+}
+.gs-topbar-city:focus-visible {
+  outline: 2px solid #22b8cf;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+.gs-topbar-city > svg:first-child {
   flex: none;
   width: 38px;
   height: 38px;
@@ -59,10 +74,25 @@
   border-radius: 12px;
   background: #eef0ff;
   color: var(--brand-navy);
+  transition: background 0.2s ease;
 }
-.gs-topbar-city span {
+.gs-topbar-city:hover > svg:first-child,
+.gs-topbar-city[data-state="open"] > svg:first-child {
+  background: #e2e6ff;
+}
+.gs-topbar-city > span {
   display: grid;
   min-width: 0;
+}
+.gs-topbar-city-chevron {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: #768692;
+  transition: transform 0.2s ease;
+}
+.gs-topbar-city[data-state="open"] .gs-topbar-city-chevron {
+  transform: rotate(180deg);
 }
 .gs-topbar-city small {
   font-size: 11px;
@@ -91,9 +121,6 @@
 }
 .gs-filter:last-child {
   border-right: 0;
-}
-.gs-filter--municipality {
-  width: 230px;
 }
 .gs-filter--year {
   width: 128px;
@@ -1702,9 +1729,6 @@
   .gs-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .gs-app .gs-topbar-city {
-    display: none;
-  }
 }
 @media (max-width: 900px) {
   /* O menu vira gaveta e passa a cobrir também o cabeçalho. */
@@ -1725,14 +1749,17 @@
     flex-wrap: wrap;
     padding-block: 12px;
   }
-  .gs-topbar-filters {
+  /* Segunda linha: prefeitura (seletor) e ano. */
+  .gs-topbar-city {
     order: 3;
-    width: 100%;
-    margin-left: 0;
+    /* A base larga força a quebra de linha; sobra espaço só para o ano. */
+    flex: 1 1 calc(100% - 160px);
+    padding-left: 0;
+    border-left: 0;
   }
-  .gs-filter--municipality {
-    flex: 1;
-    width: auto;
+  .gs-topbar-filters {
+    order: 4;
+    margin-left: 0;
   }
   .gs-topbar-actions {
     margin-left: auto;
@@ -1742,8 +1769,20 @@
   .gs-container {
     width: calc(100% - 32px);
   }
-  .gs-topbar-city {
+  /* No celular o nome da prefeitura fica com o espaço do ícone. */
+  .gs-topbar-inner {
+    column-gap: 12px;
+  }
+  .gs-topbar-city > svg:first-child {
     display: none;
+  }
+  .gs-topbar-city small {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .gs-topbar-city b {
+    font-size: 15px;
   }
   .gs-print-button span,
   .gs-logout-button span,

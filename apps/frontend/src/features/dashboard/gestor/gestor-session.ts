@@ -13,9 +13,9 @@ interface MeResponse {
 }
 
 export type GestorAccess =
-  // Gestor: vê só o município da sua prefeitura (null = conta sem vínculo).
+  // Gestor: o painel abre na prefeitura da conta (null = conta sem vínculo).
   | { kind: "manager"; userName: string; municipalityIbge: string | null }
-  // Administrador: escolhe qualquer município, para dar suporte.
+  // Administrador: entra para dar suporte. Os dois escolhem qualquer município.
   | { kind: "admin"; userName: string }
   | { kind: "error" };
 

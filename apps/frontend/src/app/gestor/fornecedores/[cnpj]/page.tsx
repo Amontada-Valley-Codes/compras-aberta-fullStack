@@ -24,8 +24,8 @@ export default async function GestorSupplierPage({
   const [{ cnpj: rawCnpj }, context] = await Promise.all([params, resolveGestorContext(searchParams)]);
   if (!context) return null;
   if (!context.municipality) return <GestorMissingMunicipality />;
-  const { municipality, year, municipalityIbge, isAdmin } = context;
-  const query = gestorQuery(year, municipalityIbge, isAdmin);
+  const { municipality, year, municipalityIbge } = context;
+  const query = gestorQuery(year, municipalityIbge);
   const cnpj = rawCnpj.replace(/\D/g, "");
 
   const back = (
@@ -158,7 +158,7 @@ export default async function GestorSupplierPage({
               <tbody>
                 {here.map((row) => {
                   const rowYear = yearOf(row.data_realizacao_licitacao) ?? year;
-                  const rowQuery = gestorQuery(rowYear, municipalityIbge, isAdmin);
+                  const rowQuery = gestorQuery(rowYear, municipalityIbge);
                   return (
                     <tr key={`${row.numero_licitacao}-${row.data_realizacao_licitacao}`}>
                       <td><Link className="gs-company-link gs-bid-number" href={`/gestor/licitacoes/detalhe?${rowQuery}&numero=${encodeURIComponent(row.numero_licitacao)}`}>{row.numero_licitacao}</Link></td>

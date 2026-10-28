@@ -32,8 +32,8 @@ export default async function GestorBidDetailPage({
   const context = await resolveGestorContext(Promise.resolve(params));
   if (!context) return null;
   if (!context.municipality) return <GestorMissingMunicipality />;
-  const { municipality, year, municipalityIbge, isAdmin } = context;
-  const query = gestorQuery(year, municipalityIbge, isAdmin);
+  const { municipality, year, municipalityIbge } = context;
+  const query = gestorQuery(year, municipalityIbge);
   const number = typeof params.numero === "string" ? params.numero.trim().slice(0, 80) : "";
 
   const back = (

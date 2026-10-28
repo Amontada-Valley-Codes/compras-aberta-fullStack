@@ -22,16 +22,16 @@ export function ClosingCtaSection() {
             <Link className="button closing-cta-primary" href="/analise">
               Conhecer a plataforma
             </Link>
-            <Link className="button closing-cta-secondary" href="/auth/login?perfil=me">
+            <Link className="button closing-cta-secondary" href="/#planos">
               Ver os planos
             </Link>
-            <a
+            <Link
               className="closing-cta-whatsapp"
-              href="#contato"
-              aria-label="Falar pelo WhatsApp"
+              href="/contato"
+              aria-label="Falar com a equipe"
             >
               <FaWhatsapp />
-            </a>
+            </Link>
           </div>
         </div>
       </div>

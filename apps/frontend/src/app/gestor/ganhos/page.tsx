@@ -115,7 +115,7 @@ export default async function GestorGainsPage({
   const context = await resolveGestorContext(searchParams);
   if (!context) return null;
   if (!context.municipality) return <GestorMissingMunicipality />;
-  const { municipality, year, municipalityIbge, isAdmin } = context;
+  const { municipality, year, municipalityIbge } = context;
 
   const [participations, directory] = await Promise.all([
     loadParticipations(municipality.tceCode).catch(() => null),
@@ -160,7 +160,7 @@ export default async function GestorGainsPage({
           <CardHead
             title="Para a economia local"
             subtitle="O que cada parte representa."
-            action={<Link className="ov-link" href={`/gestor/fornecedores?${gestorQuery(year, municipalityIbge, isAdmin)}`}>Ver fornecedores <ArrowRight /></Link>}
+            action={<Link className="ov-link" href={`/gestor/fornecedores?${gestorQuery(year, municipalityIbge)}`}>Ver fornecedores <ArrowRight /></Link>}
           />
           {retention ? (
             <ul className="gs-facts">

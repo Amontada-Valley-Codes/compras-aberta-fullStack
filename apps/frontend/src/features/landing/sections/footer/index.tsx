@@ -14,19 +14,25 @@ export function LandingFooter() {
         </div>
         <div>
           <b>Plataforma</b>
-          <a href="#oportunidades">Licitações</a>
+          <Link href="/#oportunidades">Licitações</Link>
           <Link href="/analise">Transparência</Link>
           <Link href="/analise">Municípios</Link>
         </div>
         <div>
           <b>Acessos</b>
-          <Link href="/auth/login?perfil=me">Área da microempresa</Link>
-          <Link href="/gestor">Área administrativa</Link>
-          <a href="#">Acessibilidade</a>
+          <Link href="/me">Área da microempresa</Link>
+          <Link href="/gestor">Área do gestor público</Link>
+          <Link href="/contato">Contato</Link>
         </div>
         <div>
           <b>Dados públicos</b>
           <p>Consulte indicadores organizados a partir de fontes públicas.</p>
+        </div>
+        <div>
+          <b>Institucional</b>
+          <Link href="/termos">Termos e compromissos</Link>
+          <Link href="/termos#privacidade">Privacidade e dados</Link>
+          <Link href="/termos#acessibilidade">Acessibilidade</Link>
         </div>
       </div>
       <div className="public-container footer-bottom">

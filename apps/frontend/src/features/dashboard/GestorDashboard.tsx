@@ -19,9 +19,9 @@ function summaryText({ totals, retention, year, municipalityName }: GestorOvervi
     : base;
 }
 
-export function GestorDashboard({ data, municipalityIbge, isAdmin }: { data: GestorOverview; municipalityIbge: string; isAdmin: boolean }) {
+export function GestorDashboard({ data, municipalityIbge }: { data: GestorOverview; municipalityIbge: string }) {
   const { year, municipalityName, retention, monthly, expenses, suppliers } = data;
-  const query = gestorQuery(year, municipalityIbge, isAdmin);
+  const query = gestorQuery(year, municipalityIbge);
   const generatedAt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Fortaleza" }).format(new Date());
   const hasMonthly = Boolean(monthly.data?.some((value) => value > 0));
 

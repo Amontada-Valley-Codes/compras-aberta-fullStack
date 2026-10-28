@@ -14,7 +14,6 @@ import { GestorHeader, type FilterOption } from "./GestorHeader";
 export function GestorShell({
   children,
   municipalities,
-  lockedMunicipalityIbge,
   defaultMunicipalityIbge,
   defaultYear,
   years,
@@ -22,8 +21,7 @@ export function GestorShell({
 }: {
   children: ReactNode;
   municipalities: FilterOption[];
-  // Gestor: sempre o município da conta. Administrador (null): o da URL.
-  lockedMunicipalityIbge: string | null;
+  // Município aberto quando a URL não traz ?municipio= (o da conta do gestor).
   defaultMunicipalityIbge: string;
   defaultYear: number;
   years: readonly number[];
@@ -31,16 +29,13 @@ export function GestorShell({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const canChangeMunicipality = lockedMunicipalityIbge === null;
-
   const requestedMunicipality = searchParams.get("municipio");
-  const municipalityIbge = lockedMunicipalityIbge
-    ?? (requestedMunicipality && /^\d{7}$/.test(requestedMunicipality) ? requestedMunicipality : defaultMunicipalityIbge);
+  const municipalityIbge = requestedMunicipality && /^\d{7}$/.test(requestedMunicipality) ? requestedMunicipality : defaultMunicipalityIbge;
   const requestedYear = Number(searchParams.get("ano"));
   const year = years.includes(requestedYear) ? requestedYear : defaultYear;
   const municipalityName = municipalities.find((item) => item.value === municipalityIbge)?.label ?? null;
 
-  const query = new URLSearchParams({ ano: String(year), ...(canChangeMunicipality ? { municipio: municipalityIbge } : {}) }).toString();
+  const query = new URLSearchParams({ ano: String(year), municipio: municipalityIbge }).toString();
   // Ordem do ciclo da compra pública: planejar (PCA), publicar (editais),
   // disputar (licitações), contratar; depois as análises.
   const sections: Array<[string, string, ReactNode]> = [
@@ -73,7 +68,6 @@ export function GestorShell({
           year={year}
           years={years}
           municipalities={municipalities}
-          canChangeMunicipality={canChangeMunicipality}
           userName={userName}
         />
         <div className="gs-body">

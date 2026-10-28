@@ -5,8 +5,8 @@ import { GestorRouteShell } from "@/features/dashboard/gestor/GestorRouteShell";
 import { loadCompanyDirectory } from "@/features/dashboard/gestor/gestor-api";
 import { loadOpenTenders, loadProcurements } from "@/features/dashboard/gestor/pncp-api";
 import {
-  DEFAULT_GESTOR_MUNICIPALITY_IBGE,
   defaultGestorYear,
+  gestorHomeMunicipality,
   getGestorAccess,
   getMunicipalityOptions,
 } from "@/features/dashboard/gestor/gestor-context";
@@ -28,25 +28,24 @@ export default async function GestorLayout({ children }: { children: ReactNode }
   loadCompanyDirectory().catch(() => undefined);
   // Do PNCP, só o que várias páginas usam e é leve (contratações do ano e
   // editais abertos). Contratos e PCA ficam para quando a página for aberta,
-  // para não ocupar a fila do limitador de consultas à toa.
-  if (access.kind === "manager" && access.municipalityIbge) {
-    loadProcurements(access.municipalityIbge, defaultGestorYear()).catch(() => undefined);
-    loadOpenTenders(access.municipalityIbge).catch(() => undefined);
-  }
+  // para não ocupar a fila do limitador de consultas à toa. Pré-carrega a
+  // prefeitura que abre ao entrar.
+  const homeMunicipalityIbge = gestorHomeMunicipality(access);
+  loadProcurements(homeMunicipalityIbge, defaultGestorYear()).catch(() => undefined);
+  loadOpenTenders(homeMunicipalityIbge).catch(() => undefined);
 
-  // O painel demonstrativo permite a entrada mesmo antes do vínculo do
-  // município. Quando o vínculo existir, ele continua disponível para as
-  // telas legadas que usam o recorte da prefeitura.
-  const municipalities = access.kind === "manager" && !access.municipalityIbge
-    ? { data: [] }
-    : await getMunicipalityOptions();
+  // A entrada é liberada mesmo antes do vínculo do município: sem ele, as
+  // telas que usam o recorte da prefeitura abrem na prefeitura padrão, e o
+  // seletor do cabeçalho troca para qualquer município.
+  const municipalities = await getMunicipalityOptions();
 
   return (
     <GestorRouteShell
       legacy={{
         municipalities: municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? [],
-        lockedMunicipalityIbge: access.kind === "manager" ? access.municipalityIbge : null,
-        defaultMunicipalityIbge: DEFAULT_GESTOR_MUNICIPALITY_IBGE,
+        // O município não fica mais travado: todos escolhem pelo seletor.
+        lockedMunicipalityIbge: null,
+        defaultMunicipalityIbge: homeMunicipalityIbge,
         defaultYear: defaultGestorYear(),
         years: GESTOR_YEARS,
         userName: access.userName,
