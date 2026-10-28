@@ -9,8 +9,8 @@ import { ORIGIN_LABEL } from "./gestor-domain";
 export const enter = (index: number) => ({ "--i": index }) as CSSProperties;
 
 // Mantém o recorte (ano e, para o administrador, o município) nos links.
-export function gestorQuery(year: number, municipalityIbge: string, isAdmin: boolean): string {
-  return new URLSearchParams({ ano: String(year), ...(isAdmin ? { municipio: municipalityIbge } : {}) }).toString();
+export function gestorQuery(year: number, municipalityIbge: string): string {
+  return new URLSearchParams({ ano: String(year), municipio: municipalityIbge }).toString();
 }
 
 export function PageHeading({ eyebrow, title, summary, actions }: { eyebrow: string; title: string; summary?: ReactNode; actions?: ReactNode }) {

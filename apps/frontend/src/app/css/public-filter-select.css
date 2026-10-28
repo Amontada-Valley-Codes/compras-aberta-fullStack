@@ -84,6 +84,32 @@
   background: white;
   box-shadow: var(--shadow-md);
 }
+.public-filter-content.is-dashboard {
+  width: max-content;
+  min-width: max(220px, var(--radix-select-trigger-width));
+  max-width: min(340px, calc(100vw - 24px));
+  border-radius: 14px;
+}
+.public-filter-select.is-dashboard .public-filter-trigger {
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 0;
+}
+.public-filter-select.is-dashboard .public-filter-leading {
+  width: 18px;
+  height: 18px;
+}
+.public-filter-select.is-dashboard .public-filter-copy {
+  gap: 2px;
+}
+.public-filter-select.is-dashboard .public-filter-copy small {
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+}
+.public-filter-select.is-dashboard .public-filter-value {
+  font-size: 14px;
+  font-weight: 650;
+}
 .public-filter-search-wrap {
   padding: 10px 12px;
   border-bottom: 1px solid #edf1f3;

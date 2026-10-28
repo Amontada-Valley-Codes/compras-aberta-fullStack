@@ -1,0 +1,105 @@
+name: Deploy
+
+# Cai aqui quando um PR é mergeado na main (ou quando alguém clica em "Run workflow").
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Nunca dois deploys ao mesmo tempo no mesmo container.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    # Variables e secrets abaixo vivem no Environment "production" do repositório (docs/CONFIGURACAO.md).
+    environment: production
+    env:
+      SSH_HOST: ${{ vars.SSH_HOST }}
+      SSH_USER: ${{ vars.SSH_USER }}
+      DEPLOY_PATH_VAR: ${{ vars.DEPLOY_PATH }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Build do web (Next, modo standalone)
+        run: |
+          npm i
+          npm run build
+          cp -r apps/frontend/.next/static apps/frontend/.next/standalone/.next/static
+          cp -r apps/frontend/public apps/frontend/.next/standalone/public
+
+      - name: Build da api (Nest)
+        run: |
+          npm i
+          npm run build:backend
+
+      - name: Montar o pacote de release
+        run: |
+          mkdir -p release/web release/api release/data
+          cp -r apps/frontend/.next/standalone/. release/web/
+          cp -r apps/backend/dist apps/backend/package.json apps/backend/package-lock.json release/api/
+        
+          cp -r deploy release/deploy
+          tar -czf release.tgz -C release .
+
+      - name: Preparar o SSH pelo túnel do Cloudflare
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          curl -fsSL -o cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host valley
+            HostName $SSH_HOST
+            User $SSH_USER
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ProxyCommand cloudflared access ssh --hostname %h
+          EOF
+
+      - name: Enviar e ativar no container
+        run: |
+          DEPLOY_PATH="${DEPLOY_PATH_VAR:-/home/$SSH_USER/apps/comprasabertas}"
+          scp release.tgz valley:/tmp/comprasabertas-release.tgz
+          ssh valley bash -s -- "$DEPLOY_PATH" <<'REMOTE'
+          set -euo pipefail
+          D="$1"
+          mkdir -p "$D"
+          rm -rf "$D/web" "$D/api/dist" "$D/data/app" "$D/deploy"
+          tar -xzf /tmp/comprasabertas-release.tgz -C "$D"
+          rm -f /tmp/comprasabertas-release.tgz
+          bash "$D/deploy/remote-deploy.sh"
+          REMOTE
+
+      - name: Teste de fumaça (o site respondeu pelo domínio?)
+        if: ${{ env.SITE_URL != '' }}
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS "$SITE_URL/" -o /tmp/comprasabertas-home.html \
+              && curl -fsS "$SITE_URL/api/health" -o /tmp/comprasabertas-health.json \
+              && python3 -c 'import json; h=json.load(open("/tmp/comprasabertas-health.json")); assert h.get("api")=="ok" and h.get("data")=="ok", h' \
+              && curl -fsS "$SITE_URL/api/dashboard" -o /tmp/comprasabertas-dashboard.json \
+              && python3 -c 'import json; d=json.load(open("/tmp/comprasabertas-dashboard.json")); assert {"resumo", "categorias", "fornecedores", "mensal"}.issubset(d), "dashboard incompleto"'; then
+              cat /tmp/comprasabertas-health.json
+              echo; exit 0
+            fi
+            echo "ainda subindo... ($i)"; sleep 5
+          done
+          echo "o site não respondeu depois do deploy"; exit 1

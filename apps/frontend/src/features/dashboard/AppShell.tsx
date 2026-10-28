@@ -215,7 +215,7 @@ export function AppShell({
                     <strong>Notificações</strong>
                     <span>2 novas</span>
                   </div>
-                  <button>
+                  <button onClick={() => { setNotificationsOpen(false); navigate(isAdmin ? "requests" : "opportunities"); }}>
                     <b>
                       {isAdmin
                         ? "3 cadastros aguardam análise"
@@ -227,7 +227,7 @@ export function AppShell({
                         : "Pregão em Amontada • há 18 min"}
                     </small>
                   </button>
-                  <button>
+                  <button onClick={() => { setNotificationsOpen(false); navigate(isAdmin ? "overview" : "alerts"); }}>
                     <b>
                       {isAdmin
                         ? "Integração concluída"

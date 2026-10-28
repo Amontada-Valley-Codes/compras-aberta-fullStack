@@ -42,6 +42,12 @@ export const accessStatusLabel: Record<AccessStatus, string> = {
   REJECTED: "Recusada",
 };
 
+export interface CnaeItem {
+  codigo: string;
+  descricao: string;
+  isPrincipal: boolean;
+}
+
 // Dados cadastrais devolvidos por GET /cnpj/:cnpj (base aberta da Receita).
 export interface CnpjLookup {
   cnpj: string;
@@ -50,6 +56,8 @@ export interface CnpjLookup {
   situacaoCadastral: string;
   porte: string | null;
   atividadePrincipal: string | null;
+  cnaePrincipal?: { codigo: string; descricao: string } | null;
+  cnaes?: CnaeItem[];
   municipio: { nome: string; uf: string; codigoIbge: number | null };
   telefone: string | null;
   email: string | null;
