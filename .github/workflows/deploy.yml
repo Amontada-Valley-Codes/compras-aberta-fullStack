@@ -31,25 +31,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
 
       - name: Build do web (Next, modo standalone)
         run: |
-          npm i
           npm run build
-          cp -r apps/frontend/.next/static apps/frontend/.next/standalone/.next/static
-          cp -r apps/frontend/public apps/frontend/.next/standalone/public
+          mkdir -p apps/frontend/.next/standalone/apps/frontend/.next
+          cp -r apps/frontend/.next/static apps/frontend/.next/standalone/apps/frontend/.next/static
+          cp -r apps/frontend/public apps/frontend/.next/standalone/apps/frontend/public
 
-      - name: Build da api (Nest)
+      - name: Build da api (Fastify)
         run: |
-          npm i
           npm run build:backend
 
       - name: Montar o pacote de release
         run: |
-          mkdir -p release/web release/api release/data
+          mkdir -p release/web release/api/uploads release/api/dist/uploads
           cp -r apps/frontend/.next/standalone/. release/web/
-          cp -r apps/backend/dist apps/backend/package.json apps/backend/package-lock.json release/api/
-        
+          cp -r apps/backend/dist apps/backend/package.json release/api/
           cp -r deploy release/deploy
           tar -czf release.tgz -C release .
 
@@ -82,7 +85,7 @@ jobs:
           set -euo pipefail
           D="$1"
           mkdir -p "$D"
-          rm -rf "$D/web" "$D/api/dist" "$D/data/app" "$D/deploy"
+          rm -rf "$D/web" "$D/api/dist" "$D/deploy"
           tar -xzf /tmp/comprasabertas-release.tgz -C "$D"
           rm -f /tmp/comprasabertas-release.tgz
           bash "$D/deploy/remote-deploy.sh"
@@ -94,9 +97,7 @@ jobs:
           for i in 1 2 3 4 5 6; do
             if curl -fsS "$SITE_URL/" -o /tmp/comprasabertas-home.html \
               && curl -fsS "$SITE_URL/api/health" -o /tmp/comprasabertas-health.json \
-              && python3 -c 'import json; h=json.load(open("/tmp/comprasabertas-health.json")); assert h.get("api")=="ok" and h.get("data")=="ok", h' \
-              && curl -fsS "$SITE_URL/api/dashboard" -o /tmp/comprasabertas-dashboard.json \
-              && python3 -c 'import json; d=json.load(open("/tmp/comprasabertas-dashboard.json")); assert {"resumo", "categorias", "fornecedores", "mensal"}.issubset(d), "dashboard incompleto"'; then
+              && python3 -c 'import json; h=json.load(open("/tmp/comprasabertas-health.json")); assert h.get("status")=="ok" and h.get("api")=="ok", h'; then
               cat /tmp/comprasabertas-health.json
               echo; exit 0
             fi

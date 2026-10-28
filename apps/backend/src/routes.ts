@@ -12,6 +12,9 @@ import { userRoutes } from "./modules/users/user.routes";
 // cria a conta já vinculada a uma solicitação pendente de aprovação. O gestor
 // público (MANAGER) se cadastra por POST /managers/register, sem aprovação.
 async function routes(app: FastifyInstance) {
+  app.get("/health", async () => ({ status: "ok", api: "ok" }));
+  app.get("/api/health", async () => ({ status: "ok", api: "ok" }));
+
   await app.register(accessRequestRoutes);
   await app.register(sessionRoutes);
   await app.register(businessRoutes);
