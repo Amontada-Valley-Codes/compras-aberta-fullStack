@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -691,10 +690,14 @@ export function MeDashboard({
         />
       )}
       {active === "documents" && <Documents />}
-      {active === "alerts" && (
-        <Alerts onNavigate={navigate} onOpenOpportunity={openOpportunity} />
+      {active === "profile" && (
+        <CompanyProfile
+          companyCnaes={companyCnaes}
+          customCnaeText={preferences.customCnaeText}
+          extraKeywords={preferences.extraKeywords}
+          onSavePreferences={savePreferences}
+        />
       )}
-      {active === "profile" && <CompanyProfile />}
     </AppShell>
   );
 }
@@ -715,7 +718,6 @@ function MeOverview({
   onOpenBid: (bid: EnrichedMeBid) => void;
 }) {
   const { profile } = useUserProfile();
-  const router = useRouter();
 
   const userFirstName = profile?.name?.trim().split(" ")[0] || "Empresário(a)";
   const porte = profile?.business?.porte_empresa || "ME";
@@ -951,27 +953,35 @@ function MeOverview({
       <section className="dashboard-grid halves bottom-grid">
         <article className="dashboard-card compact-card">
           <CardHeader
-            title="Municípios em destaque"
-            subtitle="Maior demanda no seu segmento"
-            action={<button onClick={() => router.push("/analise")}>Ver análise</button>}
+            title="Municípios com mais editais abertos"
+            action={
+              <button onClick={() => onNavigate("opportunities")}>
+                Filtrar por cidade
+              </button>
+            }
           />
-          {[
-            ["Amontada", "R$ 684 mil", "12 oportunidades", 92],
-            ["Itapipoca", "R$ 512 mil", "8 oportunidades", 74],
-            ["Itarema", "R$ 396 mil", "5 oportunidades", 58],
-          ].map((city, index) => (
-            <div className="ranking-row" key={city[0]}>
-              <span>{index + 1}</span>
-              <div>
-                <b>{city[0]}</b>
-                <small>{city[2]}</small>
-                <i>
-                  <em style={{ width: `${city[3]}%` }} />
-                </i>
+          {cityChartData.ranking.slice(0, 4).map((item, index) => {
+            const maxVal = cityChartData.ranking[0]?.totalValue || 1;
+            const pct = Math.max(12, Math.round((item.totalValue / maxVal) * 100));
+            return (
+              <div className="ranking-row" key={item.city}>
+                <span>{index + 1}</span>
+                <div>
+                  <b>{item.city}</b>
+                  <small>
+                    {item.count} {item.count === 1 ? "licitação aberta" : "licitações abertas"}
+                  </small>
+                  <i>
+                    <em style={{ width: `${pct}%` }} />
+                  </i>
+                </div>
+                <strong>{formatCompactMoney(item.totalValue)}</strong>
               </div>
-              <strong>{city[1]}</strong>
-            </div>
-          ))}
+            );
+          })}
+          {!loading && cityChartData.ranking.length === 0 && (
+            <p style={{ opacity: 0.7 }}>Sem licitações abertas para exibir.</p>
+          )}
         </article>
 
         <article className="dashboard-card compact-card">
@@ -2082,88 +2092,20 @@ function Documents() {
   );
 }
 
-function Alerts({
-  onNavigate,
-  onOpenOpportunity,
+function CompanyProfile({
+  companyCnaes,
+  customCnaeText,
+  extraKeywords,
+  onSavePreferences,
 }: {
-  onNavigate: (id: string) => void;
-  onOpenOpportunity: (item: Opportunity) => void;
+  companyCnaes: CompanyCnae[];
+  customCnaeText: string;
+  extraKeywords: string[];
+  onSavePreferences: (patch: {
+    customCnaeText?: string;
+    extraKeywords?: string[];
+  }) => void;
 }) {
-  // Abre a oportunidade citada no alerta (dados de demonstração).
-  const openById = (id: string) => {
-    const item = opportunities.find((opportunity) => opportunity.id === id);
-    if (item) onOpenOpportunity(item);
-  };
-
-  return (
-    <div className="dashboard-page">
-      <PageHeading
-        eyebrow="ACOMPANHAMENTO"
-        title="Alertas e notificações"
-        description="Nada importante passa despercebido: acompanhe prazos, novidades e atualizações cadastrais."
-      />
-      <section className="dashboard-grid alert-layout">
-        <div className="dashboard-card activity-list large">
-          <span>
-            <i className="gold">
-              <Clock3 />
-            </i>
-            <div>
-              <em>NÃO LIDA • PRAZO</em>
-              <b>Oportunidade encerra em 3 dias</b>
-              <small>
-                Aquisição de gêneros para alimentação escolar • Amontada
-              </small>
-            </div>
-            <button onClick={() => openById("OP-2048")}>Ver oportunidade</button>
-          </span>
-          <span>
-            <i className="blue">
-              <Sparkles />
-            </i>
-            <div>
-              <em>NÃO LIDA • OPORTUNIDADE</em>
-              <b>Novo processo com 91% de compatibilidade</b>
-              <small>
-                Manutenção de computadores e rede municipal • Itarema
-              </small>
-            </div>
-            <button onClick={() => openById("OP-2071")}>Ver oportunidade</button>
-          </span>
-          <span>
-            <i className="green">
-              <FileCheck2 />
-            </i>
-            <div>
-              <em>DOCUMENTO</em>
-              <b>Seu cartão CNPJ foi validado</b>
-              <small>A equipe concluiu a análise ontem, às 16:40</small>
-            </div>
-            <button onClick={() => onNavigate("documents")}>Ver documentos</button>
-          </span>
-        </div>
-        <aside className="dashboard-card alert-settings">
-          <h2>Preferências</h2>
-          <p>Você recebe alertas para:</p>
-          {[
-            "Alimentos e bebidas",
-            "Amontada + 80 km",
-            "Oportunidades exclusivas ME",
-          ].map((item) => (
-            <span key={item}>
-              <Check /> {item}
-            </span>
-          ))}
-          <button className="ds-button secondary" onClick={() => onNavigate("profile")}>
-            Editar preferências
-          </button>
-        </aside>
-      </section>
-    </div>
-  );
-}
-
-function CompanyProfile() {
   const [saved, setSaved] = useState(false);
   const { profile } = useUserProfile();
 
