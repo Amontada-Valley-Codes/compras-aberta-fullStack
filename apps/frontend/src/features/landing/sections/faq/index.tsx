@@ -11,8 +11,8 @@ const questions = [
     "A plataforma atende gestores públicos, microempresas e cidadãos. Alguns recursos são públicos, enquanto funcionalidades específicas para gestores e empresas exigem cadastro aprovado.",
   ],
   [
-    "Como solicito acesso como Gestor público ou ME?",
-    "Escolha o seu perfil, preencha as informações solicitadas e envie os documentos necessários. Depois disso, sua solicitação será encaminhada para análise.",
+    "Como o Gestor público recebe acesso?",
+    "O administrador da plataforma vincula o município e libera o acesso para a equipe responsável. A solicitação de cadastro é feita apenas quando o perfil exigir esse processo.",
   ],
   [
     "Quais documentos preciso enviar?",

@@ -5,7 +5,10 @@ import { ensureAuthenticated } from "../../middlewares/ensure-authenticated";
 import { verifyUserAuthorization } from "../../middlewares/verify-user-authorization";
 import { prisma } from "../../lib/prisma";
 import { supabase } from "../../lib/supabase";
-import { sendApprovalEmail } from "../../services/notification.service";
+import {
+  sendApprovalEmail,
+  sendRejectionEmail,
+} from "../../services/notification.service";
 
 export async function adminRoutes(app: FastifyInstance) {
   app.get(
@@ -55,7 +58,10 @@ export async function adminRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       const { userId } = request.params as { userId: string };
-      const { status } = request.body as { status: "Aprovada" | "Pendente" | "Em análise" };
+      const { status, note } = request.body as {
+        status: "Aprovada" | "Recusada" | "Pendente" | "Em análise";
+        note?: string;
+      };
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -83,10 +89,21 @@ export async function adminRoutes(app: FastifyInstance) {
           : []),
       ]);
 
-      if (isActive) {
-        sendApprovalEmail({
+      const companyName = user.business?.name_businss || user.name;
+
+      if (status === "Aprovada") {
+        void sendApprovalEmail({
           toEmail: user.email,
-          companyName: user.business?.name_businss || user.name,
+          companyName,
+          requesterName: user.name,
+          note,
+        });
+      } else if (status === "Recusada") {
+        void sendRejectionEmail({
+          toEmail: user.email,
+          companyName,
+          requesterName: user.name,
+          reason: note,
         });
       }
 

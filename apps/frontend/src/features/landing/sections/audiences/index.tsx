@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import AOS from "aos";
 
-type AudienceIconName = "manager" | "business" | "citizen";
+export type AudienceIconName = "manager" | "business" | "citizen";
 
 type AudienceCard = {
   audience: string;
@@ -24,7 +24,7 @@ const audienceCards: AudienceCard[] = [
     description:
       "Consulte receitas, despesas e fornecedores em uma visão organizada para acompanhar os recursos públicos e planejar com mais segurança.",
     cta: "Conhecer a solução",
-    href: "/admin",
+    href: "/gestor",
     icon: "manager",
     tone: "blue",
   },
@@ -50,7 +50,7 @@ const audienceCards: AudienceCard[] = [
   },
 ];
 
-function AudienceIcon({ name }: { name: AudienceIconName }) {
+export function AudienceIcon({ name }: { name: AudienceIconName }) {
   const common = {
     width: 42,
     height: 42,
@@ -149,7 +149,7 @@ export function AudiencesSection() {
             Compare municípios, filtre por ano e tipo de compra e encontre os
             dados que ajudam a entender o cenário das compras públicas.
           </p>
-          <Link className="audiences-story-link" href="/auth/cadastro-me">
+          <Link className="audiences-story-link" href="/auth/cadastro">
             Faça Seu Cadastro
           </Link>
         </aside>

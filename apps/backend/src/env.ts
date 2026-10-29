@@ -7,7 +7,10 @@ const envSchema = z.object({
   JWT_SECRET: z
     .string()
     .min(32, "JWT_SECRET deve ter pelo menos 32 caracteres"),
-  API_DADOS: z.string().url("API_DADOS deve ser uma URL válida"),
+  API_DADOS: z
+    .string()
+    .url("API_DADOS deve ser uma URL válida")
+    .default("https://compra-aberta-api.onrender.com"),
   // Dados cadastrais de CNPJ (base aberta da Receita Federal), usados para
   // preencher a solicitação de acesso.
   OPEN_CNPJ_API: z
@@ -40,6 +43,37 @@ const envSchema = z.object({
     .default("info"),
 
   PORT: z.coerce.number().int().min(1).default(3333),
+
+  FRONTEND_URL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v.replace(/\/+$/, "") : undefined)),
+  SMTP_HOST: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_SECURE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
+  SMTP_USER: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_PASS: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_FROM: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

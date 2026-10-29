@@ -450,13 +450,6 @@ export function AdminOverview({
               <CalendarDays /> {today}
             </span>
           )}
-          <button
-            className="ov-primary"
-            type="button"
-            onClick={() => (oldestPending ? onOpenRequest(oldestPending.id) : onNavigate("requests"))}
-          >
-            {oldestPending ? "Analisar pendentes" : "Ver solicitações"} <ArrowRight />
-          </button>
         </div>
       </header>
 
@@ -504,22 +497,6 @@ export function AdminOverview({
                 : pending.length === 1
                   ? "1 aguardando aprovação"
                   : `${pending.length} aguardam aprovação`
-          }
-        />
-        <Kpi
-          index={6}
-          tone="teal"
-          onClick={() => onNavigate("companies")}
-          actionLabel="ver microempresas por município"
-          icon={<Building2 />}
-          label="Municípios atendidos"
-          value={state.loading ? 0 : ranking.length}
-          detail={
-            state.loading
-              ? "Carregando…"
-              : ranking.length === 0
-                ? "Nenhum município com empresa aprovada"
-                : `Mais empresas em ${ranking[0].name}`
           }
         />
       </section>

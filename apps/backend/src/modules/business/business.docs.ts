@@ -42,7 +42,7 @@ const registerBusinessDocs = {
     "- Usuário e empresa são criados dentro de uma transação: se um falhar, nenhum é criado.",
     "- Depois do cadastro, faça login em `POST /sessions`.",
     "",
-    "**Limite:** 3 requisições a cada 10 minutos por IP.",
+    "**Limite:** 20 requisições por minuto por IP.",
   ].join("\n"),
   consumes: ["multipart/form-data"],
   body: {

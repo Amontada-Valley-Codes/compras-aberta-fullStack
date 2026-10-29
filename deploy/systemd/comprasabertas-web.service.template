@@ -1,0 +1,24 @@
+# Serviço de sistema que roda a tela (Next, modo standalone) como o usuário da squad.
+# __APP_DIR__ e __APP_USER__ são trocados pelo deploy/remote-deploy.sh.
+[Unit]
+Description=comprasabertas - web (Next)
+After=network.target comprasabertas-api.service
+
+[Service]
+Type=simple
+User=__APP_USER__
+WorkingDirectory=__APP_DIR__/web
+EnvironmentFile=-__APP_DIR__/../.comprasabertas.env
+EnvironmentFile=-__APP_DIR__/.env
+EnvironmentFile=-__APP_DIR__/api/.env
+Environment="PATH=/home/__APP_USER__/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/bin/env NODE_ENV=production PORT=3000 HOSTNAME=127.0.0.1 API_BASE_URL=http://127.0.0.1:3001 BACKEND_URL=http://127.0.0.1:3001 /usr/local/bin/node apps/frontend/server.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=comprasabertas-web
+
+[Install]
+WantedBy=multi-user.target

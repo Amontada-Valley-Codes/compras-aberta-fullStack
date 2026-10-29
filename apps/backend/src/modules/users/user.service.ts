@@ -1,8 +1,15 @@
 import { hash } from "bcryptjs";
 import { AppError } from "../../utils/AppError";
+import { cnpjService } from "../cnpj/cnpj.service";
 import { userRepository } from "./user.repository";
 
 interface CreateAdminInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
+interface RegisterManagerInput {
   name: string;
   email: string;
   password: string;
@@ -16,17 +23,33 @@ const userService = {
       throw new AppError("Usuário não encontrado", 404);
     }
 
+    const rawCnpj = user.business?.cnpj ?? user.cnpj ?? null;
+    const cleanCnpj = rawCnpj ? rawCnpj.replace(/\D/g, "") : null;
+
+    let cnpjInfo: Awaited<ReturnType<typeof cnpjService.find>> | null = null;
+    if (cleanCnpj && cleanCnpj.length === 14) {
+      try {
+        cnpjInfo = await cnpjService.find({ cnpj: cleanCnpj });
+      } catch {
+        cnpjInfo = null;
+      }
+    }
+
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
       cnpj: user.cnpj,
+      municipioIbge: user.municipioIbge ?? cnpjInfo?.municipio.codigoIbge ?? null,
       business: user.business
         ? {
             cnpj: user.business.cnpj,
             nome_empresa: user.business.name_businss,
             porte_empresa: user.business.porte_empresa,
+            cnaePrincipal: cnpjInfo?.cnaePrincipal ?? null,
+            cnaes: cnpjInfo?.cnaes ?? [],
+            municipio: cnpjInfo?.municipio ?? null,
             url_cartao_cnpj: `/api/admin/documents/${user.business.cnpj}/cartao_cnpj`,
             url_contrato_social: `/api/admin/documents/${user.business.cnpj}/contrato_social`,
             url_comprovante_endereco: `/api/admin/documents/${user.business.cnpj}/comprovante_endereco`,
@@ -53,6 +76,26 @@ const userService = {
     return userRepository.createAdmin({
       name: name.trim(),
       email: cleanEmail,
+      password: passwordHash,
+    });
+  },
+
+  // Diferente da empresa, o gestor público não passa por solicitação de
+  // acesso: a conta já nasce MANAGER e ativa, e o login leva direto ao painel.
+  // Espera dados já normalizados pelo registerManagerSchema (e-mail em
+  // minúsculas).
+  async registerManager({ name, email, password }: RegisterManagerInput) {
+    const existing = await userRepository.findByEmail(email);
+
+    if (existing) {
+      throw new AppError("E-mail já cadastrado", 409);
+    }
+
+    const passwordHash = await hash(password, 10);
+
+    return userRepository.createManager({
+      name,
+      email,
       password: passwordHash,
     });
   },

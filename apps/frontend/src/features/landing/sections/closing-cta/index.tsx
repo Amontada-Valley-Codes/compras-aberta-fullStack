@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa6";
 import { RevealWords } from "../../RevealWords";
@@ -21,16 +22,16 @@ export function ClosingCtaSection() {
             <Link className="button closing-cta-primary" href="/analise">
               Conhecer a plataforma
             </Link>
-            <Link className="button closing-cta-secondary" href="/me">
+            <Link className="button closing-cta-secondary" href="/#planos">
               Ver os planos
             </Link>
-            <a
+            <Link
               className="closing-cta-whatsapp"
-              href="#contato"
-              aria-label="Falar pelo WhatsApp"
+              href="/contato"
+              aria-label="Falar com a equipe"
             >
               <FaWhatsapp />
-            </a>
+            </Link>
           </div>
         </div>
       </div>

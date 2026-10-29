@@ -199,7 +199,7 @@
 }
 
 .footer-grid {
-  grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
+  grid-template-columns: 2fr repeat(4, minmax(0, 1fr));
 }
 
 .analysis-header {
@@ -375,6 +375,10 @@
   font-size: 34px;
 }
 
+.dashboard-heading h1:last-child {
+  margin-bottom: 0;
+}
+
 .dashboard-heading p {
   font-size: 17px;
 }
@@ -385,24 +389,34 @@
 }
 
 .metric-card {
-  min-height: 165px;
+  min-height: 122px;
   padding: 20px;
 }
 
-.metric-card>small {
-  font-size: 15px;
+.metric-top > small,
+.metric-card > small {
+  font-size: 14.5px;
 }
 
-.metric-card>b {
-  font-size: 29px;
+.metric-value-row > b,
+.metric-card > b {
+  font-size: 30px;
 }
 
-.metric-card>p {
+.metric-card > b:last-child {
+  margin-bottom: 0;
+}
+
+.metric-card > p {
   font-size: 13px;
 }
 
 .card-header h2 {
   font-size: 18px;
+}
+
+.card-header h2:last-child {
+  margin-bottom: 0;
 }
 
 .card-header p {
@@ -413,16 +427,136 @@
   font-size: 13px;
 }
 
-.recommendation-info strong,
-.recommendation-value strong {
+.ranking-row {
+  padding: 14px 4px;
+  gap: 14px;
+}
+
+.ranking-row > span {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.ranking-row > div {
+  gap: 4px 12px;
+}
+
+.ranking-row b {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ranking-row > strong {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ranking-row small {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.ranking-row div > i {
+  height: 6px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.activity-list > span,
+.activity-card > span {
+  padding: 14px 4px;
+  gap: 14px;
+}
+
+.activity-list > span > i,
+.activity-card > span > i {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.activity-list i svg,
+.activity-card i svg {
+  width: 18px;
+  height: 18px;
+}
+
+.activity-list b,
+.activity-card b {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.activity-list small,
+.activity-card small {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.activity-list span > em {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.activity-list.large span > div em {
+  font-size: 11.5px;
+}
+
+.activity-list.large b {
+  font-size: 16px;
+}
+
+.activity-list.large span > button {
+  font-size: 13.5px;
+}
+
+.document-list article b {
   font-size: 15px;
 }
 
-.recommendation-info>small,
-.recommendation-info em,
-.recommendation-value small,
-.recommendation-value em {
+.document-list article small {
+  font-size: 13px;
+}
+
+.document-list article > em {
   font-size: 12px;
+  padding: 5px 10px;
+}
+
+.document-list article > button,
+.document-list article > label {
+  font-size: 13.5px;
+}
+
+.alert-settings h2,
+.profile-grid h2 {
+  font-size: 17px;
+}
+
+.alert-settings p,
+.alert-settings > span {
+  font-size: 14px;
+}
+
+.profile-grid label,
+.review-note {
+  font-size: 13.5px;
+}
+
+.profile-grid input,
+.review-note textarea {
+  font-size: 14.5px;
+  height: 44px;
 }
 
 .filter-bar input,
@@ -430,14 +564,6 @@
 .filter-button,
 .result-summary,
 .result-summary select {
-  font-size: 15px;
-}
-
-.opportunity-results h2 {
-  font-size: 20px;
-}
-
-.opportunity-results article>p {
   font-size: 15px;
 }
 
@@ -468,7 +594,7 @@
 }
 
 .detail-card>header p {
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .auth-shell {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   ArrowLeft, CircleDollarSign, MapPinned,
-  Info, Search, SearchX, Store,
+  Search, SearchX, Store,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
@@ -11,8 +11,6 @@ import { selectExpenseRows, selectMicroenterpriseValueRows, selectParticipationR
 import { count, money, percent } from "@/features/public-data/format";
 import { ALL_NATURES_LABEL, natureLabel } from "@/features/public-data/plain-language";
 import type { AnalysisData } from "@/features/public-data/public-data";
-import { AnalysisExportLinks } from "./AnalysisExportLinks";
-import type { AnalysisExportSummary } from "./export-charts-pdf";
 import { AnalysisPagination } from "./AnalysisPagination";
 import { AnalysisBidsTable } from "./AnalysisBidsTable";
 
@@ -59,66 +57,16 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
   const generalShareTitle = "Percentual de compras com ME";
   const generalShareDescription = `Percentual do valor homologado que ficou com microempresas, ${selectedMunicipality ? `de ${selectedMunicipality.name}` : "do município"} ou de fora.`;
   const highestNatureName = highestNature ? natureLabel(highestNature.codigo_natureza, highestNature.nome_natureza) : null;
+  const visibleExpenses = filters.natureCode
+    ? (expenses.data?.data ?? []).filter((item) => item.codigo_natureza === filters.natureCode)
+    : expenses.data?.data ?? [];
+  const visibleParticipation = filters.natureCode
+    ? (participation.data?.data ?? []).filter((item) => item.codigo_natureza === filters.natureCode)
+    : participation.data?.data ?? [];
+  const expensesRows = selectExpenseRows(visibleExpenses);
+  const participationRows = selectParticipationRows(visibleParticipation);
+  const microValueRows = selectMicroenterpriseValueRows(visibleParticipation);
 
-  // Os mesmos filtros/ordenações usados para desenhar os gráficos na tela
-  // decidem o que entra no PDF (se o gráfico existe).
-  const expensesRows = selectExpenseRows(expenses.data?.data ?? []);
-  const participationRows = selectParticipationRows(participation.data?.data ?? []);
-  const microValueRows = selectMicroenterpriseValueRows(participation.data?.data ?? []);
-
-  const exportSummary: AnalysisExportSummary = {
-    eyebrow: "Análise municipal",
-    municipalityName,
-    year: filters.year,
-    natureName,
-    kpis: [
-      { label: KPI_TEXT.value.label, value: money(micro.data?.data.valor_total_vencido), detail: KPI_TEXT.value.detail },
-      { label: KPI_TEXT.participations.label, value: count(micro.data?.data.quantidade_participacoes), detail: KPI_TEXT.participations.detail },
-      { label: KPI_TEXT.localValue.label, value: money(local.data?.resumo.valor_vencido_me_local), detail: KPI_TEXT.localValue.detail },
-    ],
-    highestNatureText: highestNature
-      ? `Em ${municipalityName}, ${highestNatureLead(filters.year)} "${highestNatureName}": ${money(highestNature.valor_total_dotacao)}.`
-      : null,
-    chartSections: [
-      { id: "export-microenterprise-chart", title: MICRO_VALUE_TITLE, description: MICRO_VALUE_DESCRIPTION, hasChart: microValueRows.length > 0, emptyText: MICRO_VALUE_EMPTY },
-      { id: "export-expenses-chart", title: EXPENSES_TITLE, description: EXPENSES_DESCRIPTION, hasChart: expensesRows.length > 0, emptyText: EXPENSES_EMPTY },
-      { id: "export-participation-chart", title: PARTICIPATION_TITLE, description: PARTICIPATION_DESCRIPTION, hasChart: participationRows.length > 0, emptyText: PARTICIPATION_EMPTY },
-    ],
-    shareCharts: [
-      {
-        id: "export-local-share-chart",
-        title: localShareTitle,
-        description: localShareDescription,
-        emptyText: SHARE_EMPTY,
-        data: local.data?.resumo.percentual_valor_vencido_me_local != null
-          ? {
-            percentage: Number(local.data.resumo.percentual_valor_vencido_me_local),
-            meLabel: "Microempresas locais",
-            meValue: money(local.data.resumo.valor_vencido_me_local),
-            othersLabel: "Outras empresas",
-            othersValue: money(Math.max(0, Number(local.data.resumo.valor_total_vencido) - Number(local.data.resumo.valor_vencido_me_local))),
-            note: localShareNote(local.data.resumo.valor_total_vencido, local.data.resumo.percentual_valor_vencido_me_local),
-          }
-          : null,
-      },
-      {
-        id: "export-general-share-chart",
-        title: generalShareTitle,
-        description: generalShareDescription,
-        emptyText: SHARE_EMPTY,
-        data: general.data?.resumo.percentual_valor_vencido_me != null
-          ? {
-            percentage: Number(general.data.resumo.percentual_valor_vencido_me),
-            meLabel: "Microempresas",
-            meValue: money(general.data.resumo.valor_vencido_me),
-            othersLabel: "Outras empresas",
-            othersValue: money(Math.max(0, Number(general.data.resumo.valor_total_vencido) - Number(general.data.resumo.valor_vencido_me))),
-            note: generalShareNote(general.data.resumo.valor_total_vencido, general.data.resumo.percentual_valor_vencido_me),
-          }
-          : null,
-      },
-    ],
-  };
   return (
     <div className="analysis-page">
       <header className="analysis-header">
@@ -135,7 +83,6 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
             <h1>Licitações e microempresas em {municipalityName}</h1>
             <p>Veja como as compras públicas foram distribuídas entre os sete tipos de despesa e a participação das microempresas.</p>
           </div>
-          <AnalysisExportLinks filters={filters} summary={exportSummary} />
         </section>
 
         <form className="analysis-filters" action="/analise" method="get">
@@ -169,7 +116,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
 
           <div className="analysis-chart-grid">
             <AnalysisChartCard title={MICRO_VALUE_TITLE} description={MICRO_VALUE_DESCRIPTION} tone="navy">
-              {microValueRows.length ? <MicroenterpriseValueChart data={participation.data?.data ?? []} /> : <DataState error={participation.error} fallback={MICRO_VALUE_EMPTY} />}
+              {microValueRows.length ? <MicroenterpriseValueChart data={visibleParticipation} /> : <DataState error={participation.error} fallback={MICRO_VALUE_EMPTY} />}
             </AnalysisChartCard>
             <AnalysisChartCard title="Participação das microempresas nas compras" description="Compare a participação geral das microempresas com a participação das empresas sediadas no município." tone="teal">
               <div className="analysis-share-comparison">
@@ -190,10 +137,10 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
               </div>
             </AnalysisChartCard>
             <AnalysisChartCard title={EXPENSES_TITLE} description={EXPENSES_DESCRIPTION} tone="blue">
-              {expensesRows.length ? <ExpensesChart data={expenses.data?.data ?? []} /> : <DataState error={expenses.error} fallback={EXPENSES_EMPTY} />}
+              {expensesRows.length ? <ExpensesChart data={visibleExpenses} /> : <DataState error={expenses.error} fallback={EXPENSES_EMPTY} />}
             </AnalysisChartCard>
             <AnalysisChartCard title="Participações de ME por natureza da despesa" description="Percentual de participações de microempresas em cada tipo de compra." tone="gold">
-              {participationRows.length ? <ParticipationChart data={participation.data?.data ?? []} /> : <DataState error={participation.error} fallback={PARTICIPATION_EMPTY} />}
+              {participationRows.length ? <ParticipationChart data={visibleParticipation} /> : <DataState error={participation.error} fallback={PARTICIPATION_EMPTY} />}
             </AnalysisChartCard>
           </div>
 
@@ -202,7 +149,6 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
             {rows.length ? <AnalysisBidsTable rows={rows} /> : <DataState error={bids.error} fallback="Nenhuma licitação encontrada para estes filtros." />}
             <AnalysisPagination filters={filters} rowCount={rows.length} hasNext={(bids.data?.data.length ?? 0) > filters.pageSize} />
           </section>
-          <p className="analysis-footnote"><Info /> A planilha (CSV) traz todas as licitações dos filtros escolhidos. O PDF traz os gráficos desta página.</p>
         </section>
       </main>
     </div>

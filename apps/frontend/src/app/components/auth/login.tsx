@@ -69,7 +69,9 @@ export const Login = ({ next }: { next?: string }) => {
         description:
           data?.role === 'ADMIN'
             ? 'Você entrou no painel de administração.'
-            : 'Você entrou no painel da sua empresa.',
+            : data?.role === 'MANAGER'
+              ? 'Você entrou no painel do gestor.'
+              : 'Você entrou no painel da sua empresa.',
       })
       router.push(safeNextPath(next) ?? data?.home ?? '/')
     } catch {
@@ -167,7 +169,7 @@ export const Login = ({ next }: { next?: string }) => {
                 <input type='checkbox' />
                 Lembrar-me
               </label>
-              <Link href='#' className='auth-forgot'>
+              <Link href='/contato#acesso' className='auth-forgot'>
                 Esqueceu a senha?
               </Link>
             </div>
@@ -182,16 +184,11 @@ export const Login = ({ next }: { next?: string }) => {
 
             <div className='auth-register-prompt'>
               <span>Não possui cadastro? </span>
-              <Link href='/auth/cadastro-me' className='auth-register-link'>
-                Cadastrar empresa (ME)
+              <Link href='/auth/cadastro' className='auth-register-link'>
+                Criar conta
               </Link>
             </div>
           </form>
-
-          <p className='auth-switch'>
-            Sua empresa ainda não tem acesso?{' '}
-            <Link href='/auth/solicitar-acesso'>Solicitar acesso</Link>
-          </p>
         </div>
       </div>
     </div>

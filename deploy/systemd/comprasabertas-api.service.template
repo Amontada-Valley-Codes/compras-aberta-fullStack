@@ -1,0 +1,24 @@
+# Serviço de sistema que roda a API (Fastify) como o usuário da squad.
+# __APP_DIR__ e __APP_USER__ são trocados pelo deploy/remote-deploy.sh.
+[Unit]
+Description=comprasabertas - api (fastify)
+After=network.target
+
+[Service]
+Type=simple
+User=__APP_USER__
+WorkingDirectory=__APP_DIR__/api
+EnvironmentFile=-__APP_DIR__/../.comprasabertas.env
+EnvironmentFile=-__APP_DIR__/.env
+EnvironmentFile=-__APP_DIR__/api/.env
+Environment="PATH=/home/__APP_USER__/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/bin/env NODE_ENV=production PORT=3001 TRUST_PROXY=true /usr/local/bin/node dist/src/server.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=comprasabertas-api
+
+[Install]
+WantedBy=multi-user.target

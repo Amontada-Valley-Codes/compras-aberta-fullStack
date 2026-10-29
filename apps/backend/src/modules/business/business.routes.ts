@@ -16,10 +16,11 @@ async function businessRoutes(app: FastifyInstance) {
     "/business/register",
     {
       schema: registerBusinessDocs,
+      // O botão da tela já trava enquanto envia; o limite só barra abuso.
       config: {
         rateLimit: {
-          max: 3,
-          timeWindow: "10 minutes",
+          max: 20,
+          timeWindow: "1 minute",
         },
       },
     },

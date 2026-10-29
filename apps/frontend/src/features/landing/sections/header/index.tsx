@@ -27,21 +27,21 @@ export function LandingHeader() {
           className={menuOpen ? "is-open" : ""}
           aria-label="Navegação principal"
         >
-          <Link href="#gestor-publico" onClick={closeMenu}>
+          <Link href="/#gestor-publico" onClick={closeMenu}>
             Gestor público
           </Link>
-          <Link href="#microempresa" onClick={closeMenu}>
+          <Link href="/#microempresa" onClick={closeMenu}>
             Microempresa
           </Link>
           <Link href="/analise" onClick={closeMenu}>
             Portal público
           </Link>
-          <Link href="#como-funciona" onClick={closeMenu}>
+          <Link href="/#como-funciona" onClick={closeMenu}>
             Como funciona
           </Link>
-          <a className="mobile-nav-action" href="#contato" onClick={closeMenu}>
+          <Link className="mobile-nav-action" href="/contato" onClick={closeMenu}>
             Contato
-          </a>
+          </Link>
           <Link
             className="mobile-nav-action mobile-nav-login"
             href="/auth/login"
@@ -51,16 +51,16 @@ export function LandingHeader() {
           </Link>
         </nav>
         <div className="header-actions">
-          <a className="header-contact" href="#contato">
+          <Link className="header-contact" href="/contato">
             Contato
-          </a>
-          <a
+          </Link>
+          <Link
             className="header-search"
-            href="#oportunidades"
+            href="/#oportunidades"
             aria-label="Buscar dados públicos"
           >
             <Search size={20} />
-          </a>
+          </Link>
           <Link className="header-login liquid-glass is-light" href="/auth/login">
             LOGIN
           </Link>
