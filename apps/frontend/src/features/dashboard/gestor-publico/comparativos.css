@@ -1,0 +1,375 @@
+/*
+ * Comparativo de municípios (GestorPublicoComparativos).
+ *
+ * Reaproveita a barra de filtros (analysis-filters / public-filter-*) e os
+ * cards de gráfico (analysis-chart-card) da dashboard; o que é só desta página
+ * usa o prefixo gp-cmp-.
+ */
+
+/* ---------- Municípios ----------
+   Sempre numa linha só, ligados por ⇄. Em telas estreitas a linha rola para
+   o lado em vez de quebrar. */
+.gp-cmp-slots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 2px 0 6px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+.gp-cmp-slot-group {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 4px;
+  min-width: 170px;
+  scroll-snap-align: start;
+  animation: gp-cmp-slide-in 0.28s ease-out both;
+}
+.gp-cmp-slots .gp-cmp-slot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+}
+.gp-cmp-slot .public-filter-trigger {
+  height: 58px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: #eef2f5;
+  font: inherit;
+  transition: background 0.2s ease;
+}
+.gp-cmp-slot .public-filter-trigger:hover,
+.gp-cmp-slot .public-filter-trigger[data-state="open"] {
+  background: #e4eaef;
+}
+.gp-cmp-slot .public-filter-copy small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.gp-cmp-slot .public-filter-value {
+  font-size: 15px;
+}
+/* Preenchido: o × fica no lugar da setinha; clicar no nome abre a lista. */
+.gp-cmp-slot.is-filled .public-filter-chevron {
+  visibility: hidden;
+}
+.gp-cmp-slot .public-filter-value.is-placeholder {
+  display: -webkit-box;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.gp-cmp-slot-dot {
+  width: 12px;
+  height: 12px;
+  margin: 0 4px;
+  animation: gp-cmp-pop 0.32s ease-out both;
+}
+.gp-cmp-slot-remove {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #8a9aa5;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.gp-cmp-slot-remove:hover,
+.gp-cmp-slot-remove:focus-visible {
+  background: #dfe7ed;
+  color: var(--brand-navy);
+}
+.gp-cmp-slot-content {
+  max-height: min(360px, var(--radix-select-content-available-height));
+}
+.gp-cmp-vs {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eef0ff;
+  color: var(--brand-navy);
+}
+.gp-cmp-dot {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* ---------- Filtros ---------- */
+.gp-cmp .gp-cmp-filters .analysis-filter-fields {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding-right: 18px;
+}
+.gp-cmp .gp-cmp-filters .public-filter-select:last-child {
+  border-right: 0;
+}
+
+/* ---------- Estados ---------- */
+.gp-cmp-empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 48px 24px;
+  border: 1px dashed #cfdce5;
+  border-radius: 13px;
+  background: #fff;
+  text-align: center;
+  animation: gp-cmp-fade-in 0.3s ease-out both;
+}
+.gp-cmp-empty > svg {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #eef0ff;
+  color: var(--brand-navy);
+}
+.gp-cmp-empty strong {
+  color: var(--brand-navy);
+  font-size: 18px;
+}
+.gp-cmp-empty p {
+  max-width: 440px;
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.gp-cmp-chart-skeleton {
+  height: 260px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f1f5f8 25%, #e7eef3 50%, #f1f5f8 75%);
+  background-size: 200% 100%;
+  animation: gp-cmp-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ---------- Resultado ---------- */
+.gp-cmp-results {
+  animation: gp-cmp-fade-in 0.35s ease-out both;
+}
+.gp-cmp-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.gp-cmp-leader {
+  margin: 0;
+  color: var(--graphite);
+  font-size: 15px;
+  line-height: 1.5;
+  animation: gp-cmp-fade-in 0.3s ease-out both;
+}
+.gp-cmp-leader b {
+  color: var(--brand-navy);
+}
+.gp-cmp-view {
+  flex: none;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  --chart-accent: var(--brand-blue);
+  --chart-tint: #e8f1fa;
+}
+.gp-cmp-view button {
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 13px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.gp-cmp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+.gp-cmp-grid > .gp-cmp-card:first-child {
+  grid-column: 1 / -1;
+}
+/* Sem o gráfico por natureza (natureza filtrada), o mensal ocupa a linha toda. */
+.gp-cmp-grid > .gp-cmp-card:nth-child(2):last-child {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Números ----------
+   Uma linha por município, uma coluna por indicador; a média do Ceará fecha
+   a tabela. O maior valor de cada coluna fica em negrito. */
+.gp-cmp-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e0e8ed;
+  border-radius: 10px;
+}
+.gp-cmp-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.gp-cmp-table th,
+.gp-cmp-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #edf2f5;
+  text-align: right;
+  white-space: nowrap;
+}
+.gp-cmp-table th:first-child {
+  text-align: left;
+}
+.gp-cmp-table thead th {
+  background: #f5f8fa;
+  color: #526b7b;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: normal;
+}
+.gp-cmp-table tbody th {
+  color: var(--graphite);
+  font-weight: 700;
+}
+.gp-cmp-table tbody th .gp-cmp-dot {
+  margin-right: 9px;
+}
+.gp-cmp-table tbody tr {
+  animation: gp-cmp-fade-in 0.3s ease-out both;
+  transition: background 0.15s ease;
+}
+.gp-cmp-table tbody tr:hover {
+  background: #f7fafc;
+}
+.gp-cmp-table td {
+  color: #526b7b;
+  font-variant-numeric: tabular-nums;
+}
+.gp-cmp-table td.is-best {
+  color: var(--brand-navy);
+  font-weight: 800;
+}
+.gp-cmp-table tfoot th,
+.gp-cmp-table tfoot td {
+  border-bottom: 0;
+  background: #fafcfd;
+  color: #7a8d9b;
+  font-weight: 600;
+}
+.gp-cmp-table-note {
+  margin: 10px 2px 0;
+  color: #7a8d9b;
+  font-size: 12px;
+}
+.gp-cmp-details {
+  margin-top: 18px;
+}
+.gp-cmp-details > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: var(--brand-navy);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.gp-cmp-details > summary::-webkit-details-marker {
+  display: none;
+}
+.gp-cmp-details > summary svg {
+  transition: transform 0.2s ease;
+}
+.gp-cmp-details[open] > summary svg {
+  transform: rotate(180deg);
+}
+.gp-cmp-details[open] .gp-cmp-table-wrap {
+  animation: gp-cmp-fade-in 0.3s ease-out both;
+}
+
+/* ---------- Animações ---------- */
+@keyframes gp-cmp-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes gp-cmp-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes gp-cmp-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+@keyframes gp-cmp-pop {
+  from {
+    transform: scale(0.4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gp-cmp-chart-skeleton,
+  .gp-cmp-slot-group,
+  .gp-cmp-slot-dot,
+  .gp-cmp-empty,
+  .gp-cmp-results,
+  .gp-cmp-leader,
+  .gp-cmp-table tbody tr,
+  .gp-cmp-details[open] .gp-cmp-table-wrap {
+    animation: none;
+  }
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 1050px) {
+  .gp-cmp .gp-cmp-filters .analysis-filter-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 10px;
+  }
+  .gp-cmp .gp-cmp-filters .public-filter-select:last-child {
+    border-bottom: 0;
+  }
+  .gp-cmp-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 720px) {
+  .gp-cmp .gp-cmp-filters .analysis-filter-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .gp-cmp-slot-group {
+    min-width: 200px;
+  }
+  .gp-cmp-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .gp-cmp-view {
+    align-self: flex-start;
+  }
+  .gp-cmp-table {
+    font-size: 13px;
+  }
+}

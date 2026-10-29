@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   ArrowLeft, CircleDollarSign, MapPinned,
-  Info, Search, SearchX, Store,
+  Search, SearchX, Store,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
@@ -31,6 +31,11 @@ const KPI_TEXT = {
   localValue: { label: "Compras com ME locais", detail: "Valor destinado a empresas sediadas no próprio município." },
   participations: { label: "Participações de ME", detail: "Registros de participação de microempresas." },
 };
+
+// Ano em curso: as licitações ainda podem mudar, então a dotação é "prevista".
+// Ano encerrado: o valor já está fechado.
+const highestNatureLead = (year: number) =>
+  year === new Date().getUTCFullYear() ? `a maior dotação prevista para ${year} é` : `a maior dotação de ${year} foi`;
 
 const localShareNote = (total: string, share: number) =>
   `De ${money(total)} homologados em licitações, ${percent(share)} ficaram com microempresas locais.`;
@@ -72,7 +77,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
       </header>
 
       <main className="analysis-container analysis-main">
-        <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a busca</Link>
+        <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a página inicial</Link>
         <section className="analysis-title-row">
           <div>
             <h1>Licitações e microempresas em {municipalityName}</h1>
@@ -106,7 +111,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
           </div>
 
           {highestNature && <section className="analysis-insight">
-            <p>Em {municipalityName}, a maior dotação prevista é <strong>{highestNatureName}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>.</p>
+            <p>Em {municipalityName}, {highestNatureLead(filters.year)} <strong>{highestNatureName}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>.</p>
           </section>}
 
           <div className="analysis-chart-grid">
@@ -144,7 +149,6 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
             {rows.length ? <AnalysisBidsTable rows={rows} /> : <DataState error={bids.error} fallback="Nenhuma licitação encontrada para estes filtros." />}
             <AnalysisPagination filters={filters} rowCount={rows.length} hasNext={(bids.data?.data.length ?? 0) > filters.pageSize} />
           </section>
-          <p className="analysis-footnote"><Info /> A planilha (CSV) traz todas as licitações dos filtros escolhidos.</p>
         </section>
       </main>
     </div>
