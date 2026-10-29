@@ -34,6 +34,11 @@ const KPI_TEXT = {
   participations: { label: "Participações de ME", detail: "Registros de participação de microempresas." },
 };
 
+// Ano em curso: as licitações ainda podem mudar, então a dotação é "prevista".
+// Ano encerrado: o valor já está fechado.
+const highestNatureLead = (year: number) =>
+  year === new Date().getUTCFullYear() ? `a maior dotação prevista para ${year} é` : `a maior dotação de ${year} foi`;
+
 const localShareNote = (total: string, share: number) =>
   `De ${money(total)} homologados em licitações, ${percent(share)} ficaram com microempresas locais.`;
 const generalShareNote = (total: string, share: number) =>
@@ -72,7 +77,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
       { label: KPI_TEXT.localValue.label, value: money(local.data?.resumo.valor_vencido_me_local), detail: KPI_TEXT.localValue.detail },
     ],
     highestNatureText: highestNature
-      ? `Em ${municipalityName}, a maior dotação prevista é "${highestNatureName}": ${money(highestNature.valor_total_dotacao)}.`
+      ? `Em ${municipalityName}, ${highestNatureLead(filters.year)} "${highestNatureName}": ${money(highestNature.valor_total_dotacao)}.`
       : null,
     chartSections: [
       { id: "export-microenterprise-chart", title: MICRO_VALUE_TITLE, description: MICRO_VALUE_DESCRIPTION, hasChart: microValueRows.length > 0, emptyText: MICRO_VALUE_EMPTY },
@@ -124,7 +129,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
       </header>
 
       <main className="analysis-container analysis-main">
-        <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a busca</Link>
+        <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a página inicial</Link>
         <section className="analysis-title-row">
           <div>
             <h1>Licitações e microempresas em {municipalityName}</h1>
@@ -159,7 +164,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
           </div>
 
           {highestNature && <section className="analysis-insight">
-            <p>Em {municipalityName}, a maior dotação prevista é <strong>{highestNatureName}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>.</p>
+            <p>Em {municipalityName}, {highestNatureLead(filters.year)} <strong>{highestNatureName}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>.</p>
           </section>}
 
           <div className="analysis-chart-grid">
