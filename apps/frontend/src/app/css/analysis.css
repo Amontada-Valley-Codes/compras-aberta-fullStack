@@ -790,6 +790,45 @@
   width: 20px;
   height: 20px;
 }
+/* Carregando a página clicada (LinkPending): spinner no lugar do conteúdo do
+   botão, tabela esmaecida e paginação travada para evitar cliques repetidos. */
+.analysis-pagination a {
+  position: relative;
+}
+.analysis-link-pending {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(17, 22, 155, 0.2);
+  border-top-color: var(--brand-navy);
+  border-radius: 50%;
+  animation: analysis-link-spin 0.7s linear infinite;
+}
+.analysis-pagination a:has(.analysis-link-pending) {
+  color: transparent;
+}
+.analysis-pagination a:has(.analysis-link-pending) svg {
+  visibility: hidden;
+}
+.analysis-pagination:has(.analysis-link-pending) {
+  pointer-events: none;
+}
+.analysis-table-card:has(.analysis-link-pending) .analysis-table-scroll {
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+@keyframes analysis-link-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .analysis-link-pending {
+    animation-duration: 1.6s;
+  }
+}
 .analysis-pagination-number.is-active {
   color: #fff;
   background: var(--brand-navy);
