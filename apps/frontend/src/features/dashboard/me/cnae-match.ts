@@ -15,10 +15,12 @@ export interface MePncpBid {
   legalBasis: string | null;
   legalBasisDescription: string | null;
   srp: boolean;
+  confidentialBudget?: boolean;
   situation: string;
   agencyCnpj: string;
   agencyName: string;
   unitName: string;
+  uasgCode: string | null;
   city: string;
   uf: string;
   ibgeCode: string | null;
@@ -34,6 +36,39 @@ export interface MePncpBid {
   electronicProcessUrl: string | null;
   pncpGovUrl: string;
   systemName: string | null;
+  portalName: string | null;
+  portalUrl: string | null;
+  portalUrlIsDirect: boolean;
+  integratorName: string | null;
+}
+
+export interface MeBidDocument {
+  id: number;
+  title: string;
+  typeName: string;
+  publishedAt: string | null;
+  url: string;
+}
+
+export interface MeBidItem {
+  number: number;
+  description: string;
+  kind: string | null; // Material ou Serviço
+  quantity: number | null;
+  unit: string | null;
+  unitValue: number | null;
+  totalValue: number | null;
+  confidentialBudget: boolean;
+  situation: string | null;
+  benefitName: string | null; // Ex: Participação exclusiva para ME/EPP
+  judgmentCriteria: string | null;
+}
+
+export interface MeBidDetailResponse {
+  bid: MePncpBid | null;
+  documents: MeBidDocument[];
+  items: MeBidItem[];
+  totalItems: number;
 }
 
 export interface CnaeMatchResult {

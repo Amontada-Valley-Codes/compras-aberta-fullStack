@@ -50,8 +50,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-extrabold);
   letter-spacing: 0.13em;
   color: var(--brand-blue);
 }
@@ -72,14 +72,14 @@
 }
 .ov-heading h1 {
   margin: 8px 0 6px;
-  font-size: 34px;
+  font-size: var(--text-3xl);
   line-height: 1.15;
   letter-spacing: -0.03em;
   color: var(--brand-navy);
 }
 .ov-heading p {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-md);
   color: #6b7c87;
 }
 .ov-heading-actions {
@@ -99,8 +99,8 @@
   border-radius: 12px;
   background: #fff;
   color: #4f616d;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   text-transform: capitalize;
 }
 .ov-date svg {
@@ -117,8 +117,8 @@
   border-radius: 12px;
   background: linear-gradient(135deg, var(--brand-blue), #1d3fb8);
   color: #fff;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
   box-shadow: 0 10px 22px rgba(37, 99, 166, 0.28);
   transition: transform 0.2s ease;
 }
@@ -158,13 +158,13 @@
 }
 .ov-card-head h2 {
   margin: 0 0 4px;
-  font-size: 18px;
+  font-size: var(--text-lg);
   color: var(--brand-navy);
 }
 .ov-card-head p {
   margin: 0;
-  font-size: 13px;
-  color: #82909a;
+  font-size: var(--text-sm);
+  color: #64748b;
 }
 .ov-link {
   display: inline-flex;
@@ -173,8 +173,8 @@
   border: 0;
   background: none;
   color: var(--brand-blue);
-  font-size: 13px;
-  font-weight: 800;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-extrabold);
   white-space: nowrap;
 }
 .ov-link svg {
