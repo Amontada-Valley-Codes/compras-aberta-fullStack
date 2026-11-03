@@ -29,7 +29,7 @@
   --brand-gold: #d9a441;
   --brand-gold-soft: #fff7e6;
   --graphite: #25313c;
-  --muted: #667681;
+  --muted: #5b6b77;
   --line: #dce6ec;
   --surface: #ffffff;
   --surface-soft: #f6f9fb;
@@ -42,6 +42,44 @@
   --radius-sm: 9px;
   --radius-md: 14px;
   --radius-lg: 22px;
+
+  /* Família tipográfica global */
+  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Escala global padronizada de tamanhos de texto */
+  --font-size-2xs: 0.75rem;    /* 12px — selos compactos, siglas, contadores */
+  --font-size-xs: 0.8125rem;   /* 13px — legendas, cabeçalhos de tabela, metadados */
+  --font-size-sm: 0.875rem;    /* 14px — rótulos, controles compactos, apoio */
+  --font-size-base: 1rem;      /* 16px — leitura padrão, inputs, células e botões */
+  --font-size-md: 1.0625rem;   /* 17px — subtítulos de página e destaques de lista */
+  --font-size-lg: 1.25rem;     /* 20px — títulos de cartão e seção (h2/h3) */
+  --font-size-xl: 1.5rem;      /* 24px — subtítulos amplos e valores em destaque */
+  --font-size-2xl: 1.875rem;   /* 30px — indicadores KPI e títulos internos */
+  --font-size-3xl: clamp(1.875rem, 2.5vw, 2.25rem); /* 30px–36px — títulos principais */
+
+  /* Aliases curtos para componentes e folhas de estilo */
+  --text-2xs: var(--font-size-2xs);
+  --text-xs: var(--font-size-xs);
+  --text-sm: var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-md: var(--font-size-md);
+  --text-lg: var(--font-size-lg);
+  --text-xl: var(--font-size-xl);
+  --text-2xl: var(--font-size-2xl);
+  --text-3xl: var(--font-size-3xl);
+
+  /* Pesos e alturas de linha padronizados */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+
+  --leading-tight: 1.22;
+  --leading-snug: 1.38;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.66;
 }
 
 * {
@@ -50,12 +88,15 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 84px;
+  font-family: var(--font-sans);
 }
 body {
   margin: 0;
   color: var(--graphite);
   background: var(--surface);
-  font-size: 14px;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
 }
 button,
@@ -119,7 +160,7 @@ img {
 }
 .button,
 .ds-button {
-  min-height: 52px;
+  min-height: 48px;
   border-radius: 10px;
   border: 1px solid transparent;
   padding: 0 20px;
@@ -127,7 +168,10 @@ img {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
   transition:
     transform 0.2s,
     background 0.2s,
@@ -166,18 +210,20 @@ img {
   color: var(--brand-blue);
   background: transparent;
 }
-.button-sm {
-  min-height: 46px;
-  padding-inline: 17px;
+.button-sm,
+.ds-button.sm {
+  min-height: 42px;
+  padding-inline: 16px;
+  font-size: var(--text-sm);
 }
 .eyebrow {
   display: inline-flex;
   gap: 8px;
   align-items: center;
   color: var(--brand-blue);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  font-weight: 800;
+  font-size: var(--text-xs);
+  letter-spacing: 0.11em;
+  font-weight: var(--weight-extrabold);
 }
 .eyebrow.light {
   color: #8bc2ea;

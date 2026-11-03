@@ -9,18 +9,22 @@ import {
   Bookmark,
   Building2,
   CalendarClock,
-  CalendarDays,
   Check,
   CheckCircle2,
   Clock3,
+  Copy,
+  Download,
   ExternalLink,
   FileText,
   Gavel,
+  Globe,
   Heart,
   LayoutDashboard,
+  ListChecks,
   MapPin,
   RefreshCw,
   Search,
+  ShieldCheck,
   Sparkles,
   TrendingUp,
   X,
@@ -30,8 +34,12 @@ import { OpportunityDonut, SpendingAreaChart } from "./DashboardCharts";
 import {
   evaluateBidMatch,
   type EnrichedMeBid,
+  type MeBidDetailResponse,
+  type MeBidDocument,
+  type MeBidItem,
   type MePncpBid,
 } from "./me/cnae-match";
+import { parsePncpControlNumber } from "./me/pncp-mapper";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { useUserProfile, type CompanyCnae } from "@/hooks/useUserProfile";
 import { formatCnpj } from "@/lib/format-br";
@@ -584,6 +592,39 @@ export function MeDashboard({
     [enrichedBids, selectedBidId],
   );
 
+  // Caso o usuário abra link direto (/me?oportunidade=...) de edital fora da página inicial, busca direto no PNCP
+  useEffect(() => {
+    if (!selectedBidId || loadingBids) return;
+    if (rawBids.some((b) => b.id === selectedBidId)) return;
+
+    const parsed = parsePncpControlNumber(selectedBidId);
+    if (!parsed) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(
+          `/api/me/licitacoes/${parsed.cnpj}/${parsed.ano}/${parsed.sequencial}`,
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as MeBidDetailResponse;
+        if (!cancelled && data.bid) {
+          setRawBids((prev) =>
+            prev.some((item) => item.id === data.bid!.id)
+              ? prev
+              : [data.bid!, ...prev],
+          );
+        }
+      } catch {
+        // mantém fallback padrão
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBidId, loadingBids, rawBids]);
+
   const navItems: NavItem[] = useMemo(
     () => [
       {
@@ -661,6 +702,7 @@ export function MeDashboard({
           selected={selectedBid}
           onSelect={(bid) => setSelectedBidId(bid ? bid.id : null)}
           companyCnaes={companyCnaes}
+          onNavigateProfile={() => navigate("profile")}
         />
       )}
       {active === "favorites" && (
@@ -673,6 +715,7 @@ export function MeDashboard({
           selected={selectedBid}
           onSelect={(bid) => setSelectedBidId(bid ? bid.id : null)}
           companyCnaes={companyCnaes}
+          onNavigateProfile={() => navigate("profile")}
           favoritesOnly
         />
       )}
@@ -1076,6 +1119,7 @@ function Opportunities({
   selected,
   onSelect,
   companyCnaes,
+  onNavigateProfile,
   favoritesOnly = false,
 }: {
   bids: EnrichedMeBid[];
@@ -1086,6 +1130,7 @@ function Opportunities({
   selected: EnrichedMeBid | null;
   onSelect: (bid: EnrichedMeBid | null) => void;
   companyCnaes: CompanyCnae[];
+  onNavigateProfile: () => void;
   favoritesOnly?: boolean;
 }) {
   const [query, setQuery] = useState("");
@@ -1167,6 +1212,7 @@ function Opportunities({
         companyCnaes={companyCnaes}
         onBack={() => onSelect(null)}
         onToggleFavorite={() => onToggleFavorite(selected.id)}
+        onNavigateProfile={onNavigateProfile}
       />
     );
   }
@@ -1456,341 +1502,820 @@ function Opportunities({
   );
 }
 
+function renderTextWithLinks(text: string): React.ReactNode {
+  const parts = text.split(/(https?:\/\/[^\s<>"')]+|www\.[^\s<>"')]+)/gi);
+  return parts.map((part, idx) => {
+    if (/^(?:https?:\/\/|www\.)/i.test(part)) {
+      const href = /^https?:\/\//i.test(part) ? part : `https://${part}`;
+      return (
+        <a key={idx} href={href} target="_blank" rel="noopener noreferrer">
+          {part}
+        </a>
+      );
+    }
+    return <span key={idx}>{part}</span>;
+  });
+}
+
 function OpportunityDetail({
   bid,
   isFavorite,
   companyCnaes,
   onBack,
   onToggleFavorite,
+  onNavigateProfile,
 }: {
   bid: EnrichedMeBid;
   isFavorite: boolean;
   companyCnaes: CompanyCnae[];
   onBack: () => void;
   onToggleFavorite: () => void;
+  onNavigateProfile: () => void;
 }) {
+  const [detailData, setDetailData] = useState<MeBidDetailResponse | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(true);
+  const [showAllItems, setShowAllItems] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingDetails(true);
+    setDetailData(null);
+    setShowAllItems(false);
+
+    const cnpjClean = (bid.agencyCnpj ?? "").replace(/\D/g, "");
+    if (cnpjClean.length !== 14 || !bid.year || !bid.sequential) {
+      setLoadingDetails(false);
+      return;
+    }
+
+    void (async () => {
+      try {
+        const res = await fetch(
+          `/api/me/licitacoes/${cnpjClean}/${bid.year}/${bid.sequential}`,
+        );
+        if (!res.ok) throw new Error("Erro ao carregar detalhes");
+        const json = (await res.json()) as MeBidDetailResponse;
+        if (!cancelled) {
+          setDetailData(json);
+        }
+      } catch {
+        if (!cancelled) {
+          setDetailData(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingDetails(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bid.id, bid.agencyCnpj, bid.year, bid.sequential]);
+
+  const effectiveBid: EnrichedMeBid = useMemo(() => {
+    if (!detailData?.bid) return bid;
+    return {
+      ...bid,
+      ...detailData.bid,
+      match: bid.match,
+    };
+  }, [bid, detailData]);
+
+  const documents: MeBidDocument[] = detailData?.documents ?? [];
+  const items: MeBidItem[] = detailData?.items ?? [];
+  const totalItems = detailData?.totalItems ?? items.length;
+
+  const primaryEditalDoc = useMemo(
+    () =>
+      documents.find((d) =>
+        `${d.typeName} ${d.title}`.toLowerCase().includes("edital"),
+      ) ?? documents[0] ?? null,
+    [documents],
+  );
+
+  const mpeBenefitCount = useMemo(
+    () =>
+      items.filter((i) => {
+        const b = (i.benefitName ?? "").toLowerCase();
+        return (
+          b.includes("exclusiv") ||
+          b.includes("me/epp") ||
+          b.includes("cota") ||
+          b.includes("microempresa")
+        );
+      }).length,
+    [items],
+  );
+
   const mainCnae = companyCnaes[0];
+  const { title: cleanHeadline, summary: cleanFullObject } =
+    extractBidTitleAndSummary(effectiveBid.object);
+  const deadline = formatDeadlineBadge(effectiveBid);
+
+  const hasEstimatedValue =
+    effectiveBid.estimatedValue !== null &&
+    effectiveBid.estimatedValue !== undefined &&
+    !Number.isNaN(effectiveBid.estimatedValue) &&
+    effectiveBid.estimatedValue > 0;
+
+  const shortPortalLabel = effectiveBid.portalName
+    ? effectiveBid.portalName.replace(/\s*\([^)]*\)\s*/g, "").trim()
+    : null;
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(effectiveBid.id);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2400);
+    } catch {
+      // fallback silencioso
+    }
+  };
+
+  const visibleItems = showAllItems ? items : items.slice(0, 10);
 
   return (
     <div className="dashboard-page opportunity-detail-page">
-      <button className="detail-back" onClick={onBack}>
-        <ArrowLeft /> Voltar para lista de licitações
-      </button>
+      {/* Barra superior limpa */}
+      <div className="opp-detail-topbar">
+        <button type="button" className="opp-back-btn" onClick={onBack}>
+          <ArrowLeft size={17} />
+          Voltar para licitações
+        </button>
 
-      <PageHeading
-        eyebrow={`${bid.modality.toUpperCase()} • COMPRA Nº ${bid.purchaseNumber}`}
-        title={bid.object}
-        description={`${bid.city}/${bid.uf} • ${bid.agencyName} (${bid.unitName})`}
-        action={
+        <div className="opp-detail-top-actions">
           <button
-            className={`ds-button secondary detail-favorite ${isFavorite ? "is-favorite" : ""}`}
+            type="button"
+            className={`opp-ghost-btn ${copiedId ? "is-copied" : ""}`}
+            onClick={handleCopyCode}
+          >
+            {copiedId ? <Check size={16} /> : <Copy size={16} />}
+            {copiedId ? "Código PNCP copiado" : "Copiar código PNCP"}
+          </button>
+
+          <button
+            type="button"
+            className={`opp-ghost-btn ${isFavorite ? "is-favorite" : ""}`}
             onClick={onToggleFavorite}
           >
-            <Heart fill={isFavorite ? "currentColor" : "none"} />
+            <Heart size={16} fill={isFavorite ? "currentColor" : "none"} />
             {isFavorite ? "Salva nos favoritos" : "Salvar nos favoritos"}
           </button>
-        }
-      />
-
-      {/* Banner de Compatibilidade CNAE + Status Aberta/Vencida */}
-      <section className="detail-summary-banner">
-        <div className="detail-match">
-          <span>
-            <b>{bid.match.isMatch ? `${bid.match.score}%` : "—"}</b>
-            <small>{bid.match.isMatch ? "match" : "CNAE"}</small>
-          </span>
-          <div>
-            <small>ANÁLISE DE COMPATIBILIDADE COM SEU CNAE</small>
-            <h2>
-              {bid.match.isMatch
-                ? "Dá Match com o CNAE da sua empresa!"
-                : "Fora do CNAE principal identificado"}
-            </h2>
-            <p>
-              {bid.match.isMatch ? (
-                <>
-                  Compatível com{" "}
-                  <b>{bid.match.matchedCnae ?? mainCnae?.descricao}</b>.
-                  {bid.match.matchedKeywords.length > 0 &&
-                    ` Termos identificados no objeto: ${bid.match.matchedKeywords.join(", ")}.`}
-                </>
-              ) : mainCnae ? (
-                <>
-                  Seu CNAE cadastrado ({mainCnae.codigo} — {mainCnae.descricao})
-                  não possui termos diretos neste objeto, mas você pode conferir
-                  o edital completo.
-                </>
-              ) : (
-                "Configure seu CNAE na aba 'Perfil e CNAE' para calcular a compatibilidade."
-              )}
-            </p>
-          </div>
         </div>
-        <div className="detail-deadline">
-          <CalendarClock />
-          <span>
-            <small>
-              {bid.isOpen
-                ? "PRAZO FINAL PARA PROPOSTAS"
-                : "LICITAÇÃO VENCIDA / ENCERRADA"}
-            </small>
-            <b>{formatDateBr(bid.closingAt)}</b>
-            <em>
-              {bid.isOpen
-                ? bid.daysLeft !== null
-                  ? bid.daysLeft <= 0
-                    ? "Encerra hoje!"
-                    : `${bid.daysLeft} dia(s) restante(s)`
-                  : "Recebendo propostas"
-                : "Prazo de envio de propostas encerrado"}
-            </em>
+      </div>
+
+      {/* Cabeçalho Principal (Hero) */}
+      <section className="opp-detail-hero">
+        <div className="opp-hero-badges">
+          <span
+            className={`opp-badge status-dot ${effectiveBid.isOpen ? "status-open" : "status-closed"}`}
+          >
+            <i aria-hidden="true" />
+            {effectiveBid.isOpen
+              ? "Aberta para propostas"
+              : "Prazo encerrado"}
           </span>
+
+          {effectiveBid.isOpen && (
+            <span
+              className={`opp-badge ${deadline.tone === "urgent" ? "urgent" : deadline.tone === "warning" ? "warning" : "status-open"}`}
+            >
+              <Clock3 size={14} />
+              {deadline.label}
+            </span>
+          )}
+
+          <span className="opp-badge modality">{effectiveBid.modality}</span>
+
+          {effectiveBid.srp && (
+            <span className="opp-badge srp">Registro de Preços (SRP)</span>
+          )}
+
+          {effectiveBid.match.isMatch && (
+            <span className="opp-badge match">
+              <Sparkles size={14} />
+              {effectiveBid.match.score}% compatível com seu CNAE
+            </span>
+          )}
+        </div>
+
+        <div className="opp-hero-heading">
+          <h1 className="opp-hero-title">{cleanHeadline}</h1>
+          <p className="opp-hero-subtitle">
+            <span>
+              <Building2 size={17} />
+              {formatBuyerLocation(
+                effectiveBid.city,
+                effectiveBid.uf,
+                effectiveBid.unitName,
+              )}
+            </span>
+            <span className="opp-hero-sep">•</span>
+            <span>Compra nº {effectiveBid.purchaseNumber}</span>
+            {effectiveBid.process &&
+              effectiveBid.process !== effectiveBid.purchaseNumber && (
+                <>
+                  <span className="opp-hero-sep">•</span>
+                  <span>Processo {effectiveBid.process}</span>
+                </>
+              )}
+          </p>
+        </div>
+
+        <div className="opp-detail-kpis">
+          <div className="opp-kpi-box">
+            <span className="opp-kpi-label">
+              <TrendingUp size={15} />
+              Valor total estimado
+            </span>
+            <strong className="opp-kpi-value">
+              {hasEstimatedValue
+                ? formatCurrencyBr(effectiveBid.estimatedValue)
+                : effectiveBid.confidentialBudget
+                  ? "Orçamento sigiloso"
+                  : "Conforme edital"}
+            </strong>
+            <span className="opp-kpi-sub">
+              {effectiveBid.awardedValue !== null &&
+              effectiveBid.awardedValue > 0
+                ? `Homologado: ${formatCurrencyBr(effectiveBid.awardedValue)}`
+                : "Referência oficial da contratação"}
+            </span>
+          </div>
+
+          <div className="opp-kpi-box">
+            <span className="opp-kpi-label">
+              <CalendarClock size={15} />
+              {effectiveBid.isOpen
+                ? "Prazo final para propostas"
+                : "Encerramento das propostas"}
+            </span>
+            <strong
+              className={`opp-kpi-value ${effectiveBid.isOpen && effectiveBid.daysLeft !== null && effectiveBid.daysLeft <= 3 ? "is-urgent" : ""}`}
+            >
+              {formatDateBr(effectiveBid.closingAt)}
+            </strong>
+            <span className="opp-kpi-sub">
+              {effectiveBid.openingAt
+                ? `Abertura: ${formatDateBr(effectiveBid.openingAt)}`
+                : deadline.label}
+            </span>
+          </div>
+
+          <div className="opp-kpi-box highlight-portal">
+            <span className="opp-kpi-label">
+              <Globe size={15} />
+              Portal de participação
+            </span>
+            <strong className="opp-kpi-value">
+              {effectiveBid.portalName ?? "Definido no Edital"}
+            </strong>
+            <span className="opp-kpi-sub">
+              {effectiveBid.portalUrlIsDirect
+                ? "Link direto para a sala de disputa"
+                : effectiveBid.portalUrl
+                  ? "Plataforma eletrônica onde ocorre a disputa"
+                  : "Consulte o Edital para o canal de envio"}
+            </span>
+          </div>
+
+          <div className="opp-kpi-box">
+            <span className="opp-kpi-label">
+              <Gavel size={15} />
+              Modo de disputa
+            </span>
+            <strong className="opp-kpi-value">
+              {effectiveBid.disputeMode ||
+                effectiveBid.instrumentType ||
+                "Conforme edital"}
+            </strong>
+            <span className="opp-kpi-sub">{effectiveBid.situation}</span>
+          </div>
         </div>
       </section>
 
-      <div className="detail-layout">
-        <div className="detail-main-column">
-          <section className="dashboard-card detail-card">
-            <header>
-              <span>
-                <FileText />
-              </span>
-              <div>
-                <h2>Ficha completa da licitação (PNCP)</h2>
-                <p>Controle PNCP: {bid.id}</p>
+      {/* Grid Principal em 2 Colunas */}
+      <div className="opp-detail-grid">
+        {/* Coluna Esquerda: Conteúdo Essencial, Edital/Anexos e Itens */}
+        <div className="opp-detail-main">
+          {/* 1. Objeto e Ficha Essencial */}
+          <section className="opp-section-card">
+            <header className="opp-section-header">
+              <div className="opp-section-title-group">
+                <span className="opp-section-icon">
+                  <FileText size={20} />
+                </span>
+                <div>
+                  <h2>Objeto e dados da contratação</h2>
+                  <p>Resumo organizado sem duplicações para análise rápida</p>
+                </div>
               </div>
             </header>
-            <dl className="detail-data-grid">
-              <div>
-                <dt>Órgão comprador</dt>
-                <dd>{bid.agencyName}</dd>
-              </div>
-              <div>
-                <dt>Unidade compradora</dt>
-                <dd>{bid.unitName}</dd>
-              </div>
-              <div>
-                <dt>Município / UF</dt>
-                <dd>
-                  {bid.city} / {bid.uf}
-                </dd>
-              </div>
-              <div>
-                <dt>CNPJ do órgão</dt>
-                <dd>{formatCnpj(bid.agencyCnpj)}</dd>
-              </div>
-              <div>
-                <dt>Modalidade</dt>
-                <dd>{bid.modality}</dd>
-              </div>
-              <div>
-                <dt>Modo de disputa</dt>
-                <dd>{bid.disputeMode || "Conforme edital"}</dd>
-              </div>
-              <div>
-                <dt>Número da compra / Processo</dt>
-                <dd>
-                  Nº {bid.purchaseNumber}
-                  {bid.process ? ` (Processo: ${bid.process})` : ""}
-                </dd>
-              </div>
-              <div>
-                <dt>Situação no PNCP</dt>
-                <dd>
-                  {bid.situation} {bid.srp ? "• Registro de Preços (SRP)" : ""}
-                </dd>
-              </div>
-              <div>
-                <dt>Valor total estimado</dt>
-                <dd>{formatCurrencyBr(bid.estimatedValue)}</dd>
-              </div>
-              <div>
-                <dt>Valor homologado</dt>
-                <dd>
-                  {bid.awardedValue !== null
-                    ? formatCurrencyBr(bid.awardedValue)
-                    : "Ainda não homologado / Não informado"}
-                </dd>
-              </div>
-              <div>
-                <dt>Abertura das propostas</dt>
-                <dd>{formatDateBr(bid.openingAt)}</dd>
-              </div>
-              <div>
-                <dt>Encerramento das propostas</dt>
-                <dd>{formatDateBr(bid.closingAt)}</dd>
-              </div>
-            </dl>
 
-            <div className="detail-object">
-              <small>OBJETO DA CONTRATAÇÃO</small>
-              <p>{bid.object}</p>
+            <div className="opp-object-box">
+              <span className="opp-box-eyebrow">Objeto completo</span>
+              <p className="opp-object-text">{cleanFullObject}</p>
             </div>
 
-            {bid.complementaryInfo && (
-              <div className="detail-object" style={{ marginTop: 14 }}>
-                <small>INFORMAÇÕES COMPLEMENTARES / LINKS DO EDITAL</small>
-                <p style={{ whiteSpace: "pre-line" }}>{bid.complementaryInfo}</p>
-              </div>
-            )}
-
-            {bid.legalBasis && (
-              <div className="detail-object" style={{ marginTop: 14 }}>
-                <small>AMPARO LEGAL</small>
-                <p>
-                  <b>{bid.legalBasis}</b>
-                  {bid.legalBasisDescription
-                    ? ` — ${bid.legalBasisDescription}`
-                    : ""}
+            {effectiveBid.complementaryInfo && (
+              <div className="opp-complementary-box">
+                <span className="opp-box-eyebrow">
+                  Informações complementares do órgão
+                </span>
+                <p className="opp-complementary-text">
+                  {renderTextWithLinks(effectiveBid.complementaryInfo)}
                 </p>
               </div>
             )}
+
+            <dl className="opp-meta-grid">
+              <div className="opp-meta-item">
+                <dt>Órgão comprador</dt>
+                <dd>{formatOrgName(effectiveBid.agencyName)}</dd>
+              </div>
+
+              <div className="opp-meta-item">
+                <dt>Unidade compradora</dt>
+                <dd>
+                  {formatOrgName(effectiveBid.unitName)}
+                  {effectiveBid.uasgCode
+                    ? ` (UASG ${effectiveBid.uasgCode})`
+                    : ""}
+                </dd>
+              </div>
+
+              <div className="opp-meta-item">
+                <dt>CNPJ do órgão</dt>
+                <dd>{formatCnpj(effectiveBid.agencyCnpj)}</dd>
+              </div>
+
+              <div className="opp-meta-item">
+                <dt>Controle oficial PNCP</dt>
+                <dd>
+                  <code>{effectiveBid.id}</code>
+                </dd>
+              </div>
+
+              <div className="opp-meta-item">
+                <dt>Instrumento convocatório</dt>
+                <dd>{effectiveBid.instrumentType || "Edital"}</dd>
+              </div>
+
+              <div className="opp-meta-item">
+                <dt>Amparo legal</dt>
+                <dd>
+                  {effectiveBid.legalBasis || "Lei nº 14.133/2021"}
+                  {effectiveBid.legalBasisDescription
+                    ? ` — ${effectiveBid.legalBasisDescription}`
+                    : ""}
+                </dd>
+              </div>
+            </dl>
           </section>
 
-          {/* Bloco de Ações Oficiais: Ir para Disputa + Ver no Gov.br */}
-          <section className="official-process-note">
-            <InfoIcon />
-            <div>
-              <h2>Acesso direto à disputa e ao portal oficial do Governo</h2>
-              <p>
-                {bid.disputeUrl
-                  ? `Esta licitação possui link direto para o sistema de disputa (${bid.systemName ?? "Portal de Compras"}). Você também pode consultar o processo e baixar os anexos oficiais no PNCP (Gov.br).`
-                  : "O órgão não preencheu um link externo separado para o sistema de origem; acesse a publicação oficial no PNCP (Gov.br) para verificar o edital e o endereço da plataforma de disputa."}
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {bid.disputeUrl && (
+          {/* 2. Edital e Documentos Oficiais */}
+          <section className="opp-section-card">
+            <header className="opp-section-header">
+              <div className="opp-section-title-group">
+                <span className="opp-section-icon">
+                  <Download size={20} />
+                </span>
+                <div>
+                  <h2>Edital e documentos oficiais</h2>
+                  <p>
+                    Arquivos publicados pelo órgão no Portal Nacional de
+                    Contratações Públicas
+                  </p>
+                </div>
+              </div>
+              {!loadingDetails && (
+                <span className="opp-count-pill">
+                  {documents.length}{" "}
+                  {documents.length === 1 ? "arquivo" : "arquivos"}
+                </span>
+              )}
+            </header>
+
+            {loadingDetails ? (
+              <div className="opp-loading-inline">
+                <RefreshCw size={18} />
+                <span>Buscando edital e anexos oficiais no PNCP…</span>
+              </div>
+            ) : documents.length > 0 ? (
+              <div className="opp-docs-list">
+                {documents.map((doc) => {
+                  const isEdital = `${doc.typeName} ${doc.title}`
+                    .toLowerCase()
+                    .includes("edital");
+                  return (
+                    <article
+                      key={`${doc.id}-${doc.url}`}
+                      className={`opp-doc-row ${isEdital ? "is-edital" : ""}`}
+                    >
+                      <div className="opp-doc-info">
+                        <span className="opp-doc-icon">
+                          <FileText size={20} />
+                        </span>
+                        <div className="opp-doc-text">
+                          <strong>{doc.title}</strong>
+                          <div className="opp-doc-meta">
+                            <span className="opp-doc-type-badge">
+                              {doc.typeName}
+                            </span>
+                            {doc.publishedAt && (
+                              <span>
+                                Publicado em {formatDateBr(doc.publishedAt, false)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <a
+                        className="opp-doc-btn"
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Download size={15} />
+                        Abrir arquivo
+                      </a>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="opp-section-empty">
+                <span>
+                  Nenhum anexo avulso foi retornado pela API neste momento.
+                  Consulte diretamente a página oficial do processo no PNCP.
+                </span>
                 <a
-                  className="ds-button primary"
-                  href={bid.disputeUrl}
+                  className="opp-doc-btn"
+                  href={effectiveBid.pncpGovUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Ir para o site da disputa <ExternalLink size={16} />
+                  Abrir no PNCP <ExternalLink size={15} />
                 </a>
+              </div>
+            )}
+          </section>
+
+          {/* 3. Itens e Benefícios ME/EPP */}
+          <section className="opp-section-card">
+            <header className="opp-section-header">
+              <div className="opp-section-title-group">
+                <span className="opp-section-icon">
+                  <ListChecks size={20} />
+                </span>
+                <div>
+                  <h2>Itens da licitação</h2>
+                  <p>
+                    Quantidades, valores de referência e benefícios para ME/EPP
+                  </p>
+                </div>
+              </div>
+              {!loadingDetails && totalItems > 0 && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {mpeBenefitCount > 0 && (
+                    <span className="opp-count-pill is-benefit">
+                      <ShieldCheck size={14} />
+                      {mpeBenefitCount} com benefício ME/EPP
+                    </span>
+                  )}
+                  <span className="opp-count-pill">
+                    {totalItems} {totalItems === 1 ? "item" : "itens"}
+                  </span>
+                </div>
               )}
-              <a
-                className={`ds-button ${bid.disputeUrl ? "secondary" : "primary"}`}
-                href={bid.pncpGovUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Ver licitação no Gov.br (PNCP) <ExternalLink size={16} />
-              </a>
-            </div>
+            </header>
+
+            {loadingDetails ? (
+              <div className="opp-loading-inline">
+                <RefreshCw size={18} />
+                <span>Carregando relação de itens do edital…</span>
+              </div>
+            ) : items.length > 0 ? (
+              <>
+                <div className="opp-items-table-wrap">
+                  <table className="opp-items-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Descrição e participação</th>
+                        <th className="is-right">Qtd.</th>
+                        <th className="is-right">Unitário est.</th>
+                        <th className="is-right">Total est.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleItems.map((item) => {
+                        const benefitLower = (
+                          item.benefitName ?? ""
+                        ).toLowerCase();
+                        const isMpeExclusive =
+                          benefitLower.includes("exclusiv") ||
+                          benefitLower.includes("me/epp") ||
+                          benefitLower.includes("cota") ||
+                          benefitLower.includes("microempresa");
+
+                        return (
+                          <tr key={item.number}>
+                            <td>
+                              <span className="opp-item-num">
+                                {String(item.number).padStart(2, "0")}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="opp-item-desc">
+                                <p>{formatCleanTitle(item.description)}</p>
+                                <div className="opp-item-tags">
+                                  {item.kind && (
+                                    <span className="opp-item-tag">
+                                      {item.kind}
+                                    </span>
+                                  )}
+                                  {item.benefitName &&
+                                    !benefitLower.includes("não se aplica") && (
+                                      <span
+                                        className={`opp-item-tag ${isMpeExclusive ? "is-mpe" : ""}`}
+                                      >
+                                        {isMpeExclusive && (
+                                          <ShieldCheck size={12} />
+                                        )}
+                                        {item.benefitName}
+                                      </span>
+                                    )}
+                                  {item.judgmentCriteria && (
+                                    <span className="opp-item-tag">
+                                      {item.judgmentCriteria}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="is-right opp-item-qty">
+                              {item.quantity !== null
+                                ? `${item.quantity.toLocaleString("pt-BR")}${item.unit ? ` ${item.unit}` : ""}`
+                                : "—"}
+                            </td>
+                            <td className="is-right opp-item-price">
+                              {item.confidentialBudget
+                                ? "Sigiloso"
+                                : item.unitValue && item.unitValue > 0
+                                  ? formatCurrencyBr(item.unitValue)
+                                  : "—"}
+                            </td>
+                            <td className="is-right opp-item-price">
+                              {item.confidentialBudget
+                                ? "Sigiloso"
+                                : item.totalValue && item.totalValue > 0
+                                  ? formatCurrencyBr(item.totalValue)
+                                  : "—"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {items.length > 10 && (
+                  <button
+                    type="button"
+                    className="opp-items-more-btn"
+                    onClick={() => setShowAllItems((prev) => !prev)}
+                  >
+                    {showAllItems
+                      ? "Mostrar menos itens"
+                      : `Mostrar todos os ${items.length} itens carregados`}
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="opp-section-empty">
+                <span>
+                  Os itens desta contratação estão detalhados diretamente no
+                  Edital / Termo de Referência anexo acima.
+                </span>
+              </div>
+            )}
           </section>
         </div>
 
-        <aside className="detail-sidebar">
-          <section className="dashboard-card deadline-card">
-            <span className={bid.isOpen ? "status-open" : "status-closed"}>
-              <i /> {bid.isOpen ? "LICITAÇÃO ABERTA" : "LICITAÇÃO VENCIDA"}
-            </span>
-            <h2>Participar / Consultar</h2>
-            <p>
-              Acesse diretamente a plataforma onde ocorre a sessão pública ou
-              veja os arquivos oficiais no portal do Governo Federal.
-            </p>
-            <div>
-              <CalendarDays />
-              <span>
-                <small>Encerramento de propostas</small>
-                <b>{formatDateBr(bid.closingAt)}</b>
+        {/* Coluna Direita (Sticky): Onde Participar + CNAE + Cronograma */}
+        <aside className="opp-detail-aside">
+          {/* Card Principal: Portal de Participação / Disputa */}
+          <section className="opp-portal-card">
+            <div className="opp-portal-top">
+              <span className="opp-portal-eyebrow">
+                Onde participar e competir
               </span>
             </div>
-            <div>
-              <CircleMoney />
-              <span>
-                <small>Valor estimado</small>
-                <b>{formatCurrencyBr(bid.estimatedValue)}</b>
-              </span>
-            </div>
-            <div>
-              <MapPin />
-              <span>
-                <small>Município / Órgão</small>
-                <b>
-                  {bid.city}/{bid.uf}
-                </b>
-              </span>
-            </div>
+
+            <h2>
+              {effectiveBid.portalUrl
+                ? "Portal eletrônico de disputa"
+                : "Participação conforme Edital"}
+            </h2>
 
             <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-                marginTop: 8,
-              }}
+              className={`opp-platform-badge-box ${effectiveBid.portalUrl ? "" : "is-neutral"}`}
             >
-              {bid.disputeUrl ? (
+              <span className="opp-platform-icon">
+                {effectiveBid.portalUrl ? (
+                  <Gavel size={20} />
+                ) : (
+                  <FileText size={20} />
+                )}
+              </span>
+              <div className="opp-platform-info">
+                <small>
+                  {effectiveBid.portalUrl
+                    ? "Plataforma de envio de propostas e lances"
+                    : "Canal de envio de propostas"}
+                </small>
+                <strong>
+                  {effectiveBid.portalName ??
+                    "Consulte o endereço no Edital oficial"}
+                </strong>
+              </div>
+            </div>
+
+            <p className="opp-portal-desc">
+              {effectiveBid.portalUrlIsDirect
+                ? "O PNCP é o mural oficial do Governo, mas o cadastro de propostas e a disputa de lances acontecem diretamente na plataforma eletrônica abaixo."
+                : effectiveBid.portalUrl
+                  ? "O envio de propostas e os lances ocorrem nesta plataforma eletrônica. Ao abrir o portal, utilize os dados abaixo para localizar rapidamente o certame:"
+                  : "Este processo não informou link externo de sala eletrônica no PNCP (comum em credenciamentos, pré-qualificações ou portais próprios descritos no PDF). Abra o Edital oficial para ver onde protocolar sua proposta."}
+            </p>
+
+            {effectiveBid.portalUrl && !effectiveBid.portalUrlIsDirect && (
+              <div className="opp-portal-lookup">
+                <span className="opp-portal-lookup-title">
+                  Dados para busca rápida no portal
+                </span>
+                <div className="opp-portal-lookup-row">
+                  <span>Nº da compra:</span>
+                  <strong>{effectiveBid.purchaseNumber}</strong>
+                </div>
+                <div className="opp-portal-lookup-row">
+                  <span>CNPJ do órgão:</span>
+                  <strong>{formatCnpj(effectiveBid.agencyCnpj)}</strong>
+                </div>
+                {effectiveBid.uasgCode && (
+                  <div className="opp-portal-lookup-row">
+                    <span>Código UASG:</span>
+                    <strong>{effectiveBid.uasgCode}</strong>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="opp-portal-actions">
+              {effectiveBid.portalUrl ? (
                 <a
-                  className="ds-button primary"
-                  href={bid.disputeUrl}
+                  className="opp-cta-primary"
+                  href={effectiveBid.portalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Ir para o site da disputa (
-                  {bid.systemName ?? "Sistema Origem"}){" "}
-                  <ExternalLink size={16} />
+                  {effectiveBid.portalUrlIsDirect
+                    ? `Participar no ${shortPortalLabel ?? "Portal de Disputa"}`
+                    : `Acessar ${shortPortalLabel ?? "Plataforma de Disputa"}`}
+                  <ExternalLink size={17} />
                 </a>
-              ) : (
+              ) : primaryEditalDoc ? (
                 <a
-                  className="ds-button primary"
-                  href={bid.pncpGovUrl}
+                  className="opp-cta-primary"
+                  href={primaryEditalDoc.url}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Abrir plataforma pelo PNCP <ExternalLink size={16} />
+                  Baixar Edital Oficial <Download size={17} />
                 </a>
-              )}
+              ) : null}
 
               <a
-                className="ds-button secondary"
-                href={bid.pncpGovUrl}
+                className={
+                  effectiveBid.portalUrl || primaryEditalDoc
+                    ? "opp-cta-secondary"
+                    : "opp-cta-primary"
+                }
+                href={effectiveBid.pncpGovUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Ver licitação no Gov.br (PNCP) <ExternalLink size={16} />
+                Ver publicação oficial no PNCP (Gov.br){" "}
+                <ExternalLink size={16} />
               </a>
 
-              {bid.electronicProcessUrl &&
-                bid.electronicProcessUrl !== bid.disputeUrl && (
+              {effectiveBid.electronicProcessUrl &&
+                effectiveBid.electronicProcessUrl !== effectiveBid.portalUrl &&
+                effectiveBid.electronicProcessUrl !==
+                  effectiveBid.pncpGovUrl && (
                   <a
-                    className="ds-button secondary"
-                    href={bid.electronicProcessUrl}
+                    className="opp-cta-secondary"
+                    href={effectiveBid.electronicProcessUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Processo eletrônico <ExternalLink size={16} />
+                    Abrir processo eletrônico <ExternalLink size={16} />
                   </a>
                 )}
             </div>
           </section>
 
-          <section className="dashboard-card detail-timeline">
-            <h2>Cronograma do edital</h2>
-            <span className="active">
-              <i />
-              <div>
-                <b>Publicado no PNCP</b>
-                <small>{formatDateBr(bid.publishedAt)}</small>
+          {/* Card Lateral: Compatibilidade CNAE */}
+          <section className="opp-side-card">
+            <h3>Compatibilidade com sua empresa</h3>
+
+            <div className="opp-cnae-summary">
+              <div
+                className={`opp-cnae-score ${effectiveBid.match.isMatch ? "is-match" : ""}`}
+              >
+                <b>
+                  {effectiveBid.match.isMatch
+                    ? `${effectiveBid.match.score}%`
+                    : "—"}
+                </b>
+                <small>{effectiveBid.match.isMatch ? "Match" : "CNAE"}</small>
               </div>
-            </span>
-            <span className={bid.openingAt ? "active" : ""}>
-              <i />
               <div>
-                <b>Abertura de propostas</b>
-                <small>{formatDateBr(bid.openingAt)}</small>
+                <strong>
+                  {effectiveBid.match.isMatch
+                    ? "Compatível com seu perfil"
+                    : "Sem match direto no CNAE"}
+                </strong>
+                <span>
+                  {effectiveBid.match.matchedCnae ??
+                    (mainCnae
+                      ? `${mainCnae.codigo} — ${mainCnae.descricao}`
+                      : "CNAE ainda não configurado")}
+                </span>
               </div>
-            </span>
-            <span className={!bid.isOpen ? "active" : ""}>
-              <i />
-              <div>
-                <b>Encerramento de propostas</b>
-                <small>{formatDateBr(bid.closingAt)}</small>
+            </div>
+
+            {effectiveBid.match.matchedKeywords.length > 0 ? (
+              <div className="opp-cnae-keywords">
+                {effectiveBid.match.matchedKeywords.map((kw) => (
+                  <span key={kw}>{kw}</span>
+                ))}
               </div>
-            </span>
+            ) : (
+              <p className="opp-cnae-text">
+                {mainCnae
+                  ? "Você pode participar normalmente caso atenda às exigências de habilitação do Edital, ou adicionar palavras-chave ao seu radar."
+                  : "Cadastre seu CNAE ou palavras-chave para destacar automaticamente os editais do seu ramo."}
+              </p>
+            )}
+
+            <button
+              type="button"
+              className="opp-link-inline"
+              onClick={onNavigateProfile}
+            >
+              Ajustar CNAE e palavras-chave <ArrowRight size={15} />
+            </button>
+          </section>
+
+          {/* Card Lateral: Cronograma */}
+          <section className="opp-side-card">
+            <h3>Cronograma oficial</h3>
+
+            <div className="opp-timeline-list">
+              <div className="opp-timeline-step is-done">
+                <i className="opp-timeline-dot" aria-hidden="true" />
+                <div className="opp-timeline-info">
+                  <strong>Publicação no PNCP</strong>
+                  <span>{formatDateBr(effectiveBid.publishedAt)}</span>
+                </div>
+              </div>
+
+              <div
+                className={`opp-timeline-step ${effectiveBid.openingAt ? "is-done" : ""}`}
+              >
+                <i className="opp-timeline-dot" aria-hidden="true" />
+                <div className="opp-timeline-info">
+                  <strong>Abertura para propostas</strong>
+                  <span>{formatDateBr(effectiveBid.openingAt)}</span>
+                </div>
+              </div>
+
+              <div
+                className={`opp-timeline-step ${effectiveBid.isOpen ? "is-current" : "is-done"}`}
+              >
+                <i className="opp-timeline-dot" aria-hidden="true" />
+                <div className="opp-timeline-info">
+                  <strong>Encerramento de propostas</strong>
+                  <span>{formatDateBr(effectiveBid.closingAt)}</span>
+                </div>
+              </div>
+            </div>
           </section>
         </aside>
       </div>
@@ -1929,7 +2454,7 @@ function Alerts({
               </span>
             ))
           ) : (
-            <p style={{ fontSize: "0.88rem", opacity: 0.8 }}>
+            <p style={{ fontSize: "var(--text-sm)", opacity: 0.8 }}>
               {customCnaeText
                 ? `CNAE complementar: ${customCnaeText}`
                 : "Nenhum CNAE automático retornado para o seu CNPJ. Adicione palavras-chave abaixo ou configure na aba Perfil e CNAE."}
@@ -1986,7 +2511,7 @@ function Alerts({
                   border: "none",
                   color: "#dc2626",
                   cursor: "pointer",
-                  fontSize: "0.8rem",
+                  fontSize: "var(--text-xs)",
                 }}
               >
                 Remover
@@ -2230,8 +2755,8 @@ function CompanyProfile({
                   padding: "10px",
                   borderRadius: 8,
                   border: "1px solid #cbd5e1",
-                  fontFamily: "inherit",
-                  fontSize: "0.88rem",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "var(--text-sm)",
                 }}
               />
             </label>
@@ -2266,14 +2791,6 @@ function CompanyProfile({
       </form>
     </div>
   );
-}
-
-function InfoIcon() {
-  return <span className="detail-info-icon">i</span>;
-}
-
-function CircleMoney() {
-  return <span className="detail-money-icon">R$</span>;
 }
 
 function PageHeading({

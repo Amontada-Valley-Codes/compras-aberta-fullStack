@@ -162,7 +162,7 @@
   overflow: visible;
 }
 .app-shell.is-gestor-publico .nav-group-label {
-  font-size: 10px;
+  font-size: var(--text-2xs);
   padding: 0 14px 10px;
 }
 .app-shell.is-gestor-publico .sidebar-nav {
@@ -172,8 +172,8 @@
   min-height: 52px;
   padding-inline: 14px;
   gap: 13px;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
 }
 .app-shell.is-gestor-publico .sidebar-nav button svg {
   width: 23px;
@@ -184,10 +184,10 @@
   padding: 18px 8px 2px;
 }
 .app-shell.is-gestor-publico .sidebar-user strong {
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 .app-shell.is-gestor-publico .sidebar-user small {
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 .app-shell.is-gestor-publico.is-sidebar-collapsed .nav-group-label,
 .app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-nav button span,
@@ -209,7 +209,7 @@
   padding-inline: 0;
 }
 .app-shell.is-gestor-publico .dashboard-content {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 .app-shell.is-gestor-publico .gp-main {
   margin-top: 24px;

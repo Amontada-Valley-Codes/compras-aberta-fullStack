@@ -6,7 +6,7 @@
 .button,
 .ds-button {
   min-height: 52px;
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .public-header {
@@ -23,7 +23,7 @@
 }
 
 .header-inner nav a {
-  font-size: 20px;
+  font-size: var(--text-lg);
 }
 
 .hero,
@@ -47,7 +47,7 @@
 
 .hero-proof p,
 .hero-proof strong {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .preview-window {
@@ -59,20 +59,20 @@
 }
 
 .preview-top {
-  font-size: 11px;
+  font-size: var(--text-2xs);
 }
 
 .preview-heading b {
-  font-size: 17px;
+  font-size: var(--text-md);
 }
 
 .preview-heading small {
-  font-size: 11px;
+  font-size: var(--text-2xs);
 }
 
 .preview-metrics small,
 .preview-panels small {
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .preview-metrics b {
@@ -84,15 +84,15 @@
 }
 
 .preview-panels b {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .preview-donut-card .local-share-center b {
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .preview-donut-card .local-share-center small {
-  font-size: 9px;
+  font-size: var(--text-2xs);
 }
 
 .floating-card {
@@ -100,15 +100,15 @@
 }
 
 .floating-card small {
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .floating-card b {
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .floating-card em {
-  font-size: 11px;
+  font-size: var(--text-2xs);
 }
 
 .section-heading {
@@ -120,7 +120,7 @@
 }
 
 .section-heading p {
-  font-size: 20px;
+  font-size: var(--text-lg);
 }
 
 .opportunity-search {
@@ -128,16 +128,16 @@
 }
 
 .value-grid h3 {
-  font-size: 25px;
+  font-size: var(--text-xl);
 }
 
 .value-grid p,
 .value-grid li {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .value-grid article>small {
-  font-size: 12px;
+  font-size: var(--text-2xs);
 }
 
 .impact-grid {
@@ -149,15 +149,15 @@
 }
 
 .impact-grid>div:first-child>p {
-  font-size: 20px;
+  font-size: var(--text-lg);
 }
 
 .impact-points b {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .impact-points small {
-  font-size: 13px;
+  font-size: var(--text-xs);
 }
 
 .impact-card-head b {
@@ -166,19 +166,19 @@
 
 .impact-card-head small,
 .impact-legend small {
-  font-size: 13px;
+  font-size: var(--text-xs);
 }
 
 .impact-legend b {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .impact-highlight small {
-  font-size: 12px;
+  font-size: var(--text-2xs);
 }
 
 .impact-highlight b {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .municipality-card h2 {
@@ -191,11 +191,11 @@
 
 .footer-grid p,
 .footer-grid a {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .footer-grid b {
-  font-size: 17px;
+  font-size: var(--text-md);
 }
 
 .footer-grid {
@@ -216,15 +216,15 @@
 }
 
 .analysis-header nav a {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .analysis-back {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .analysis-title-row>div>span {
-  font-size: 12px;
+  font-size: var(--text-2xs);
 }
 
 .analysis-title-row h1 {
@@ -241,15 +241,15 @@
 }
 
 .analysis-source-note p b {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .analysis-source-note p span {
-  font-size: 13px;
+  font-size: var(--text-xs);
 }
 
 .analysis-source-note>em {
-  font-size: 13px;
+  font-size: var(--text-xs);
 }
 
 .analysis-kpis {
@@ -262,23 +262,23 @@
 }
 
 .analysis-kpis small {
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .analysis-kpis strong {
-  font-size: 30px;
+  font-size: var(--text-2xl);
 }
 
 .analysis-kpis p {
-  font-size: 13px;
+  font-size: var(--text-xs);
 }
 
 .analysis-insight small {
-  font-size: 12px;
+  font-size: var(--text-2xs);
 }
 
 .analysis-insight p {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .analysis-chart-grid {
@@ -290,16 +290,16 @@
 }
 
 .analysis-chart-card>header h2 {
-  font-size: 21px;
+  font-size: var(--text-lg);
 }
 
 .analysis-chart-card>header p {
-  font-size: 15px;
+  font-size: var(--text-base);
   line-height: 1.5;
 }
 
 .analysis-local-chart p {
-  font-size: 16px;
+  font-size: var(--text-base);
   line-height: 1.5;
 }
 
@@ -308,34 +308,34 @@
 }
 
 .analysis-table-card header h2 {
-  font-size: 22px;
+  font-size: var(--text-lg);
 }
 
 .analysis-table-card header p {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .analysis-table-card header>span {
-  font-size: 12px;
+  font-size: var(--text-2xs);
 }
 
 .analysis-table-card th {
-  font-size: 12px;
+  font-size: var(--text-2xs);
   padding: 15px;
 }
 
 .analysis-table-card td {
-  font-size: 15px;
+  font-size: var(--text-base);
   padding: 16px 15px;
 }
 
 .analysis-table-card td b,
 .analysis-table-card td strong {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .analysis-footnote {
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .dashboard-content {
@@ -348,31 +348,31 @@
 
 .sidebar-nav button {
   height: 50px;
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .workspace-switcher strong,
 .sidebar-user strong {
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .workspace-switcher small,
 .sidebar-user small,
 .nav-group-label {
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .topbar-search input,
 .portal-link {
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .dashboard-heading span {
-  font-size: 11px;
+  font-size: var(--text-2xs);
 }
 
 .dashboard-heading h1 {
-  font-size: 34px;
+  font-size: var(--text-3xl);
 }
 
 .dashboard-heading h1:last-child {
@@ -380,11 +380,11 @@
 }
 
 .dashboard-heading p {
-  font-size: 17px;
+  font-size: var(--text-md);
 }
 
 .app-shell .ds-button {
-  font-size: 15px;
+  font-size: var(--text-base);
   min-height: 48px;
 }
 
@@ -395,12 +395,12 @@
 
 .metric-top > small,
 .metric-card > small {
-  font-size: 14.5px;
+  font-size: var(--text-sm);
 }
 
 .metric-value-row > b,
 .metric-card > b {
-  font-size: 30px;
+  font-size: var(--text-2xl);
 }
 
 .metric-card > b:last-child {
@@ -408,11 +408,11 @@
 }
 
 .metric-card > p {
-  font-size: 13px;
+  font-size: var(--text-xs);
 }
 
 .card-header h2 {
-  font-size: 18px;
+  font-size: var(--text-lg);
 }
 
 .card-header h2:last-child {
@@ -420,11 +420,11 @@
 }
 
 .card-header p {
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .card-header button {
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .ranking-row {
@@ -436,7 +436,7 @@
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .ranking-row > div {
@@ -444,19 +444,19 @@
 }
 
 .ranking-row b {
-  font-size: 15.5px;
-  font-weight: 700;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
   color: #0f172a;
 }
 
 .ranking-row > strong {
-  font-size: 15.5px;
-  font-weight: 800;
+  font-size: var(--text-base);
+  font-weight: var(--weight-extrabold);
   color: #0f172a;
 }
 
 .ranking-row small {
-  font-size: 13px;
+  font-size: var(--text-xs);
   color: #64748b;
 }
 
@@ -487,21 +487,21 @@
 
 .activity-list b,
 .activity-card b {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
   color: #0f172a;
 }
 
 .activity-list small,
 .activity-card small {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: #475569;
   line-height: 1.45;
 }
 
 .activity-list span > em {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
   padding: 4px 10px;
   border-radius: 999px;
   background: #f1f5f9;
@@ -509,53 +509,53 @@
 }
 
 .activity-list.large span > div em {
-  font-size: 11.5px;
+  font-size: var(--text-2xs);
 }
 
 .activity-list.large b {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .activity-list.large span > button {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
 }
 
 .document-list article b {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .document-list article small {
-  font-size: 13px;
+  font-size: var(--text-xs);
 }
 
 .document-list article > em {
-  font-size: 12px;
+  font-size: var(--text-2xs);
   padding: 5px 10px;
 }
 
 .document-list article > button,
 .document-list article > label {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
 }
 
 .alert-settings h2,
 .profile-grid h2 {
-  font-size: 17px;
+  font-size: var(--text-md);
 }
 
 .alert-settings p,
 .alert-settings > span {
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .profile-grid label,
 .review-note {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
 }
 
 .profile-grid input,
 .review-note textarea {
-  font-size: 14.5px;
+  font-size: var(--text-base);
   height: 44px;
 }
 
@@ -564,37 +564,37 @@
 .filter-button,
 .result-summary,
 .result-summary select {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .admin-table th {
-  font-size: 12px;
+  font-size: var(--text-2xs);
 }
 
 .admin-table td {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .company-cell b {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .company-cell small,
 .admin-table td>small {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .table-status,
 .table-action {
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .detail-card>header h2 {
-  font-size: 17px;
+  font-size: var(--text-md);
 }
 
 .detail-card>header p {
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .auth-shell {
@@ -606,13 +606,13 @@
 }
 
 .auth-field label {
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .auth-input-wrap input,
 .auth-input-wrap select,
 .auth-input-wrap textarea {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 @media (max-width: 900px) {
@@ -664,7 +664,7 @@
   }
 
   .analysis-header nav a:last-child {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   .hero h1 {
@@ -672,7 +672,7 @@
   }
 
   .hero-copy>p {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
 
   .preview-body {
@@ -684,19 +684,19 @@
   }
 
   .floating-card {
-    padding: 9px;
+    padding: 10px 12px;
   }
 
   .floating-card small {
-    font-size: 7px;
+    font-size: var(--text-2xs);
   }
 
   .floating-card b {
-    font-size: 10px;
+    font-size: var(--text-xs);
   }
 
   .floating-card em {
-    font-size: 8px;
+    font-size: var(--text-2xs);
   }
 
   .section-heading h2 {
@@ -704,7 +704,7 @@
   }
 
   .section-heading p {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
 
   .value-grid h3 {
@@ -713,15 +713,15 @@
 
   .value-grid p,
   .value-grid li {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 
   .municipality-card h2 {
-    font-size: 30px;
+    font-size: var(--text-2xl);
   }
 
   .municipality-card p {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
 
   .footer-grid {
@@ -729,11 +729,11 @@
   }
 
   .analysis-title-row h1 {
-    font-size: 30px;
+    font-size: var(--text-2xl);
   }
 
   .analysis-title-row p {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 
   .analysis-kpis {
@@ -745,7 +745,7 @@
   }
 
   .analysis-kpis strong {
-    font-size: 25px;
+    font-size: var(--text-xl);
   }
 
   .analysis-chart-card,
@@ -758,6 +758,6 @@
   }
 
   .dashboard-heading h1 {
-    font-size: 29px;
+    font-size: var(--text-2xl);
   }
 }

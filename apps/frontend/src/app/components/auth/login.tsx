@@ -106,12 +106,12 @@ export const Login = ({ next }: { next?: string }) => {
                 color: '#1e40af',
                 padding: '12px 14px',
                 borderRadius: '8px',
-                fontSize: '0.875rem',
+                fontSize: 'var(--text-sm)',
                 marginBottom: '16px',
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: '10px',
-                lineHeight: '1.4',
+                lineHeight: 'var(--leading-normal)',
               }}
             >
               <Clock3 size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#2563eb' }} />
