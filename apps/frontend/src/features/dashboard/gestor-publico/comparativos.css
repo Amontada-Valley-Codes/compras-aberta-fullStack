@@ -67,6 +67,7 @@
   white-space: normal;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 .gp-cmp-slot-dot {
   width: 12px;
@@ -217,71 +218,95 @@
 /* ---------- Números ----------
    Uma linha por município, uma coluna por indicador; a média do Ceará fecha
    a tabela. O maior valor de cada coluna fica em negrito. */
+/* ---------- Números ---------- */
 .gp-cmp-table-wrap {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
   border: 1px solid #e0e8ed;
   border-radius: 10px;
 }
+
 .gp-cmp-table {
   width: 100%;
-  min-width: 640px;
+  min-width: 760px;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 15px;
 }
+
 .gp-cmp-table th,
 .gp-cmp-table td {
-  padding: 13px 16px;
+  padding: 15px 18px;
   border-bottom: 1px solid #edf2f5;
   text-align: right;
   white-space: nowrap;
 }
+
 .gp-cmp-table th:first-child {
   text-align: left;
 }
+
 .gp-cmp-table thead th {
   background: #f5f8fa;
   color: #526b7b;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
+  line-height: 1.4;
   white-space: normal;
 }
+
 .gp-cmp-table tbody th {
   color: var(--graphite);
+  font-size: 14px;
   font-weight: 700;
 }
+
 .gp-cmp-table tbody th .gp-cmp-dot {
   margin-right: 9px;
 }
+
 .gp-cmp-table tbody tr {
   animation: gp-cmp-fade-in 0.3s ease-out both;
   transition: background 0.15s ease;
 }
+
 .gp-cmp-table tbody tr:hover {
   background: #f7fafc;
 }
+
 .gp-cmp-table td {
   color: #526b7b;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
+
 .gp-cmp-table td.is-best {
   color: var(--brand-navy);
   font-weight: 800;
 }
+
 .gp-cmp-table tfoot th,
 .gp-cmp-table tfoot td {
   border-bottom: 0;
   background: #fafcfd;
   color: #7a8d9b;
+  font-size: 14px;
   font-weight: 600;
 }
+
 .gp-cmp-table-note {
   margin: 10px 2px 0;
   color: #7a8d9b;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.5;
 }
+
 .gp-cmp-details {
   margin-top: 18px;
 }
+
 .gp-cmp-details > summary {
   display: inline-flex;
   align-items: center;
@@ -293,17 +318,33 @@
   cursor: pointer;
   list-style: none;
 }
+
 .gp-cmp-details > summary::-webkit-details-marker {
   display: none;
 }
+
 .gp-cmp-details > summary svg {
   transition: transform 0.2s ease;
 }
+
 .gp-cmp-details[open] > summary svg {
   transform: rotate(180deg);
 }
+
 .gp-cmp-details[open] .gp-cmp-table-wrap {
   animation: gp-cmp-fade-in 0.3s ease-out both;
+}
+
+@media (max-width: 720px) {
+  .gp-cmp-table th,
+  .gp-cmp-table td {
+    padding: 12px;
+  }
+
+  .gp-cmp-table {
+    min-width: 760px;
+    font-size: 14px;
+  }
 }
 
 /* ---------- Animações ---------- */
@@ -371,5 +412,119 @@
   }
   .gp-cmp-table {
     font-size: 13px;
+  }
+}
+.gp-cmp-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.gp-cmp-table {
+  min-width: 760px;
+  font-size: 15px;
+}
+
+.gp-cmp-table th,
+.gp-cmp-table td {
+  padding: 15px 18px;
+}
+
+.gp-cmp-table thead th {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.gp-cmp-table tbody th {
+  font-size: 14px;
+}
+
+.gp-cmp-table td {
+  font-size: 14px;
+}
+
+.gp-cmp-table tfoot th,
+.gp-cmp-table tfoot td {
+  font-size: 14px;
+}
+
+.gp-cmp-table-note {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .gp-cmp-table th,
+  .gp-cmp-table td {
+    padding: 12px;
+  }
+
+  .gp-cmp-table {
+    font-size: 14px;
+  }
+}
+.gp-cmp-slots {
+  gap: 8px;
+  padding: 4px 2px 10px;
+}
+
+.gp-cmp-slot-group {
+  gap: 8px;
+}
+
+.gp-cmp-slot .public-filter-trigger {
+  min-width: 0;
+  height: 64px;
+  border: 1px solid #e1e8ee;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.gp-cmp-slot .public-filter-trigger:focus-visible {
+  outline: 3px solid rgba(30, 91, 140, 0.2);
+  outline-offset: 2px;
+}
+
+.gp-cmp .gp-cmp-filters .public-filter-select {
+  min-width: 0;
+}
+.gp-cmp-grid {
+  width: 100%;
+  min-width: 0;
+  gap: 20px;
+}
+
+.gp-cmp-grid > * {
+  min-width: 0;
+}
+
+.gp-cmp-grid .gp-cmp-card {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+@media (max-width: 720px) {
+  .gp-cmp-grid {
+    gap: 14px;
+  }
+}
+@media (max-width: 720px) {
+  .gp-cmp-grid .gp-cmp-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .gp-cmp-grid .apexcharts-canvas,
+  .gp-cmp-grid .apexcharts-svg {
+    max-width: 100%;
+  }
+
+  .gp-cmp-grid .apexcharts-legend {
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }
