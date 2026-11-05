@@ -54,14 +54,14 @@ const NATURE_SHORT: Record<NatureCode, string> = {
 type IndicatorKey = "mpePercent" | "localPercent" | "total" | "mpeValue" | "suppliers";
 type IndicatorKind = "percent" | "money" | "count";
 const INDICATORS: Array<{ key: IndicatorKey; label: string; phrase: string; kind: IndicatorKind; hint: string }> = [
-  { key: "mpePercent", label: "Participação das MPEs", phrase: "participação das MPEs", kind: "percent", hint: "Parte do valor comprado que ficou com micro e pequenas empresas." },
+  { key: "mpePercent", label: "Participação das ME", phrase: "participação das ME", kind: "percent", hint: "Parte do valor comprado que ficou com micro e pequenas empresas." },
   { key: "localPercent", label: "Compras locais", phrase: "compras locais", kind: "percent", hint: "Parte do valor comprado de empresas da própria cidade." },
   { key: "total", label: "Valor total das compras", phrase: "valor total das compras", kind: "money", hint: "Soma dos valores homologados no recorte escolhido." },
-  { key: "mpeValue", label: "Valor para MPEs", phrase: "valor para MPEs", kind: "money", hint: "Quanto do valor comprado foi para micro e pequenas empresas." },
+  { key: "mpeValue", label: "Valor para ME", phrase: "valor para ME", kind: "money", hint: "Quanto do valor comprado foi para micro e pequenas empresas." },
   { key: "suppliers", label: "Fornecedores", phrase: "número de fornecedores", kind: "count", hint: "Empresas diferentes que venderam para a prefeitura no ano." },
 ];
 
-const currency = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const currency = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const compactCurrency = (value: number) => `R$ ${new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(value)}`;
 const pct = (value: number) => `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 const integer = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 0 });

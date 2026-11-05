@@ -1,4 +1,5 @@
 .app-shell {
+  --sidebar-width: 252px;
   --brand-sky: #e8f0fe;
   --brand-blue: #1d4ed8;
   --brand-navy: #0f172a;
@@ -6,8 +7,12 @@
   background: #f5f8fa;
   display: flex;
 }
+.app-shell.is-me,
+.app-shell.is-gestor-publico {
+  --sidebar-width: 292px;
+}
 .app-sidebar {
-  width: 252px;
+  width: var(--sidebar-width);
   background: #fff;
   border-right: 1px solid var(--line);
   position: fixed;
@@ -157,9 +162,9 @@
   color: #fff;
 }
 .app-main {
-  width: calc(100% - 252px);
+  width: calc(100% - var(--sidebar-width));
   min-width: 0;
-  margin-left: 252px;
+  margin-left: var(--sidebar-width);
 }
 .app-topbar {
   height: 70px;

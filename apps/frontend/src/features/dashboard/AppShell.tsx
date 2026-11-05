@@ -129,7 +129,7 @@ export function AppShell({
         </div>}
 
         <nav className="sidebar-nav" aria-label="Navegação do painel">
-          {!isPublicManager && <small className="nav-group-label">MENU PRINCIPAL</small>}
+          <small className="nav-group-label">MENU PRINCIPAL</small>
           {items.map((item) => (
             <button
               className={active === item.id ? "active" : ""}
