@@ -1,4 +1,5 @@
 import type { CompanyCnae } from "@/hooks/useUserProfile";
+import { RADAR_SECTORS, type RadarFilterConfig } from "./radar-types";
 
 export interface MePncpBid {
   id: string; // numeroControlePNCP
@@ -21,6 +22,10 @@ export interface MePncpBid {
   agencyName: string;
   unitName: string;
   uasgCode: string | null;
+  sphereId?: string | null;
+  sphereName?: string | null;
+  powerName?: string | null;
+  inferredKind?: "material" | "service" | "both";
   city: string;
   uf: string;
   ibgeCode: string | null;
@@ -81,7 +86,58 @@ export interface CnaeMatchResult {
 
 export type EnrichedMeBid = MePncpBid & {
   match: CnaeMatchResult;
+  distanceKm?: number | null;
 };
+
+export interface MePncpSyncMeta {
+  scope: string;
+  totalOpenBids: number;
+  pncpTotalRecords: number;
+  pncpTotalPages: number;
+  pncpFetchedPages: number;
+  isComplete: boolean;
+  updatedAt: string;
+}
+
+export interface MeOpenBidsResponse {
+  bids: MePncpBid[];
+  meta: MePncpSyncMeta;
+}
+
+export type MeBidSortBy = "match" | "deadline" | "value" | "recent";
+
+export interface MePaginatedBidsRequest {
+  ibge?: string;
+  uf?: string;
+  page: number;
+  pageSize: number;
+  query?: string;
+  city?: string;
+  modality?: string;
+  onlyCnaeMatch?: boolean;
+  sortBy?: MeBidSortBy;
+  favoritesOnly?: boolean;
+  favoriteIds?: string[];
+  hiddenBidIds?: string[];
+  onlyHidden?: boolean;
+  radarConfig?: RadarFilterConfig;
+  companyProfile?: CompanyMatchProfile;
+}
+
+export interface MePaginatedBidsResponse {
+  items: EnrichedMeBid[];
+  totalItems: number;
+  totalPages: number;
+  page: number;
+  pageSize: number;
+  facets: {
+    cities: string[];
+    modalities: string[];
+    portals?: string[];
+    spheres?: Array<{ value: string; label: string }>;
+  };
+  meta: MePncpSyncMeta;
+}
 
 const STOPWORDS = new Set([
   "comercio",
@@ -658,5 +714,227 @@ export function evaluateBidMatch(
     matchedCnae: null,
     matchedKeywords: [],
     sameCity,
+  };
+}
+
+function termMatchesText(paddedText: string, rawTerm: string): boolean {
+  const norm = normalizeText(rawTerm);
+  if (!norm) return false;
+  if (norm.length <= 3) {
+    return paddedText.includes(` ${norm} `);
+  }
+  return paddedText.includes(` ${norm}`) || paddedText.includes(norm);
+}
+
+export function evaluateRadarFilter(
+  bid: MePncpBid,
+  company: CompanyMatchProfile,
+  radarConfig?: RadarFilterConfig,
+): { passes: boolean; match: CnaeMatchResult } {
+  const effectiveCompany: CompanyMatchProfile =
+    radarConfig && !radarConfig.useCompanyCnae
+      ? {
+          cnaes: [],
+          companyCity: company.companyCity,
+          companyIbge: company.companyIbge,
+        }
+      : company;
+
+  const baseMatch = evaluateBidMatch(bid, effectiveCompany);
+  if (!radarConfig) {
+    return { passes: true, match: baseMatch };
+  }
+
+  // 1. Modalidade
+  if (
+    radarConfig.modality &&
+    normalizeText(bid.modality) !== normalizeText(radarConfig.modality)
+  ) {
+    return { passes: false, match: baseMatch };
+  }
+
+  // 2. Portal
+  if (radarConfig.portal) {
+    const normPortal = normalizeText(radarConfig.portal);
+    const bidPortal = normalizeText(
+      `${bid.portalName ?? ""} ${bid.systemName ?? ""}`,
+    );
+    if (!bidPortal.includes(normPortal)) {
+      return { passes: false, match: baseMatch };
+    }
+  }
+
+  // 3. Esfera (M, E, F)
+  if (radarConfig.sphere) {
+    if ((bid.sphereId ?? "").toUpperCase() !== radarConfig.sphere.toUpperCase()) {
+      return { passes: false, match: baseMatch };
+    }
+  }
+
+  // 4. Registro de Preço (Sim / Não)
+  if (radarConfig.srp.length === 1) {
+    const wantsSrp = radarConfig.srp[0] === "yes";
+    if (Boolean(bid.srp) !== wantsSrp) {
+      return { passes: false, match: baseMatch };
+    }
+  }
+
+  // 5. Tipo (Material / Serviço)
+  if (radarConfig.kind.length === 1) {
+    const wanted = radarConfig.kind[0];
+    const bidKind = bid.inferredKind ?? "both";
+    if (bidKind !== "both" && bidKind !== wanted) {
+      return { passes: false, match: baseMatch };
+    }
+  }
+
+  // 6. Valor da compra total (estimado)
+  if (radarConfig.minTotalValue !== null && radarConfig.minTotalValue > 0) {
+    if (
+      bid.estimatedValue === null ||
+      bid.estimatedValue < radarConfig.minTotalValue
+    ) {
+      return { passes: false, match: baseMatch };
+    }
+  }
+  if (radarConfig.maxTotalValue !== null && radarConfig.maxTotalValue > 0) {
+    if (
+      bid.estimatedValue === null ||
+      bid.estimatedValue > radarConfig.maxTotalValue
+    ) {
+      return { passes: false, match: baseMatch };
+    }
+  }
+
+  // 7. Valor do item (estimado) — filtra com base no valor estimado do processo quando não há itens individuais carregados em lote
+  if (radarConfig.minItemValue !== null && radarConfig.minItemValue > 0) {
+    if (
+      bid.estimatedValue === null ||
+      bid.estimatedValue < radarConfig.minItemValue
+    ) {
+      return { passes: false, match: baseMatch };
+    }
+  }
+  if (radarConfig.maxItemValue !== null && radarConfig.maxItemValue > 0) {
+    if (
+      bid.estimatedValue !== null &&
+      bid.estimatedValue > radarConfig.maxItemValue * 50
+    ) {
+      // Se o valor total ultrapassa largamente o teto razoável ou quando compra única excede o máximo por item:
+      if (bid.estimatedValue > radarConfig.maxItemValue && !bid.srp) {
+        return { passes: false, match: baseMatch };
+      }
+    }
+  }
+
+  const paddedText = ` ${normalizeText(
+    `${bid.object} ${bid.complementaryInfo ?? ""} ${bid.agencyName} ${bid.unitName}`,
+  )} `;
+
+  // 8. Setor
+  if (radarConfig.sector) {
+    const sectorDef = RADAR_SECTORS.find((s) => s.id === radarConfig.sector);
+    if (sectorDef) {
+      const matchesSector = sectorDef.keywords.some((kw) =>
+        termMatchesText(paddedText, kw),
+      );
+      if (!matchesSector) {
+        return { passes: false, match: baseMatch };
+      }
+    }
+  }
+
+  // 9. Conjunto de palavras-chave (Grupos com lógica OU entre grupos; dentro do grupo: obrigatórias, desejadas e indesejadas)
+  const activeGroups = (radarConfig.keywordGroups ?? []).filter(
+    (g) =>
+      g.keywords.length > 0 ||
+      g.desiredWords.length > 0 ||
+      g.excludedWords.length > 0,
+  );
+
+  if (activeGroups.length === 0) {
+    // Sem grupos preenchidos: garante um Score amigável mesmo quando sem CNAE direto
+    const fallbackScore = baseMatch.isMatch
+      ? baseMatch.score
+      : Math.max(baseMatch.score, baseMatch.sameCity ? 58 : 45);
+    return {
+      passes: true,
+      match: {
+        ...baseMatch,
+        score: fallbackScore,
+      },
+    };
+  }
+
+  let anyGroupPassed = false;
+  let bestGroupBonus = 0;
+  let matchedGroupKeywords: string[] = [];
+  let matchedGroupLabel: string | null = null;
+
+  for (const group of activeGroups) {
+    // Se tiver palavra indesejada presente no texto, este grupo rejeita
+    const hasExcluded = group.excludedWords.some((ew) =>
+      termMatchesText(paddedText, ew),
+    );
+    if (hasExcluded) continue;
+
+    // Se tiver palavras-chave principais, ao menos uma precisa bater
+    const hitMain =
+      group.keywords.length === 0
+        ? []
+        : group.keywords.filter((kw) => termMatchesText(paddedText, kw));
+
+    if (group.keywords.length > 0 && hitMain.length === 0) {
+      continue;
+    }
+
+    // Palavras desejadas somam score extra (e se o usuário preencheu SÓ palavras desejadas sem palavras-chave, exige ao menos 1 desejada)
+    const hitDesired = group.desiredWords.filter((dw) =>
+      termMatchesText(paddedText, dw),
+    );
+
+    if (
+      group.keywords.length === 0 &&
+      group.desiredWords.length > 0 &&
+      hitDesired.length === 0
+    ) {
+      continue;
+    }
+
+    anyGroupPassed = true;
+    const bonus = hitMain.length * 36 + hitDesired.length * 16;
+    if (bonus >= bestGroupBonus) {
+      bestGroupBonus = bonus;
+      matchedGroupKeywords = [...hitMain, ...hitDesired];
+      matchedGroupLabel = group.name;
+    }
+  }
+
+  if (!anyGroupPassed) {
+    return { passes: false, match: baseMatch };
+  }
+
+  const combinedKeywords = Array.from(
+    new Set([...matchedGroupKeywords, ...baseMatch.matchedKeywords]),
+  ).slice(0, 6);
+
+  const rawScore =
+    (baseMatch.isMatch ? baseMatch.score : 48) +
+    Math.min(45, bestGroupBonus) +
+    (baseMatch.sameCity ? 6 : 0);
+
+  const finalScore = Math.min(99, Math.max(68, rawScore));
+
+  return {
+    passes: true,
+    match: {
+      isMatch: true,
+      score: finalScore,
+      matchedCnae:
+        baseMatch.matchedCnae ??
+        (matchedGroupLabel ? `Filtro: ${matchedGroupLabel}` : "Radar"),
+      matchedKeywords: combinedKeywords,
+      sameCity: baseMatch.sameCity,
+    },
   };
 }

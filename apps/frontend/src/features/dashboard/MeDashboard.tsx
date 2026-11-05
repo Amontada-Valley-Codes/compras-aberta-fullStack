@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -9,19 +9,26 @@ import {
   Bookmark,
   Building2,
   CalendarClock,
+  CalendarDays,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   Copy,
   Download,
   ExternalLink,
   FileText,
+  FolderKanban,
   Gavel,
   Globe,
   Heart,
   LayoutDashboard,
   ListChecks,
   MapPin,
+  MoreHorizontal,
+  Plus,
+  Radio,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -29,17 +36,40 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 import { AppShell, type NavItem } from "./AppShell";
 import { OpportunityDonut, SpendingAreaChart } from "./DashboardCharts";
 import {
   evaluateBidMatch,
+  type CompanyMatchProfile,
   type EnrichedMeBid,
-  type MeBidDetailResponse,
   type MeBidDocument,
   type MeBidItem,
+  type MeBidSortBy,
+  type MePaginatedBidsRequest,
   type MePncpBid,
+  type MePncpSyncMeta,
 } from "./me/cnae-match";
+import {
+  useMeBidDetailQuery,
+  useMeOpenBidsQuery,
+  useMePaginatedBidsQuery,
+  usePrefetchMeBidDetail,
+} from "./me/use-me-licitacoes";
 import { parsePncpControlNumber } from "./me/pncp-mapper";
+import { useRadarState } from "./me/use-radar-state";
+import { useBidWorkspace } from "./me/use-bid-workspace";
+import type { TrackedBid } from "./me/workspace-types";
+import { MeBidCard } from "./me/MeBidCard";
+import { MeRadarView } from "./me/MeRadarView";
+import { EditalAssistantModal } from "./me/EditalAssistantModal";
+import { SelectBidItemsModal } from "./me/SelectBidItemsModal";
+import {
+  MeBidWorkspace,
+  type WorkspaceSubTab,
+} from "./me/MeBidWorkspace";
+import { MeMyBidsView } from "./me/MeMyBidsView";
+import { MeAgendaView } from "./me/MeAgendaView";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { useUserProfile, type CompanyCnae } from "@/hooks/useUserProfile";
 import { formatCnpj } from "@/lib/format-br";
@@ -463,85 +493,68 @@ function formatDeadlineBadge(bid: Pick<MePncpBid, "isOpen" | "daysLeft">): {
   return { label: `Faltam ${bid.daysLeft} dias`, tone: "open" };
 }
 
-function getFavoritesKey(cnpj?: string | null) {
-  const clean = (cnpj ?? "").replace(/\D/g, "");
-  return `compras-abertas:me-favs:${clean || "default"}`;
-}
-
 export function MeDashboard({
   initialOpportunityId,
 }: {
   initialOpportunityId?: string;
 }) {
   const { profile, preferences, savePreferences } = useUserProfile();
-  const [rawBids, setRawBids] = useState<MePncpBid[]>([]);
-  const [loadingBids, setLoadingBids] = useState(true);
-  const [bidsError, setBidsError] = useState<string | null>(null);
+  const {
+    data: openSummaryData,
+    isLoading: loadingBids,
+    error: openBidsQueryError,
+    refreshPncp,
+    isRefreshingPncp,
+  } = useMeOpenBidsQuery();
 
   const [active, setActive] = useState(
     initialOpportunityId ? "opportunities" : "overview",
   );
-  const [selectedBidId, setSelectedBidId] = useState<string | null>(
+  const [selectedBid, setSelectedBid] = useState<EnrichedMeBid | null>(null);
+  const [chatBid, setChatBid] = useState<EnrichedMeBid | null>(null);
+  const [selectItemsModalBid, setSelectItemsModalBid] =
+    useState<EnrichedMeBid | null>(null);
+  const [managingBidId, setManagingBidId] = useState<string | null>(null);
+  const [managingInitialTab, setManagingInitialTab] =
+    useState<WorkspaceSubTab>("overview");
+  const [pendingDeepLinkId, setPendingDeepLinkId] = useState<string | null>(
     initialOpportunityId ?? null,
   );
-  const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
 
   const cnpj = profile?.business?.cnpj ?? profile?.cnpj ?? null;
+  const {
+    filters: savedRadarFilters,
+    savedBidIds: favorites,
+    hiddenBidIds,
+    hiddenBidIdsList,
+    savingFilter,
+    toggleSavedBid,
+    toggleHiddenBid,
+    createFilter,
+    updateFilter,
+    deleteFilter,
+  } = useRadarState(cnpj);
 
-  // Carrega favoritos salvos no navegador da empresa
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const saved = window.localStorage.getItem(getFavoritesKey(cnpj));
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setFavorites(new Set(parsed));
-          return;
-        }
-      }
-      setFavorites(new Set());
-    } catch {
-      setFavorites(new Set());
-    }
-  }, [cnpj]);
+  const {
+    trackedBids,
+    trackedBidsMap,
+    allTrackedBidIds,
+    activeTrackedCount,
+    reminders,
+    calendarEvents,
+    upcoming7DaysCount,
+    upsertTrackedBid,
+    removeTrackedBid,
+    toggleAnalysisBid,
+    confirmParticipation,
+    createReminder,
+    updateReminder,
+    deleteReminder,
+  } = useBidWorkspace(cnpj, favorites, openSummaryData?.bids);
 
-  const updateFavorites = (next: Set<string>) => {
-    setFavorites(next);
-    if (typeof window !== "undefined") {
-      try {
-        window.localStorage.setItem(
-          getFavoritesKey(cnpj),
-          JSON.stringify(Array.from(next)),
-        );
-      } catch {
-        // ignora erro de escrita
-      }
-    }
-  };
-
-  const fetchPncpBids = async () => {
-    setLoadingBids(true);
-    setBidsError(null);
-    try {
-      const res = await fetch("/api/me/licitacoes");
-      if (!res.ok) throw new Error("Falha ao consultar o PNCP");
-      const data = (await res.json()) as {
-        bids: MePncpBid[];
-      };
-      setRawBids(data.bids ?? []);
-    } catch {
-      setBidsError(
-        "Não foi possível carregar as licitações do PNCP neste momento. Tente atualizar em instantes.",
-      );
-    } finally {
-      setLoadingBids(false);
-    }
-  };
-
-  useEffect(() => {
-    void fetchPncpBids();
-  }, []);
+  const syncMeta = openSummaryData?.meta ?? null;
+  const bidsError =
+    openBidsQueryError instanceof Error ? openBidsQueryError.message : null;
 
   // Lista de CNAEs reais da empresa + preferências configuradas
   const companyCnaes: CompanyCnae[] = useMemo(() => {
@@ -560,70 +573,102 @@ export function MeDashboard({
     return [];
   }, [profile]);
 
-  // Cruza cada licitação do PNCP com o CNAE e palavras-chave da empresa
-  const enrichedBids: EnrichedMeBid[] = useMemo(() => {
-    const companyCity = profile?.business?.municipio?.nome ?? null;
-    const companyIbge =
-      profile?.business?.municipio?.codigoIbge ?? profile?.municipioIbge ?? null;
+  const companyCity = profile?.business?.municipio?.nome ?? null;
+  const companyIbge =
+    profile?.business?.municipio?.codigoIbge ?? profile?.municipioIbge ?? null;
 
-    return rawBids.map((bid) => ({
-      ...bid,
-      match: evaluateBidMatch(bid, {
-        cnaes: companyCnaes,
-        customCnaeText: preferences.customCnaeText,
-        extraKeywords: preferences.extraKeywords,
-        companyCity,
-        companyIbge,
-      }),
-    }));
-  }, [rawBids, companyCnaes, preferences, profile]);
-
-  const openBids = useMemo(
-    () => enrichedBids.filter((b) => b.isOpen),
-    [enrichedBids],
+  const companyMatchProfile: CompanyMatchProfile = useMemo(
+    () => ({
+      cnaes: companyCnaes,
+      customCnaeText: preferences.customCnaeText,
+      extraKeywords: preferences.extraKeywords,
+      companyCity,
+      companyIbge,
+    }),
+    [
+      companyCnaes,
+      preferences.customCnaeText,
+      preferences.extraKeywords,
+      companyCity,
+      companyIbge,
+    ],
   );
+
+  // Cruza 100% das licitações abertas do PNCP/CE com o CNAE e palavras-chave da empresa
+  const openBids: EnrichedMeBid[] = useMemo(() => {
+    const rawList = openSummaryData?.bids ?? [];
+    return rawList
+      .filter((bid) => bid.isOpen && !hiddenBidIds.has(bid.id))
+      .map((bid) => ({
+        ...bid,
+        match: evaluateBidMatch(bid, companyMatchProfile),
+      }));
+  }, [openSummaryData?.bids, companyMatchProfile, hiddenBidIds]);
+
+  const liveBidsMap = useMemo(() => {
+    const map = new Map<string, EnrichedMeBid>();
+    for (const b of openBids) {
+      map.set(b.id, b);
+    }
+    return map;
+  }, [openBids]);
+
   const matchedOpenBids = useMemo(
     () => openBids.filter((b) => b.match.isMatch),
     [openBids],
   );
 
-  const selectedBid = useMemo(
-    () => enrichedBids.find((b) => b.id === selectedBidId) ?? null,
-    [enrichedBids, selectedBidId],
+  // Mantém o score de match sincronizado caso a empresa edite palavras-chave/CNAE
+  const activeSelectedBid: EnrichedMeBid | null = useMemo(() => {
+    if (!selectedBid) return null;
+    return {
+      ...selectedBid,
+      match:
+        selectedBid.match ??
+        evaluateBidMatch(selectedBid, companyMatchProfile),
+    };
+  }, [selectedBid, companyMatchProfile]);
+
+  const activeManagingTracked = useMemo(
+    () => (managingBidId ? (trackedBidsMap.get(managingBidId) ?? null) : null),
+    [managingBidId, trackedBidsMap],
   );
 
-  // Caso o usuário abra link direto (/me?oportunidade=...) de edital fora da página inicial, busca direto no PNCP
+  // Resolução de link direto (/me?oportunidade=...) via cache ou consulta individual TanStack
   useEffect(() => {
-    if (!selectedBidId || loadingBids) return;
-    if (rawBids.some((b) => b.id === selectedBidId)) return;
+    if (!pendingDeepLinkId) return;
+    const foundInOpen = openBids.find((b) => b.id === pendingDeepLinkId);
+    if (foundInOpen) {
+      setSelectedBid(foundInOpen);
+      setPendingDeepLinkId(null);
+    }
+  }, [pendingDeepLinkId, openBids]);
 
-    const parsed = parsePncpControlNumber(selectedBidId);
-    if (!parsed) return;
+  const parsedDeepLink = useMemo(
+    () =>
+      pendingDeepLinkId ? parsePncpControlNumber(pendingDeepLinkId) : null,
+    [pendingDeepLinkId],
+  );
 
-    let cancelled = false;
-    void (async () => {
-      try {
-        const res = await fetch(
-          `/api/me/licitacoes/${parsed.cnpj}/${parsed.ano}/${parsed.sequencial}`,
-        );
-        if (!res.ok) return;
-        const data = (await res.json()) as MeBidDetailResponse;
-        if (!cancelled && data.bid) {
-          setRawBids((prev) =>
-            prev.some((item) => item.id === data.bid!.id)
-              ? prev
-              : [data.bid!, ...prev],
-          );
-        }
-      } catch {
-        // mantém fallback padrão
-      }
-    })();
+  const { data: deepLinkDetail } = useMeBidDetailQuery({
+    agencyCnpj: parsedDeepLink?.cnpj,
+    year: parsedDeepLink?.ano,
+    sequential: parsedDeepLink?.sequencial,
+    enabled: Boolean(
+      parsedDeepLink &&
+        !loadingBids &&
+        !openBids.some((b) => b.id === pendingDeepLinkId),
+    ),
+  });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedBidId, loadingBids, rawBids]);
+  useEffect(() => {
+    if (!pendingDeepLinkId || !deepLinkDetail?.bid) return;
+    setSelectedBid({
+      ...deepLinkDetail.bid,
+      match: evaluateBidMatch(deepLinkDetail.bid, companyMatchProfile),
+    });
+    setPendingDeepLinkId(null);
+  }, [pendingDeepLinkId, deepLinkDetail, companyMatchProfile]);
 
   const navItems: NavItem[] = useMemo(
     () => [
@@ -633,25 +678,31 @@ export function MeDashboard({
         icon: <LayoutDashboard size={19} />,
       },
       {
-        id: "opportunities",
-        label: "Licitações",
-        icon: <Gavel size={19} />,
-        badge: openBids.length > 0 ? String(openBids.length) : undefined,
-      },
-      {
-        id: "alerts",
-        label: "Alertas",
-        icon: <Bell size={19} />,
+        id: "radar",
+        label: "Radar de Licitações",
+        icon: <Radio size={19} />,
         badge:
           matchedOpenBids.length > 0
             ? String(matchedOpenBids.length)
             : undefined,
       },
       {
-        id: "favorites",
-        label: "Favoritos",
-        icon: <Bookmark size={19} />,
-        badge: favorites.size > 0 ? String(favorites.size) : undefined,
+        id: "my-bids",
+        label: "Minhas Licitações",
+        icon: <FolderKanban size={19} />,
+        badge: activeTrackedCount > 0 ? String(activeTrackedCount) : undefined,
+      },
+      {
+        id: "agenda",
+        label: "Agenda",
+        icon: <CalendarDays size={19} />,
+        badge: upcoming7DaysCount > 0 ? String(upcoming7DaysCount) : undefined,
+      },
+      {
+        id: "opportunities",
+        label: "Licitações",
+        icon: <Gavel size={19} />,
+        badge: openBids.length > 0 ? String(openBids.length) : undefined,
       },
       { id: "documents", label: "Documentos", icon: <FileText size={19} /> },
       {
@@ -660,87 +711,230 @@ export function MeDashboard({
         icon: <Building2 size={19} />,
       },
     ],
-    [openBids.length, matchedOpenBids.length, favorites.size],
+    [
+      openBids.length,
+      matchedOpenBids.length,
+      activeTrackedCount,
+      upcoming7DaysCount,
+    ],
   );
 
   const navigate = (id: string) => {
     setActive(id);
-    setSelectedBidId(null);
+    setSelectedBid(null);
+    setManagingBidId(null);
+    setPendingDeepLinkId(null);
   };
 
   const openBidDetail = (bid: EnrichedMeBid) => {
-    setSelectedBidId(bid.id);
-    setActive("opportunities");
+    setSelectedBid(bid);
+    setPendingDeepLinkId(null);
   };
 
   const toggleFavorite = (id: string) => {
-    const next = new Set(favorites);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    updateFavorites(next);
+    const found = liveBidsMap.get(id);
+    if (found) {
+      void handleToggleAnalysisBid(found);
+      return;
+    }
+    toggleSavedBid(id);
+  };
+
+  const handleToggleAnalysisBid = async (bid: EnrichedMeBid) => {
+    const result = await toggleAnalysisBid(bid);
+    if (result === "added") {
+      if (!favorites.has(bid.id)) toggleSavedBid(bid.id);
+      toast.success("Salva em Minhas Licitações (Análise)", {
+        description: "Acesse Minhas Licitações no menu lateral para gerenciar.",
+      });
+    } else if (result === "removed") {
+      if (favorites.has(bid.id)) toggleSavedBid(bid.id);
+      toast.info("Removida de Minhas Licitações");
+    } else {
+      handleManageBid(bid.id, "overview");
+    }
+  };
+
+  const handleManageBid = (
+    bidControlId: string,
+    tab: WorkspaceSubTab = "overview",
+  ) => {
+    setManagingInitialTab(tab);
+    setManagingBidId(bidControlId);
+    setSelectedBid(null);
   };
 
   return (
     <AppShell role="me" active={active} onNavigate={navigate} items={navItems}>
-      {active === "overview" && (
-        <MeOverview
-          openBids={openBids}
-          matchedOpenBids={matchedOpenBids}
-          loading={loadingBids}
-          error={bidsError}
-          onNavigate={navigate}
-          onOpenBid={openBidDetail}
-        />
-      )}
-      {active === "opportunities" && (
-        <Opportunities
-          bids={enrichedBids}
-          loading={loadingBids}
-          error={bidsError}
-          favorites={favorites}
-          onToggleFavorite={toggleFavorite}
-          selected={selectedBid}
-          onSelect={(bid) => setSelectedBidId(bid ? bid.id : null)}
+      {activeSelectedBid ? (
+        <OpportunityDetail
+          bid={activeSelectedBid}
+          isFavorite={allTrackedBidIds.has(activeSelectedBid.id) || favorites.has(activeSelectedBid.id)}
           companyCnaes={companyCnaes}
+          onBack={() => setSelectedBid(null)}
+          onToggleFavorite={() => void handleToggleAnalysisBid(activeSelectedBid)}
           onNavigateProfile={() => navigate("profile")}
+          onOpenChat={() => setChatBid(activeSelectedBid)}
         />
-      )}
-      {active === "favorites" && (
-        <Opportunities
-          bids={enrichedBids}
-          loading={loadingBids}
-          error={bidsError}
-          favorites={favorites}
-          onToggleFavorite={toggleFavorite}
-          selected={selectedBid}
-          onSelect={(bid) => setSelectedBidId(bid ? bid.id : null)}
-          companyCnaes={companyCnaes}
-          onNavigateProfile={() => navigate("profile")}
-          favoritesOnly
+      ) : activeManagingTracked ? (
+        <MeBidWorkspace
+          tracked={activeManagingTracked}
+          liveBid={liveBidsMap.get(activeManagingTracked.bidControlId)}
+          companyMatchProfile={companyMatchProfile}
+          reminders={reminders}
+          initialTab={managingInitialTab}
+          onBack={() => setManagingBidId(null)}
+          onOpenSelectItems={() => {
+            const live = liveBidsMap.get(activeManagingTracked.bidControlId);
+            setSelectItemsModalBid(
+              live ?? {
+                ...activeManagingTracked.bidSnapshot,
+                match: evaluateBidMatch(
+                  activeManagingTracked.bidSnapshot,
+                  companyMatchProfile,
+                ),
+              },
+            );
+          }}
+          onOpenChat={(bid) => setChatBid(bid)}
+          onOpenFullOfficialFicha={(bid) => setSelectedBid(bid)}
+          onUpdateTracked={upsertTrackedBid}
+          onRemoveTracked={async (id) => {
+            await removeTrackedBid(id);
+            if (favorites.has(id)) toggleSavedBid(id);
+          }}
+          onCreateReminder={createReminder}
+          onUpdateReminder={updateReminder}
+          onDeleteReminder={deleteReminder}
         />
+      ) : (
+        <>
+          {active === "overview" && (
+            <MeOverview
+              openBids={openBids}
+              matchedOpenBids={matchedOpenBids}
+              syncMeta={syncMeta}
+              loading={loadingBids}
+              error={bidsError}
+              onNavigate={navigate}
+              onOpenBid={openBidDetail}
+            />
+          )}
+          {active === "radar" && (
+            <MeRadarView
+              companyMatchProfile={companyMatchProfile}
+              companyCnaes={companyCnaes}
+              extraKeywords={preferences.extraKeywords}
+              companyCity={companyCity}
+              savedFilters={savedRadarFilters}
+              savingFilter={savingFilter}
+              onCreateFilter={createFilter}
+              onUpdateFilter={updateFilter}
+              onDeleteFilter={deleteFilter}
+              savedBidIds={allTrackedBidIds}
+              trackedBidsMap={trackedBidsMap}
+              hiddenBidIds={hiddenBidIds}
+              hiddenBidIdsList={hiddenBidIdsList}
+              onToggleSaveBid={toggleFavorite}
+              onToggleAnalysisBid={handleToggleAnalysisBid}
+              onParticipateBid={(bid) => setSelectItemsModalBid(bid)}
+              onManageBid={(bid) => handleManageBid(bid.id, "overview")}
+              onToggleHideBid={(id) => toggleHiddenBid(id)}
+              onOpenBidDetail={openBidDetail}
+              onOpenBidChat={(bid) => setChatBid(bid)}
+            />
+          )}
+          {active === "my-bids" && (
+            <MeMyBidsView
+              trackedBids={trackedBids}
+              calendarEvents={calendarEvents}
+              liveBidsMap={liveBidsMap}
+              companyMatchProfile={companyMatchProfile}
+              onManageBid={(id, tab) => handleManageBid(id, tab)}
+              onSelectItemsForBid={(bid) => setSelectItemsModalBid(bid)}
+              onOpenChat={(bid) => setChatBid(bid)}
+              onUpdateTrackedTags={(id, tags) =>
+                upsertTrackedBid(id, { tags })
+              }
+              onUpdateTrackedNotes={(id, notes) =>
+                upsertTrackedBid(id, { notes })
+              }
+              onRemoveTracked={async (id) => {
+                await removeTrackedBid(id);
+                if (favorites.has(id)) toggleSavedBid(id);
+              }}
+              onNavigateRadar={() => navigate("radar")}
+              onNavigateAgenda={() => navigate("agenda")}
+            />
+          )}
+          {active === "agenda" && (
+            <MeAgendaView
+              trackedBids={trackedBids}
+              calendarEvents={calendarEvents}
+              onOpenBidWorkspace={(id) => handleManageBid(id, "overview")}
+              onCreateReminder={createReminder}
+              onUpdateReminder={updateReminder}
+              onDeleteReminder={deleteReminder}
+            />
+          )}
+          {active === "opportunities" && (
+            <Opportunities
+              companyMatchProfile={companyMatchProfile}
+              companyCnaes={companyCnaes}
+              syncMeta={syncMeta}
+              onRefreshPncp={() => refreshPncp()}
+              isRefreshingPncp={isRefreshingPncp}
+              favorites={allTrackedBidIds}
+              trackedBidsMap={trackedBidsMap}
+              hiddenBidIds={hiddenBidIds}
+              hiddenBidIdsList={hiddenBidIdsList}
+              onToggleFavorite={toggleFavorite}
+              onToggleAnalysisBid={handleToggleAnalysisBid}
+              onParticipateBid={(bid) => setSelectItemsModalBid(bid)}
+              onManageBid={(bid) => handleManageBid(bid.id, "overview")}
+              onToggleHide={(id) => toggleHiddenBid(id)}
+              selected={null}
+              onSelect={(bid) => {
+                setSelectedBid(bid);
+                setPendingDeepLinkId(null);
+              }}
+              onOpenChat={(bid) => setChatBid(bid)}
+              onNavigateProfile={() => navigate("profile")}
+            />
+          )}
+          {active === "documents" && <Documents />}
+          {active === "profile" && (
+            <CompanyProfile
+              companyCnaes={companyCnaes}
+              customCnaeText={preferences.customCnaeText}
+              extraKeywords={preferences.extraKeywords}
+              onSavePreferences={savePreferences}
+            />
+          )}
+        </>
       )}
-      {active === "alerts" && (
-        <Alerts
-          openBids={openBids}
-          matchedOpenBids={matchedOpenBids}
-          loading={loadingBids}
-          companyCnaes={companyCnaes}
-          customCnaeText={preferences.customCnaeText}
-          extraKeywords={preferences.extraKeywords}
-          onSavePreferences={savePreferences}
-          onOpenBid={openBidDetail}
-          onNavigate={navigate}
-        />
-      )}
-      {active === "documents" && <Documents />}
-      {active === "profile" && (
-        <CompanyProfile
-          companyCnaes={companyCnaes}
-          customCnaeText={preferences.customCnaeText}
-          extraKeywords={preferences.extraKeywords}
-          onSavePreferences={savePreferences}
-        />
-      )}
+
+      <SelectBidItemsModal
+        bid={selectItemsModalBid}
+        existingTracked={
+          selectItemsModalBid
+            ? (trackedBidsMap.get(selectItemsModalBid.id) ?? null)
+            : null
+        }
+        companyKeywords={preferences.extraKeywords}
+        onClose={() => setSelectItemsModalBid(null)}
+        onConfirm={async ({ bid, nickname, items }) => {
+          await confirmParticipation(bid, { nickname, items });
+          if (!favorites.has(bid.id)) toggleSavedBid(bid.id);
+          setSelectItemsModalBid(null);
+          toast.success("Participação salva em Minhas Licitações!", {
+            description:
+              "Clique em Gerenciar no card ou acesse Minhas Licitações para precificar.",
+          });
+        }}
+      />
+
+      <EditalAssistantModal bid={chatBid} onClose={() => setChatBid(null)} />
     </AppShell>
   );
 }
@@ -748,6 +942,7 @@ export function MeDashboard({
 function MeOverview({
   openBids,
   matchedOpenBids,
+  syncMeta,
   loading,
   error,
   onNavigate,
@@ -755,12 +950,14 @@ function MeOverview({
 }: {
   openBids: EnrichedMeBid[];
   matchedOpenBids: EnrichedMeBid[];
+  syncMeta: MePncpSyncMeta | null;
   loading: boolean;
   error: string | null;
   onNavigate: (id: string) => void;
   onOpenBid: (bid: EnrichedMeBid) => void;
 }) {
   const { profile } = useUserProfile();
+  const prefetchBidDetail = usePrefetchMeBidDetail();
 
   const userFirstName = profile?.name?.trim().split(" ")[0] || "Empresário(a)";
   const porte = profile?.business?.porte_empresa || "ME";
@@ -869,8 +1066,9 @@ function MeOverview({
         />
         <Metric
           icon={<Gavel />}
-          label="Licitações no PNCP (CE)"
+          label="Licitações abertas (CE)"
           value={loading ? "…" : String(openBids.length)}
+          trend={syncMeta?.isComplete ? "100% do PNCP/CE" : undefined}
         />
         <Metric
           icon={<TrendingUp />}
@@ -948,6 +1146,13 @@ function MeOverview({
                   type="button"
                   key={item.id}
                   className="match-spotlight-item"
+                  onMouseEnter={() =>
+                    prefetchBidDetail(
+                      item.agencyCnpj,
+                      item.year,
+                      item.sequential,
+                    )
+                  }
                   onClick={() => onOpenBid(item)}
                 >
                   <div className="match-spotlight-top">
@@ -1029,10 +1234,10 @@ function MeOverview({
 
         <article className="dashboard-card compact-card">
           <CardHeader
-            title="Alertas de licitações e prazos"
+            title="Radar de licitações e prazos"
             action={
-              <button onClick={() => onNavigate("alerts")}>
-                Abrir central de alertas
+              <button onClick={() => onNavigate("radar")}>
+                Abrir Radar de Licitações
               </button>
             }
           />
@@ -1097,7 +1302,7 @@ function MeOverview({
                   <div>
                     <b>Nenhum alerta crítico no momento</b>
                     <small>
-                      Ajuste palavras-chave na aba Alertas para ampliar o monitoramento.
+                      Configure grupos de palavras-chave no Radar de Licitações para ampliar o monitoramento.
                     </small>
                   </div>
                   <em>OK</em>
@@ -1110,99 +1315,152 @@ function MeOverview({
   );
 }
 
+const OPP_PAGE_SIZES = [10, 20, 30] as const;
+
+function buildOppPageList(current: number, total: number): Array<number | "gap"> {
+  const pages = [...new Set([1, current - 1, current, current + 1, total])]
+    .filter((p) => p >= 1 && p <= total)
+    .sort((a, b) => a - b);
+
+  return pages.flatMap((p, idx) =>
+    idx > 0 && p - pages[idx - 1] > 1 ? (["gap", p] as const) : [p],
+  );
+}
+
 function Opportunities({
-  bids,
-  loading,
-  error,
+  companyMatchProfile,
+  companyCnaes,
+  syncMeta,
+  onRefreshPncp,
+  isRefreshingPncp,
   favorites,
+  trackedBidsMap,
+  hiddenBidIds,
+  hiddenBidIdsList,
   onToggleFavorite,
+  onToggleAnalysisBid,
+  onParticipateBid,
+  onManageBid,
+  onToggleHide,
   selected,
   onSelect,
-  companyCnaes,
+  onOpenChat,
   onNavigateProfile,
   favoritesOnly = false,
 }: {
-  bids: EnrichedMeBid[];
-  loading: boolean;
-  error: string | null;
+  companyMatchProfile: CompanyMatchProfile;
+  companyCnaes: CompanyCnae[];
+  syncMeta: MePncpSyncMeta | null;
+  onRefreshPncp: () => void;
+  isRefreshingPncp: boolean;
   favorites: Set<string>;
+  trackedBidsMap?: Map<string, TrackedBid>;
+  hiddenBidIds: Set<string>;
+  hiddenBidIdsList: string[];
   onToggleFavorite: (id: string) => void;
+  onToggleAnalysisBid?: (bid: EnrichedMeBid) => void;
+  onParticipateBid?: (bid: EnrichedMeBid) => void;
+  onManageBid?: (bid: EnrichedMeBid) => void;
+  onToggleHide: (id: string) => void;
   selected: EnrichedMeBid | null;
   onSelect: (bid: EnrichedMeBid | null) => void;
-  companyCnaes: CompanyCnae[];
+  onOpenChat: (bid: EnrichedMeBid) => void;
   onNavigateProfile: () => void;
   favoritesOnly?: boolean;
 }) {
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"open" | "expired" | "all">(
-    "open",
-  );
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [onlyCnaeMatch, setOnlyCnaeMatch] = useState(false);
   const [cityFilter, setCityFilter] = useState("");
   const [modalityFilter, setModalityFilter] = useState("");
-  const [sortBy, setSortBy] = useState<"match" | "deadline" | "value">("match");
+  const [sortBy, setSortBy] = useState<MeBidSortBy>("match");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(OPP_PAGE_SIZES[0]);
+  const resultsTopRef = useRef<HTMLElement | null>(null);
 
-  const cityOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const b of bids) {
-      if (b.city) set.add(b.city);
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setDebouncedQuery("");
+      return;
     }
-    return Array.from(set)
-      .sort((a, b) => a.localeCompare(b, "pt-BR"))
-      .map((city) => ({ value: city, label: city }));
-  }, [bids]);
+    const timer = window.setTimeout(() => {
+      setDebouncedQuery(trimmed);
+    }, 220);
+    return () => window.clearTimeout(timer);
+  }, [query]);
 
-  const modalityOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const b of bids) {
-      if (b.modality) set.add(b.modality);
-    }
-    return Array.from(set)
-      .sort((a, b) => a.localeCompare(b, "pt-BR"))
-      .map((mod) => ({ value: mod, label: mod }));
-  }, [bids]);
-
-  const filteredList = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const filtered = bids.filter((item) => {
-      if (favoritesOnly && !favorites.has(item.id)) return false;
-      if (statusFilter === "open" && !item.isOpen) return false;
-      if (statusFilter === "expired" && item.isOpen) return false;
-      if (onlyCnaeMatch && !item.match.isMatch) return false;
-      if (cityFilter && item.city !== cityFilter) return false;
-      if (modalityFilter && item.modality !== modalityFilter) return false;
-      if (q) {
-        const hay =
-          `${item.object} ${item.purchaseNumber} ${item.process ?? ""} ${item.agencyName} ${item.city} ${item.modality}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-
-    return filtered.sort((a, b) => {
-      if (sortBy === "value") {
-        return (b.estimatedValue ?? 0) - (a.estimatedValue ?? 0);
-      }
-      if (sortBy === "deadline") {
-        return (a.closingAt ?? "9999").localeCompare(b.closingAt ?? "9999");
-      }
-      // match
-      if (a.match.isMatch !== b.match.isMatch) {
-        return a.match.isMatch ? -1 : 1;
-      }
-      return b.match.score - a.match.score;
-    });
+  useEffect(() => {
+    setPage(1);
   }, [
-    bids,
-    favoritesOnly,
-    favorites,
-    statusFilter,
+    debouncedQuery,
     onlyCnaeMatch,
     cityFilter,
     modalityFilter,
-    query,
     sortBy,
+    favoritesOnly,
   ]);
+
+  const favoriteIds = useMemo(
+    () => (favoritesOnly ? Array.from(favorites) : undefined),
+    [favorites, favoritesOnly],
+  );
+
+  const paginatedRequest: MePaginatedBidsRequest = useMemo(
+    () => ({
+      page,
+      pageSize,
+      query: debouncedQuery || undefined,
+      city: cityFilter || undefined,
+      modality: modalityFilter || undefined,
+      onlyCnaeMatch: onlyCnaeMatch || undefined,
+      sortBy,
+      favoritesOnly: favoritesOnly || undefined,
+      favoriteIds,
+      hiddenBidIds: favoritesOnly ? undefined : hiddenBidIdsList,
+      companyProfile: companyMatchProfile,
+    }),
+    [
+      page,
+      pageSize,
+      debouncedQuery,
+      cityFilter,
+      modalityFilter,
+      onlyCnaeMatch,
+      sortBy,
+      favoritesOnly,
+      favoriteIds,
+      hiddenBidIdsList,
+      companyMatchProfile,
+    ],
+  );
+
+  const {
+    data: pageData,
+    isLoading: pageLoading,
+    isFetching: pageFetching,
+    isPlaceholderData,
+    error: pageQueryError,
+    prefetchPage,
+  } = useMePaginatedBidsQuery(paginatedRequest);
+
+  const cityOptions = useMemo(
+    () =>
+      (pageData?.facets.cities ?? []).map((city) => ({
+        value: city,
+        label: city,
+      })),
+    [pageData?.facets.cities],
+  );
+
+  const modalityOptions = useMemo(
+    () =>
+      (pageData?.facets.modalities ?? []).map((mod) => ({
+        value: mod,
+        label: mod,
+      })),
+    [pageData?.facets.modalities],
+  );
 
   if (selected) {
     return (
@@ -1213,15 +1471,32 @@ function Opportunities({
         onBack={() => onSelect(null)}
         onToggleFavorite={() => onToggleFavorite(selected.id)}
         onNavigateProfile={onNavigateProfile}
+        onOpenChat={() => onOpenChat(selected)}
       />
     );
   }
 
-  const openCount = bids.filter((b) => b.isOpen).length;
-  const expiredCount = bids.length - openCount;
+  const paginatedList = pageData?.items ?? [];
+  const totalItems = pageData?.totalItems ?? 0;
+  const totalPages = pageData?.totalPages ?? 1;
+  const currentPage = pageData?.page ?? page;
+  const firstIndex = (currentPage - 1) * pageSize;
+  const effectiveMeta = pageData?.meta ?? syncMeta;
+  const errorMessage =
+    pageQueryError instanceof Error ? pageQueryError.message : null;
+
   const hasActiveFilters = Boolean(
     query.trim() || cityFilter || modalityFilter || onlyCnaeMatch,
   );
+
+  const goToPage = (nextPage: number) => {
+    const clamped = Math.max(1, Math.min(totalPages, nextPage));
+    setPage(clamped);
+    const el = resultsTopRef.current;
+    if (el && el.getBoundingClientRect().top < 84) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   return (
     <div className="dashboard-page">
@@ -1230,50 +1505,63 @@ function Opportunities({
         title={
           favoritesOnly
             ? "Licitações salvas nos favoritos"
-            : "Licitações no PNCP"
+            : "Licitações abertas no Ceará"
         }
         description={
           favoritesOnly
             ? "Acompanhe os editais que você salvou para analisar ou disputar."
-            : "Consulte editais abertos e vencidos diretamente do PNCP, filtre pelo Match com o CNAE da sua empresa e acesse o portal de disputa."
+            : "Consulte 100% dos editais com propostas abertas no Ceará diretamente do PNCP, filtre pelo Match com o CNAE da sua empresa e acesse o portal de disputa."
         }
       />
 
-      <section className="dashboard-card opp-toolbar">
+      <section ref={resultsTopRef} className="dashboard-card opp-toolbar">
         <div className="opp-toolbar-top">
-          <div
-            className="opp-status-tabs"
-            role="tablist"
-            aria-label="Filtrar por situação da licitação"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={statusFilter === "open"}
-              className={`opp-status-tab ${statusFilter === "open" ? "is-active" : ""}`}
-              onClick={() => setStatusFilter("open")}
-            >
-              Abertas <span>{openCount}</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={statusFilter === "expired"}
-              className={`opp-status-tab ${statusFilter === "expired" ? "is-active" : ""}`}
-              onClick={() => setStatusFilter("expired")}
-            >
-              Encerradas <span>{expiredCount}</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={statusFilter === "all"}
-              className={`opp-status-tab ${statusFilter === "all" ? "is-active" : ""}`}
-              onClick={() => setStatusFilter("all")}
-            >
-              Todas <span>{bids.length}</span>
-            </button>
-          </div>
+          {favoritesOnly ? (
+            <div className="opp-sync-status">
+              <span className="opp-sync-badge is-complete">
+                <Bookmark size={14} />
+                {favorites.size}{" "}
+                {favorites.size === 1 ? "licitação salva" : "licitações salvas"}
+              </span>
+            </div>
+          ) : (
+            <div className="opp-sync-status">
+              {effectiveMeta ? (
+                <span
+                  className={`opp-sync-badge ${effectiveMeta.isComplete ? "is-complete" : "is-partial"}`}
+                  title={`Escopo ${effectiveMeta.scope} • ${effectiveMeta.pncpFetchedPages} de ${effectiveMeta.pncpTotalPages} páginas consultadas no PNCP`}
+                >
+                  {effectiveMeta.isComplete ? (
+                    <ShieldCheck size={14} />
+                  ) : (
+                    <AlertTriangle size={14} />
+                  )}
+                  {effectiveMeta.isComplete
+                    ? `${effectiveMeta.totalOpenBids} abertas no CE • 100% PNCP (${effectiveMeta.pncpFetchedPages}/${effectiveMeta.pncpTotalPages} págs.)`
+                    : `${effectiveMeta.totalOpenBids} abertas carregadas (${effectiveMeta.pncpFetchedPages}/${effectiveMeta.pncpTotalPages} págs. PNCP)`}
+                </span>
+              ) : (
+                <span className="opp-sync-badge">
+                  <RefreshCw size={14} className="is-spinning" />
+                  Sincronizando editais abertos do Ceará…
+                </span>
+              )}
+
+              <button
+                type="button"
+                className="opp-refresh-btn"
+                onClick={onRefreshPncp}
+                disabled={isRefreshingPncp || pageLoading}
+                title="Sincronizar novamente todas as páginas de propostas abertas no PNCP"
+              >
+                <RefreshCw
+                  size={14}
+                  className={isRefreshingPncp ? "is-spinning" : ""}
+                />
+                <span>{isRefreshingPncp ? "Sincronizando…" : "Atualizar"}</span>
+              </button>
+            </div>
+          )}
 
           <button
             type="button"
@@ -1337,12 +1625,13 @@ function Opportunities({
             variant="dashboard"
             value={sortBy}
             options={[
-              { value: "match", label: "Maior compatibilidade" },
+              { value: "match", label: "Maior Score" },
               { value: "deadline", label: "Prazo mais próximo" },
               { value: "value", label: "Maior valor" },
+              { value: "recent", label: "Mais recentes" },
             ]}
             onValueChange={(val) =>
-              setSortBy((val as "match" | "deadline" | "value") || "match")
+              setSortBy((val as MeBidSortBy) || "match")
             }
           />
         </div>
@@ -1350,10 +1639,27 @@ function Opportunities({
 
       <div className="opp-results-meta">
         <p>
-          <b>{filteredList.length}</b>{" "}
-          {filteredList.length === 1
-            ? "licitação encontrada"
-            : "licitações encontradas"}
+          {pageLoading ? (
+            <>Consultando editais abertos no PNCP…</>
+          ) : totalItems > paginatedList.length ? (
+            <>
+              Mostrando <b>{firstIndex + 1}</b> a{" "}
+              <b>{firstIndex + paginatedList.length}</b> de <b>{totalItems}</b>{" "}
+              {favoritesOnly ? "licitações salvas" : "licitações abertas"}
+              {isPlaceholderData && pageFetching ? " (carregando página…)" : ""}
+            </>
+          ) : (
+            <>
+              <b>{totalItems}</b>{" "}
+              {favoritesOnly
+                ? totalItems === 1
+                  ? "licitação salva"
+                  : "licitações salvas"
+                : totalItems === 1
+                  ? "licitação aberta encontrada"
+                  : "licitações abertas encontradas"}
+            </>
+          )}
         </p>
         {hasActiveFilters && (
           <button
@@ -1371,130 +1677,157 @@ function Opportunities({
         )}
       </div>
 
-      {error && (
+      {errorMessage && (
         <section className="dashboard-card empty-state">
           <AlertTriangle />
           <h2>Erro ao consultar o PNCP</h2>
-          <p>{error}</p>
+          <p>{errorMessage}</p>
         </section>
       )}
 
-      {loading ? (
+      {pageLoading ? (
         <section className="dashboard-card empty-state">
           <RefreshCw />
-          <h2>Carregando licitações do PNCP…</h2>
-          <p>Buscando editais abertos e encerrados publicados no Ceará.</p>
+          <h2>Carregando licitações abertas do PNCP…</h2>
+          <p>Sincronizando todas as páginas de propostas abertas no Ceará.</p>
         </section>
       ) : (
-        <section className="opportunity-results">
-          {filteredList.map((item) => {
-            const { title: headline } = extractBidTitleAndSummary(item.object);
-            const deadline = formatDeadlineBadge(item);
-            const hasValue =
-              item.estimatedValue !== null &&
-              item.estimatedValue !== undefined &&
-              !Number.isNaN(item.estimatedValue) &&
-              item.estimatedValue > 0;
-            const isFav = favorites.has(item.id);
-
-            return (
-              <article
+        <>
+          <section
+            className={`me-bid-cards-stack ${isPlaceholderData ? "is-placeholder" : ""}`}
+          >
+            {paginatedList.map((item) => (
+              <MeBidCard
                 key={item.id}
-                className="opp-card"
-                onClick={() => onSelect(item)}
+                bid={item}
+                isSaved={favorites.has(item.id)}
+                trackedBid={trackedBidsMap?.get(item.id) ?? null}
+                isHidden={hiddenBidIds.has(item.id)}
+                onToggleSave={onToggleFavorite}
+                onToggleAnalysis={onToggleAnalysisBid}
+                onParticipate={onParticipateBid}
+                onManage={onManageBid}
+                onToggleHide={favoritesOnly ? undefined : onToggleHide}
+                onOpenDetail={(b) => onSelect(b)}
+                onOpenChat={onOpenChat}
+              />
+            ))}
+          </section>
+
+          {!errorMessage && totalItems > OPP_PAGE_SIZES[0] && (
+            <div className="opp-pagination">
+              <p className="opp-pagination-count">
+                Mostrando <b>{firstIndex + 1}</b> a{" "}
+                <b>{firstIndex + paginatedList.length}</b> de{" "}
+                <b>{totalItems}</b>
+              </p>
+
+              <div
+                className="opp-page-size"
+                role="group"
+                aria-label="Licitações por página"
               >
-                <div className="opp-card-top">
-                  <div className="opp-card-badges">
-                    {item.match.isMatch && (
-                      <span className="match-pill is-match">
-                        <Sparkles size={13} />
-                        {item.match.score}% compatível
-                      </span>
-                    )}
-                    <span className="modality-pill">{item.modality}</span>
-                    <span className={`deadline-pill ${deadline.tone}`}>
-                      <CalendarClock size={13} />
-                      {deadline.label}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className={`opp-fav-btn ${isFav ? "favorited" : ""}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleFavorite(item.id);
-                    }}
-                    aria-label={
-                      isFav
-                        ? "Remover dos favoritos"
-                        : "Adicionar aos favoritos"
-                    }
-                  >
-                    <Heart size={16} fill={isFav ? "currentColor" : "none"} />
-                  </button>
+                <span>Por página</span>
+                <div className="opp-page-size-options">
+                  {OPP_PAGE_SIZES.map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      className={`opp-page-size-btn ${pageSize === size ? "is-active" : ""}`}
+                      aria-pressed={pageSize === size}
+                      onClick={() => {
+                        setPageSize(size);
+                        setPage(1);
+                      }}
+                    >
+                      {size}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                <div className="opp-card-body">
-                  <h2 className="opp-card-title">{headline}</h2>
-                  <p className="opp-card-location">
-                    <MapPin size={14} />
-                    <span>
-                      {formatBuyerLocation(item.city, item.uf, item.unitName)}
-                    </span>
-                  </p>
-                </div>
-
-                <footer className="opp-card-footer">
-                  <div className="opp-card-meta">
-                    <span>
-                      <small>Valor estimado</small>
-                      <strong className={hasValue ? "" : "is-muted"}>
-                        {hasValue
-                          ? formatCurrencyBr(item.estimatedValue)
-                          : "No edital"}
-                      </strong>
-                    </span>
-                    <span>
-                      <small>
-                        {item.isOpen ? "Propostas até" : "Encerrou em"}
-                      </small>
-                      <strong
-                        className={
-                          item.isOpen &&
-                          item.daysLeft !== null &&
-                          item.daysLeft <= 3
-                            ? "is-urgent"
-                            : ""
-                        }
+              {totalPages > 1 && (
+                <nav
+                  className="opp-pagination-nav"
+                  aria-label="Paginação das licitações"
+                >
+                  <ul className="opp-pagination-list">
+                    <li>
+                      <button
+                        type="button"
+                        className="opp-page-control"
+                        disabled={currentPage === 1}
+                        onMouseEnter={() => prefetchPage(currentPage - 1)}
+                        onClick={() => goToPage(currentPage - 1)}
+                        aria-label="Página anterior"
                       >
-                        {formatDateBr(item.closingAt ?? item.publishedAt, false)}
-                      </strong>
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className="opp-card-cta"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelect(item);
-                    }}
-                  >
-                    Ver licitação <ArrowRight size={15} />
-                  </button>
-                </footer>
-              </article>
-            );
-          })}
-        </section>
+                        <ChevronLeft size={17} aria-hidden="true" />
+                        <span>Anterior</span>
+                      </button>
+                    </li>
+
+                    {buildOppPageList(currentPage, totalPages).map(
+                      (entry, idx) =>
+                        entry === "gap" ? (
+                          <li key={`gap-${idx}`}>
+                            <span
+                              className="opp-page-ellipsis"
+                              aria-hidden="true"
+                            >
+                              <MoreHorizontal size={16} />
+                            </span>
+                          </li>
+                        ) : (
+                          <li key={entry}>
+                            <button
+                              type="button"
+                              className={`opp-page-btn ${entry === currentPage ? "is-active" : ""}`}
+                              aria-current={
+                                entry === currentPage ? "page" : undefined
+                              }
+                              aria-label={`Ir para a página ${entry}`}
+                              onMouseEnter={() => prefetchPage(entry)}
+                              onClick={() => goToPage(entry)}
+                            >
+                              {entry}
+                            </button>
+                          </li>
+                        ),
+                    )}
+
+                    <li>
+                      <button
+                        type="button"
+                        className="opp-page-control"
+                        disabled={currentPage === totalPages}
+                        onMouseEnter={() => prefetchPage(currentPage + 1)}
+                        onClick={() => goToPage(currentPage + 1)}
+                        aria-label="Próxima página"
+                      >
+                        <span>Próxima</span>
+                        <ChevronRight size={17} aria-hidden="true" />
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              )}
+            </div>
+          )}
+        </>
       )}
 
-      {!loading && !error && filteredList.length === 0 && (
+      {!pageLoading && !errorMessage && totalItems === 0 && (
         <section className="dashboard-card empty-state">
           <Search />
-          <h2>Nenhuma licitação encontrada com esses filtros</h2>
+          <h2>
+            {favoritesOnly && favorites.size === 0
+              ? "Você ainda não salvou nenhuma licitação"
+              : "Nenhuma licitação aberta encontrada com esses filtros"}
+          </h2>
           <p>
-            Experimente alternar entre Abertas e Vencidas ou desmarcar o filtro
-            de Match CNAE.
+            {favoritesOnly && favorites.size === 0
+              ? "Clique no ícone de coração em qualquer edital aberto para acompanhá-lo aqui."
+              : "Experimente limpar a busca, trocar o município ou desmarcar o filtro de Match CNAE."}
           </p>
         </section>
       )}
@@ -1524,6 +1857,7 @@ function OpportunityDetail({
   onBack,
   onToggleFavorite,
   onNavigateProfile,
+  onOpenChat,
 }: {
   bid: EnrichedMeBid;
   isFavorite: boolean;
@@ -1531,49 +1865,21 @@ function OpportunityDetail({
   onBack: () => void;
   onToggleFavorite: () => void;
   onNavigateProfile: () => void;
+  onOpenChat?: () => void;
 }) {
-  const [detailData, setDetailData] = useState<MeBidDetailResponse | null>(null);
-  const [loadingDetails, setLoadingDetails] = useState(true);
   const [showAllItems, setShowAllItems] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
 
+  const { data: detailData, isLoading: loadingDetails } = useMeBidDetailQuery({
+    agencyCnpj: bid.agencyCnpj,
+    year: bid.year,
+    sequential: bid.sequential,
+  });
+
   useEffect(() => {
-    let cancelled = false;
-    setLoadingDetails(true);
-    setDetailData(null);
     setShowAllItems(false);
-
-    const cnpjClean = (bid.agencyCnpj ?? "").replace(/\D/g, "");
-    if (cnpjClean.length !== 14 || !bid.year || !bid.sequential) {
-      setLoadingDetails(false);
-      return;
-    }
-
-    void (async () => {
-      try {
-        const res = await fetch(
-          `/api/me/licitacoes/${cnpjClean}/${bid.year}/${bid.sequential}`,
-        );
-        if (!res.ok) throw new Error("Erro ao carregar detalhes");
-        const json = (await res.json()) as MeBidDetailResponse;
-        if (!cancelled) {
-          setDetailData(json);
-        }
-      } catch {
-        if (!cancelled) {
-          setDetailData(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingDetails(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [bid.id, bid.agencyCnpj, bid.year, bid.sequential]);
+    setCopiedId(false);
+  }, [bid.id]);
 
   const effectiveBid: EnrichedMeBid = useMemo(() => {
     if (!detailData?.bid) return bid;
@@ -1584,8 +1890,14 @@ function OpportunityDetail({
     };
   }, [bid, detailData]);
 
-  const documents: MeBidDocument[] = detailData?.documents ?? [];
-  const items: MeBidItem[] = detailData?.items ?? [];
+  const documents: MeBidDocument[] = useMemo(
+    () => detailData?.documents ?? [],
+    [detailData?.documents],
+  );
+  const items: MeBidItem[] = useMemo(
+    () => detailData?.items ?? [],
+    [detailData?.items],
+  );
   const totalItems = detailData?.totalItems ?? items.length;
 
   const primaryEditalDoc = useMemo(
@@ -1647,6 +1959,17 @@ function OpportunityDetail({
         </button>
 
         <div className="opp-detail-top-actions">
+          {onOpenChat && (
+            <button
+              type="button"
+              className="opp-ghost-btn is-chat-accent"
+              onClick={onOpenChat}
+            >
+              <Sparkles size={16} />
+              Converse com o edital
+            </button>
+          )}
+
           <button
             type="button"
             className={`opp-ghost-btn ${copiedId ? "is-copied" : ""}`}
@@ -2323,216 +2646,6 @@ function OpportunityDetail({
   );
 }
 
-function Alerts({
-  openBids,
-  matchedOpenBids,
-  loading,
-  companyCnaes,
-  customCnaeText,
-  extraKeywords,
-  onSavePreferences,
-  onOpenBid,
-  onNavigate,
-}: {
-  openBids: EnrichedMeBid[];
-  matchedOpenBids: EnrichedMeBid[];
-  loading: boolean;
-  companyCnaes: CompanyCnae[];
-  customCnaeText: string;
-  extraKeywords: string[];
-  onSavePreferences: (patch: {
-    customCnaeText?: string;
-    extraKeywords?: string[];
-  }) => void;
-  onOpenBid: (bid: EnrichedMeBid) => void;
-  onNavigate: (id: string) => void;
-}) {
-  const [newKeyword, setNewKeyword] = useState("");
-
-  const addKeyword = (e: React.FormEvent) => {
-    e.preventDefault();
-    const clean = newKeyword.trim();
-    if (!clean) return;
-    if (!extraKeywords.includes(clean)) {
-      onSavePreferences({ extraKeywords: [...extraKeywords, clean] });
-    }
-    setNewKeyword("");
-  };
-
-  const removeKeyword = (kw: string) => {
-    onSavePreferences({
-      extraKeywords: extraKeywords.filter((item) => item !== kw),
-    });
-  };
-
-  return (
-    <div className="dashboard-page">
-      <PageHeading
-        eyebrow="RADAR INTELIGENTE POR CNAE"
-        title="Alertas de novas licitações (Match CNAE)"
-        description="Cruzamos automaticamente o CNAE cadastrado da sua empresa com as licitações abertas no PNCP. Clique em qualquer card para ver todos os dados e ir para a disputa."
-      />
-
-      <section className="dashboard-grid alert-layout">
-        <div className="dashboard-card activity-list large">
-          <CardHeader
-            title={`Licitações abertas compatíveis com seu CNAE (${matchedOpenBids.length})`}
-            subtitle="Ordenadas pela maior aderência ao ramo de atividade da sua empresa"
-          />
-
-          {loading ? (
-            <p style={{ padding: "1rem 0", opacity: 0.75 }}>
-              Analisando editais abertos no PNCP contra o CNAE da sua empresa…
-            </p>
-          ) : matchedOpenBids.length === 0 ? (
-            <div style={{ padding: "1.25rem 0" }}>
-              <p style={{ marginBottom: 12 }}>
-                Nenhuma das {openBids.length} licitações abertas agora bateu
-                diretamente com os termos atuais do seu CNAE.
-              </p>
-              <button
-                type="button"
-                className="ds-button secondary"
-                onClick={() => onNavigate("opportunities")}
-              >
-                Ver todas as {openBids.length} licitações abertas no PNCP
-              </button>
-            </div>
-          ) : (
-            matchedOpenBids.map((bid) => (
-              <span
-                key={bid.id}
-                onClick={() => onOpenBid(bid)}
-                style={{ cursor: "pointer" }}
-              >
-                <i className="blue">
-                  <Sparkles />
-                </i>
-                <div>
-                  <em>
-                    MATCH {bid.match.score}% • {bid.modality.toUpperCase()} •{" "}
-                    {bid.city}/{bid.uf}
-                  </em>
-                  <b>{formatCleanTitle(bid.object)}</b>
-                  <small>
-                    {formatCleanTitle(bid.agencyName)} • Valor estimado:{" "}
-                    {formatCurrencyBr(bid.estimatedValue)} • Encerra em:{" "}
-                    {formatDateBr(bid.closingAt)}
-                  </small>
-                  {bid.match.matchedKeywords.length > 0 && (
-                    <small style={{ display: "block", marginTop: 4, color: "#16a34a" }}>
-                      Termos compatíveis:{" "}
-                      {bid.match.matchedKeywords.join(", ")}
-                    </small>
-                  )}
-                </div>
-                <button type="button" onClick={() => onOpenBid(bid)}>
-                  Ver licitação
-                </button>
-              </span>
-            ))
-          )}
-        </div>
-
-        <aside className="dashboard-card alert-settings">
-          <h2>CNAE monitorado</h2>
-          <p>Atividades vinculadas ao seu CNPJ na Receita Federal:</p>
-
-          {companyCnaes.length > 0 ? (
-            companyCnaes.map((cnae) => (
-              <span key={`${cnae.codigo}-${cnae.descricao}`}>
-                <Check />{" "}
-                <div>
-                  <b>
-                    {cnae.isPrincipal ? "Principal: " : "Secundário: "}
-                    {cnae.codigo || "CNAE"}
-                  </b>
-                  <small style={{ display: "block", opacity: 0.85 }}>
-                    {cnae.descricao}
-                  </small>
-                </div>
-              </span>
-            ))
-          ) : (
-            <p style={{ fontSize: "var(--text-sm)", opacity: 0.8 }}>
-              {customCnaeText
-                ? `CNAE complementar: ${customCnaeText}`
-                : "Nenhum CNAE automático retornado para o seu CNPJ. Adicione palavras-chave abaixo ou configure na aba Perfil e CNAE."}
-            </p>
-          )}
-
-          <hr style={{ margin: "16px 0", opacity: 0.2 }} />
-
-          <h2>Palavras-chave extras</h2>
-          <p>
-            Adicione termos do que você fornece (ex.:{" "}
-            <i>merenda, informática, reforma, medicamentos</i>) para ampliar o
-            Match:
-          </p>
-
-          <form
-            onSubmit={addKeyword}
-            style={{ display: "flex", gap: 8, marginBottom: 12 }}
-          >
-            <input
-              type="text"
-              value={newKeyword}
-              onChange={(e) => setNewKeyword(e.target.value)}
-              placeholder="Ex.: material escolar"
-              style={{
-                flex: 1,
-                padding: "8px 12px",
-                borderRadius: 8,
-                border: "1px solid #cbd5e1",
-              }}
-            />
-            <button type="submit" className="ds-button primary">
-              Adicionar
-            </button>
-          </form>
-
-          {extraKeywords.map((kw) => (
-            <span
-              key={kw}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span>
-                <Check /> {kw}
-              </span>
-              <button
-                type="button"
-                onClick={() => removeKeyword(kw)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#dc2626",
-                  cursor: "pointer",
-                  fontSize: "var(--text-xs)",
-                }}
-              >
-                Remover
-              </button>
-            </span>
-          ))}
-
-          <button
-            type="button"
-            className="ds-button secondary"
-            style={{ marginTop: 12 }}
-            onClick={() => onNavigate("profile")}
-          >
-            Editar CNAE no Perfil
-          </button>
-        </aside>
-      </section>
-    </div>
-  );
-}
-
 function Documents() {
   const { profile } = useUserProfile();
   const b = profile?.business;
@@ -2632,6 +2745,7 @@ function CompanyProfile({
   }) => void;
 }) {
   const [saved, setSaved] = useState(false);
+  const [copiedCnpj, setCopiedCnpj] = useState(false);
   const { profile } = useUserProfile();
 
   const cnpj = profile?.business?.cnpj || profile?.cnpj || "";
@@ -2644,151 +2758,275 @@ function CompanyProfile({
     : "Ceará — CE";
 
   const [cnaeInput, setCnaeInput] = useState(customCnaeText);
-  const [keywordsInput, setKeywordsInput] = useState(extraKeywords.join(", "));
+  const [keywords, setKeywords] = useState<string[]>(extraKeywords);
+  const [keywordDraft, setKeywordDraft] = useState("");
 
   useEffect(() => {
     setCnaeInput(customCnaeText);
   }, [customCnaeText]);
 
   useEffect(() => {
-    setKeywordsInput(extraKeywords.join(", "));
+    setKeywords(extraKeywords);
   }, [extraKeywords]);
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsedKeywords = keywordsInput
-      .split(",")
+  const addKeywordsFromDraft = () => {
+    const raw = keywordDraft.trim();
+    if (!raw) return;
+    const parts = raw
+      .split(/[,;\n]+/)
       .map((s) => s.trim())
       .filter(Boolean);
+    if (parts.length === 0) return;
+
+    setKeywords((prev) => {
+      const existingLower = new Set(prev.map((k) => k.toLowerCase()));
+      const toAdd = parts.filter((p) => !existingLower.has(p.toLowerCase()));
+      return [...prev, ...toAdd];
+    });
+    setKeywordDraft("");
+  };
+
+  const removeKeyword = (kwToRemove: string) => {
+    setKeywords((prev) => prev.filter((kw) => kw !== kwToRemove));
+  };
+
+  const handleCopyCnpj = async () => {
+    if (!cnpj) return;
+    try {
+      await navigator.clipboard.writeText(cnpj.replace(/\D/g, ""));
+      setCopiedCnpj(true);
+      setTimeout(() => setCopiedCnpj(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleSave = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     onSavePreferences({
       customCnaeText: cnaeInput.trim(),
-      extraKeywords: parsedKeywords,
+      extraKeywords: keywords,
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page profile-page">
       <PageHeading
-        eyebrow={`DADOS DA MICROEMPRESA (${porte})`}
-        title="Perfil empresarial e configuração de CNAE"
-        description="Seus CNAEs oficiais são puxados automaticamente pelo CNPJ na Receita Federal, e você também pode complementar com atividades ou palavras-chave abaixo."
+        eyebrow={`CADASTRO DA EMPRESA (${porte})`}
+        title="Perfil Empresarial e Atividades"
+        description="Consulte os dados cadastrais oficiais e personalize seus ramos de atuação e palavras-chave de fornecimento."
         action={
-          <button className="ds-button primary" onClick={handleSave}>
-            {saved ? <Check /> : null}
-            {saved ? "Configurações salvas!" : "Salvar configurações de CNAE"}
+          <button className="ds-button primary" onClick={() => handleSave()}>
+            {saved ? <Check size={16} /> : null}
+            {saved ? "Alterações salvas!" : "Salvar alterações"}
           </button>
         }
       />
-      <form className="profile-grid" onSubmit={handleSave}>
-        <section className="dashboard-card">
-          <h2>Identificação Cadastral</h2>
-          <label>
-            CNPJ
-            <input
-              key={`cnpj-${cnpj}`}
-              defaultValue={cnpj ? formatCnpj(cnpj) : ""}
-              readOnly
-            />
-          </label>
-          <label>
-            Razão social / Nome da empresa
-            <input
-              key={`nome-${nomeEmpresa}`}
-              defaultValue={nomeEmpresa}
-              readOnly
-            />
-          </label>
-          <label>
-            Porte da empresa
-            <input key={`porte-${porte}`} defaultValue={porte} readOnly />
-          </label>
-          <label>
-            Responsável legal
-            <input
-              key={`resp-${responsavel}`}
-              defaultValue={responsavel}
-              readOnly
-            />
-          </label>
-          <label>
-            E-mail de acesso
-            <input key={`email-${email}`} defaultValue={email} readOnly />
-          </label>
-          <label>
-            Município identificado na Receita
-            <input
-              key={`mun-${municipioNome}`}
-              defaultValue={municipioNome}
-              readOnly
-            />
-          </label>
+
+      <div className="profile-grid-layout">
+        {/* Card 1: Identificação Cadastral Oficial */}
+        <section className="profile-card">
+          <div className="profile-card__header">
+            <div>
+              <h2>Identificação Cadastral</h2>
+              <p>Dados oficiais vinculados ao CNPJ na Receita Federal</p>
+            </div>
+            <span className="profile-status-pill">Cadastrado</span>
+          </div>
+
+          <div className="profile-info-grid">
+            <div className="profile-info-item is-wide">
+              <span className="profile-info-label">Razão Social / Nome da Empresa</span>
+              <strong className="profile-info-value is-title">
+                {nomeEmpresa || "Empresa Cadastrada"}
+              </strong>
+            </div>
+
+            <div className="profile-info-item">
+              <span className="profile-info-label">CNPJ</span>
+              <div className="profile-cnpj-row">
+                <code className="profile-cnpj-code">
+                  {cnpj ? formatCnpj(cnpj) : "Não informado"}
+                </code>
+                {cnpj && (
+                  <button
+                    type="button"
+                    className="profile-copy-btn"
+                    onClick={handleCopyCnpj}
+                    title="Copiar CNPJ"
+                    aria-label="Copiar CNPJ"
+                  >
+                    {copiedCnpj ? <Check size={13} /> : <Copy size={13} />}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="profile-info-item">
+              <span className="profile-info-label">Porte da Empresa</span>
+              <span className="profile-badge-porte">{porte}</span>
+            </div>
+
+            <div className="profile-info-item">
+              <span className="profile-info-label">Responsável Legal</span>
+              <strong className="profile-info-value">
+                {responsavel || "Não informado"}
+              </strong>
+            </div>
+
+            <div className="profile-info-item">
+              <span className="profile-info-label">E-mail Cadastrado</span>
+              <span className="profile-info-value is-email">
+                {email || "Não informado"}
+              </span>
+            </div>
+
+            <div className="profile-info-item is-wide">
+              <span className="profile-info-label">Município da Sede</span>
+              <strong className="profile-info-value">
+                {municipioNome}
+              </strong>
+            </div>
+          </div>
         </section>
 
-        <section className="dashboard-card">
-          <h2>CNAE da Empresa e Match de Licitações</h2>
-          <label>
-            CNAE Principal (puxado automaticamente pelo CNPJ)
-            <input
-              readOnly
-              value={
-                companyCnaes[0]
-                  ? `${companyCnaes[0].codigo} — ${companyCnaes[0].descricao}`
-                  : "Não encontrado automaticamente para este CNPJ"
-              }
-            />
-          </label>
+        {/* Card 2: Ramos de Atuação e Palavras-chave */}
+        <section className="profile-card">
+          <div className="profile-card__header">
+            <div>
+              <h2>Ramos de Atuação e Fornecimento</h2>
+              <p>Atividades econômicas (CNAE) e termos de produtos ou serviços</p>
+            </div>
+          </div>
 
+          {/* CNAE Principal */}
+          <div className="profile-section-block">
+            <span className="profile-block-label">CNAE Principal</span>
+            {companyCnaes[0] ? (
+              <div className="profile-cnae-card is-primary">
+                <div className="profile-cnae-top">
+                  <span className="profile-cnae-badge is-primary">Principal</span>
+                  <code className="profile-cnae-code">{companyCnaes[0].codigo}</code>
+                </div>
+                <p className="profile-cnae-desc">{companyCnaes[0].descricao}</p>
+              </div>
+            ) : (
+              <p className="profile-empty-text">Nenhum CNAE retornado automaticamente.</p>
+            )}
+          </div>
+
+          {/* CNAEs Secundários */}
           {companyCnaes.length > 1 && (
-            <label>
-              CNAEs Secundários ({companyCnaes.length - 1})
-              <textarea
-                readOnly
-                rows={3}
-                value={companyCnaes
-                  .slice(1)
-                  .map((c) => `${c.codigo} — ${c.descricao}`)
-                  .join("\n")}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  borderRadius: 8,
-                  border: "1px solid #cbd5e1",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-sm)",
-                }}
-              />
-            </label>
+            <div className="profile-section-block">
+              <span className="profile-block-label">
+                CNAEs Secundários ({companyCnaes.length - 1})
+              </span>
+              <div className="profile-cnaes-list">
+                {companyCnaes.slice(1).map((c) => (
+                  <div key={`${c.codigo}-${c.descricao}`} className="profile-cnae-card">
+                    <code className="profile-cnae-code">{c.codigo}</code>
+                    <p className="profile-cnae-desc">{c.descricao}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
-          <label>
-            CNAE ou Ramo de Atuação Complementar (opcional — editável)
+          {/* Ramo complementar */}
+          <div className="profile-section-block">
+            <label className="profile-block-label" htmlFor="profile-cnae-complementar">
+              Atividade ou ramo complementar (opcional)
+            </label>
             <input
+              id="profile-cnae-complementar"
+              className="profile-text-input"
               value={cnaeInput}
               onChange={(e) => setCnaeInput(e.target.value)}
-              placeholder="Ex.: 4711-3/02 - Comércio varejista de gêneros alimentícios"
+              placeholder="Ex: 4711-3/02 - Comércio varejista ou prestação de serviços"
             />
-          </label>
+          </div>
 
-          <label>
-            Palavras-chave para o Alerta de Match (separadas por vírgula)
-            <input
-              value={keywordsInput}
-              onChange={(e) => setKeywordsInput(e.target.value)}
-              placeholder="Ex.: merenda escolar, cestas básicas, informática, reforma"
-            />
-          </label>
+          {/* Palavras-chave com tags */}
+          <div className="profile-section-block">
+            <div className="profile-kw-header">
+              <span className="profile-block-label">
+                Palavras-chave de fornecimento
+              </span>
+              {keywords.length > 0 && (
+                <span className="profile-kw-count">
+                  {keywords.length} {keywords.length === 1 ? "palavra cadastrada" : "palavras cadastradas"}
+                </span>
+              )}
+            </div>
+            <p className="profile-kw-hint">
+              Adicione termos de produtos ou serviços que você fornece para destacar licitações aderentes.
+            </p>
 
-          <button
-            type="submit"
-            className="ds-button primary"
-            style={{ marginTop: 8 }}
-          >
-            {saved ? "Configurações salvas!" : "Salvar configurações de CNAE"}
-          </button>
+            <div className="profile-kw-input-row">
+              <input
+                type="text"
+                className="profile-text-input"
+                value={keywordDraft}
+                onChange={(e) => setKeywordDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addKeywordsFromDraft();
+                  }
+                }}
+                placeholder="Ex: merenda escolar, medicamentos, informática, reforma…"
+              />
+              <button
+                type="button"
+                className="profile-kw-add-btn"
+                onClick={addKeywordsFromDraft}
+                disabled={!keywordDraft.trim()}
+              >
+                <Plus size={15} />
+                <span>Adicionar</span>
+              </button>
+            </div>
+
+            {keywords.length > 0 && (
+              <div className="profile-kw-chips">
+                {keywords.map((kw) => (
+                  <span key={kw} className="profile-kw-chip">
+                    <span>{kw}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeKeyword(kw)}
+                      aria-label={`Remover ${kw}`}
+                      title={`Remover ${kw}`}
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+                <button
+                  type="button"
+                  className="profile-kw-clear-all"
+                  onClick={() => setKeywords([])}
+                >
+                  Limpar todas
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="profile-card-footer">
+            <button
+              type="button"
+              className="ds-button primary"
+              onClick={() => handleSave()}
+            >
+              {saved ? <Check size={16} /> : null}
+              {saved ? "Alterações salvas!" : "Salvar alterações"}
+            </button>
+          </div>
         </section>
-      </form>
+      </div>
     </div>
   );
 }
