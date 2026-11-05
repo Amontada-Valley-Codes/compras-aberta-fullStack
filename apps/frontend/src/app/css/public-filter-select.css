@@ -159,8 +159,9 @@
   color: var(--brand-blue);
 }
 .public-filter-item[data-state="checked"] {
-  background: #e4f5f7;
-  color: #096b78;
+  background: #eff6ff;
+  color: var(--brand-blue, #11169b);
+  font-weight: var(--weight-bold);
 }
 .public-filter-check {
   position: absolute;

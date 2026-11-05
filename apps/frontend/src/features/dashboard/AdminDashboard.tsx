@@ -32,7 +32,7 @@ export function AdminDashboard() {
   const items: NavItem[] = [
     { id: "overview", label: "Visao geral", icon: <LayoutDashboard size={19} /> },
     { id: "requests", label: "Solicitacoes", icon: <FileCheck2 size={19} />, badge: pendingCount ? String(pendingCount) : undefined },
-    { id: "companies", label: "Microempresas", icon: <Store size={19} /> },
+    { id: "companies", label: "Empresas", icon: <Store size={19} /> },
     { id: "users", label: "Usuarios e acessos", icon: <Users size={19} /> },
     { id: "settings", label: "Configuracoes", icon: <Settings size={19} /> },
   ];
@@ -113,7 +113,7 @@ function Requests({
 
   return (
     <div className="dashboard-page">
-      <PageHeading eyebrow={approvedOnly ? "GESTAO DA BASE" : "ANALISE CADASTRAL"} title={approvedOnly ? "Microempresas cadastradas" : "Solicitacoes de acesso"} description={approvedOnly ? "Empresas com acesso aprovado a plataforma." : "Confira os dados das microempresas e libere ou recuse o acesso."} />
+      <PageHeading eyebrow={approvedOnly ? "GESTAO DA BASE" : "ANALISE CADASTRAL"} title={approvedOnly ? "Empresas cadastradas" : "Solicitacoes de acesso"} description={approvedOnly ? "Empresas com acesso aprovado a plataforma." : "Confira os dados das empresas e libere ou recuse o acesso."} />
       {!approvedOnly && <section className="request-tabs">{statusTabs.map((tab) => <button className={filter === tab.id ? "active" : ""} onClick={() => setFilter(tab.id)} key={tab.id}>{tab.label} <em>{tab.id === "ALL" ? requests.length : requests.filter((request) => request.status === tab.id).length}</em></button>)}</section>}
       <section className="dashboard-card filter-bar"><label><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar empresa, CNPJ, municipio ou responsavel" /></label><span className="filter-context">Dados sensiveis protegidos</span></section>
       <section className="dashboard-card admin-table-card full-table">

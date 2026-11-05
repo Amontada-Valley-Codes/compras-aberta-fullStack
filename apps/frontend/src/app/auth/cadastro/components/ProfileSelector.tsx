@@ -9,8 +9,8 @@ const PROFILES: { id: Profile; icon: LucideIcon; title: string; text: string }[]
   {
     id: 'me',
     icon: Building2,
-    title: 'Sou Fornecedor / Microempresa',
-    text: 'Para microempresas (ME) que desejam vender para prefeituras e encontrar oportunidades em licitações.',
+    title: 'Sou Fornecedor / Empresa',
+    text: 'Para empresas e fornecedores que desejam vender para órgãos públicos e disputar licitações.',
   },
   {
     id: 'gestor',

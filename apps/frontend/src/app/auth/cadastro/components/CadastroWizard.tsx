@@ -18,7 +18,7 @@ const HEADERS: Record<Profile | 'escolha', { title: string; subtitle: string }> 
     subtitle: 'Escolha o seu perfil e siga o passo a passo. Leva poucos minutos.',
   },
   me: {
-    title: 'Cadastre sua Microempresa',
+    title: 'Cadastre sua Empresa',
     subtitle: 'Preencha os dados da sua empresa e envie os comprovantes para liberação de acesso.',
   },
   gestor: {

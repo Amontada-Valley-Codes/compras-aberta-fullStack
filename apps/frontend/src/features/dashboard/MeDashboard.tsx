@@ -678,6 +678,12 @@ export function MeDashboard({
         icon: <LayoutDashboard size={19} />,
       },
       {
+        id: "opportunities",
+        label: "Licitações",
+        icon: <Gavel size={19} />,
+        badge: openBids.length > 0 ? String(openBids.length) : undefined,
+      },
+      {
         id: "radar",
         label: "Radar de Licitações",
         icon: <Radio size={19} />,
@@ -697,12 +703,6 @@ export function MeDashboard({
         label: "Agenda",
         icon: <CalendarDays size={19} />,
         badge: upcoming7DaysCount > 0 ? String(upcoming7DaysCount) : undefined,
-      },
-      {
-        id: "opportunities",
-        label: "Licitações",
-        icon: <Gavel size={19} />,
-        badge: openBids.length > 0 ? String(openBids.length) : undefined,
       },
       { id: "documents", label: "Documentos", icon: <FileText size={19} /> },
       {
@@ -1041,7 +1041,7 @@ function MeOverview({
   return (
     <div className="dashboard-page">
       <PageHeading
-        eyebrow={`PAINEL DA MICROEMPRESA • ${porte}`}
+        eyebrow={`PAINEL DA EMPRESA • ${porte}`}
         title={`Olá, ${userFirstName}!`}
       />
 
@@ -1056,7 +1056,7 @@ function MeOverview({
       <section className="metric-grid">
         <Metric
           icon={<Sparkles />}
-          label="Dão Match com seu CNAE"
+          label="Compatíveis com sua atividade"
           value={loading ? "…" : String(matchedOpenBids.length)}
           trend={
             openBids.length > 0
@@ -1091,7 +1091,7 @@ function MeOverview({
         <article className="dashboard-card chart-card">
           <CardHeader
             title="Volume financeiro em editais abertos por município"
-            subtitle="Valores estimados reais publicados no PNCP (Total x Compatível com seu CNAE)"
+            subtitle="Valores estimados reais publicados no PNCP (Total x Compatíveis com suas atividades)"
           />
           <SpendingAreaChart
             categories={cityChartData.categories}
@@ -1113,7 +1113,7 @@ function MeOverview({
         <CardHeader
           title={
             matchedOpenBids.length > 0
-              ? "Licitações que deram Match com seu CNAE"
+              ? "Licitações compatíveis com sua empresa"
               : "Licitações abertas em destaque no PNCP"
           }
           action={
@@ -1162,7 +1162,7 @@ function MeOverview({
                       >
                         <Sparkles size={13} />
                         {item.match.isMatch
-                          ? `${item.match.score}% compatível`
+                          ? "Alta compatibilidade"
                           : "Edital aberto"}
                       </span>
                       <span className="modality-pill">{item.modality}</span>
@@ -1202,11 +1202,6 @@ function MeOverview({
         <article className="dashboard-card compact-card">
           <CardHeader
             title="Municípios com mais editais abertos"
-            action={
-              <button onClick={() => onNavigate("opportunities")}>
-                Filtrar por cidade
-              </button>
-            }
           />
           {cityChartData.ranking.slice(0, 4).map((item, index) => {
             const maxVal = cityChartData.ranking[0]?.totalValue || 1;
@@ -1235,11 +1230,6 @@ function MeOverview({
         <article className="dashboard-card compact-card">
           <CardHeader
             title="Radar de licitações e prazos"
-            action={
-              <button onClick={() => onNavigate("radar")}>
-                Abrir Radar de Licitações
-              </button>
-            }
           />
           <div className="activity-list">
             {matchedOpenBids.slice(0, 2).map((bid) => {
@@ -1254,7 +1244,7 @@ function MeOverview({
                     <Sparkles />
                   </i>
                   <div>
-                    <b>Match CNAE ({bid.match.score}% compatível)</b>
+                    <b>Compatível com seu ramo</b>
                     <small>
                       {bid.city}: {cleanObj.slice(0, 72)}
                       {cleanObj.length > 72 ? "…" : ""}
@@ -1537,8 +1527,8 @@ function Opportunities({
                     <AlertTriangle size={14} />
                   )}
                   {effectiveMeta.isComplete
-                    ? `${effectiveMeta.totalOpenBids} abertas no CE • 100% PNCP (${effectiveMeta.pncpFetchedPages}/${effectiveMeta.pncpTotalPages} págs.)`
-                    : `${effectiveMeta.totalOpenBids} abertas carregadas (${effectiveMeta.pncpFetchedPages}/${effectiveMeta.pncpTotalPages} págs. PNCP)`}
+                    ? `${effectiveMeta.totalOpenBids} abertas no CE • 100% PNCP`
+                    : `${effectiveMeta.totalOpenBids} abertas carregadas`}
                 </span>
               ) : (
                 <span className="opp-sync-badge">
@@ -1562,18 +1552,6 @@ function Opportunities({
               </button>
             </div>
           )}
-
-          <button
-            type="button"
-            role="switch"
-            aria-checked={onlyCnaeMatch}
-            className={`opp-match-switch ${onlyCnaeMatch ? "is-active" : ""}`}
-            onClick={() => setOnlyCnaeMatch((prev) => !prev)}
-          >
-            <Sparkles size={15} />
-            <span>Compatíveis com meu CNAE</span>
-            <i aria-hidden="true" />
-          </button>
         </div>
 
         <div className="opp-toolbar-controls">
@@ -1625,7 +1603,7 @@ function Opportunities({
             variant="dashboard"
             value={sortBy}
             options={[
-              { value: "match", label: "Maior Score" },
+              { value: "match", label: "Maior compatibilidade" },
               { value: "deadline", label: "Prazo mais próximo" },
               { value: "value", label: "Maior valor" },
               { value: "recent", label: "Mais recentes" },
@@ -2020,7 +1998,7 @@ function OpportunityDetail({
           {effectiveBid.match.isMatch && (
             <span className="opp-badge match">
               <Sparkles size={14} />
-              {effectiveBid.match.score}% compatível com seu CNAE
+              Compatível com sua empresa
             </span>
           )}
         </div>
@@ -2566,13 +2544,13 @@ function OpportunityDetail({
                     ? `${effectiveBid.match.score}%`
                     : "—"}
                 </b>
-                <small>{effectiveBid.match.isMatch ? "Match" : "CNAE"}</small>
+                <small>{effectiveBid.match.isMatch ? "Aderente" : "Perfil"}</small>
               </div>
               <div>
                 <strong>
                   {effectiveBid.match.isMatch
                     ? "Compatível com seu perfil"
-                    : "Sem match direto no CNAE"}
+                    : "Aderência por palavras-chave"}
                 </strong>
                 <span>
                   {effectiveBid.match.matchedCnae ??
@@ -2730,6 +2708,13 @@ function Documents() {
   );
 }
 
+function getCompanyInitials(name?: string, fallback = "ME"): string {
+  if (!name) return fallback;
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 function CompanyProfile({
   companyCnaes,
   customCnaeText,
@@ -2749,46 +2734,19 @@ function CompanyProfile({
   const { profile } = useUserProfile();
 
   const cnpj = profile?.business?.cnpj || profile?.cnpj || "";
-  const nomeEmpresa = profile?.business?.nome_empresa || "";
+  const nomeEmpresa = profile?.business?.nome_empresa || "Minha Empresa";
   const email = profile?.email || "";
   const porte = profile?.business?.porte_empresa || "ME";
-  const responsavel = profile?.name || "";
+  const responsavel = profile?.name || "Responsável Legal";
   const municipioNome = profile?.business?.municipio
     ? `${profile.business.municipio.nome} — ${profile.business.municipio.uf}`
     : "Ceará — CE";
 
   const [cnaeInput, setCnaeInput] = useState(customCnaeText);
-  const [keywords, setKeywords] = useState<string[]>(extraKeywords);
-  const [keywordDraft, setKeywordDraft] = useState("");
 
   useEffect(() => {
     setCnaeInput(customCnaeText);
   }, [customCnaeText]);
-
-  useEffect(() => {
-    setKeywords(extraKeywords);
-  }, [extraKeywords]);
-
-  const addKeywordsFromDraft = () => {
-    const raw = keywordDraft.trim();
-    if (!raw) return;
-    const parts = raw
-      .split(/[,;\n]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (parts.length === 0) return;
-
-    setKeywords((prev) => {
-      const existingLower = new Set(prev.map((k) => k.toLowerCase()));
-      const toAdd = parts.filter((p) => !existingLower.has(p.toLowerCase()));
-      return [...prev, ...toAdd];
-    });
-    setKeywordDraft("");
-  };
-
-  const removeKeyword = (kwToRemove: string) => {
-    setKeywords((prev) => prev.filter((kw) => kw !== kwToRemove));
-  };
 
   const handleCopyCnpj = async () => {
     if (!cnpj) return;
@@ -2796,6 +2754,7 @@ function CompanyProfile({
       await navigator.clipboard.writeText(cnpj.replace(/\D/g, ""));
       setCopiedCnpj(true);
       setTimeout(() => setCopiedCnpj(false), 2000);
+      toast.success("CNPJ copiado com sucesso!");
     } catch {
       // ignore
     }
@@ -2805,214 +2764,194 @@ function CompanyProfile({
     if (e) e.preventDefault();
     onSavePreferences({
       customCnaeText: cnaeInput.trim(),
-      extraKeywords: keywords,
+      extraKeywords,
     });
     setSaved(true);
+    toast.success("Perfil e preferências salvos!", {
+      description: "O Radar de Licitações agora utilizará estas informações para ranquear oportunidades.",
+    });
     setTimeout(() => setSaved(false), 3000);
   };
 
   return (
     <div className="dashboard-page profile-page">
       <PageHeading
-        eyebrow={`CADASTRO DA EMPRESA (${porte})`}
-        title="Perfil Empresarial e Atividades"
-        description="Consulte os dados cadastrais oficiais e personalize seus ramos de atuação e palavras-chave de fornecimento."
+        eyebrow={`PERFIL DA EMPRESA • ${porte}`}
+        title="Perfil Empresarial & CNAEs"
+        description="Gerencie os ramos de atuação econômica e termos de busca que orientam os alertas e a inteligência do Radar de Licitações."
         action={
           <button className="ds-button primary" onClick={() => handleSave()}>
-            {saved ? <Check size={16} /> : null}
-            {saved ? "Alterações salvas!" : "Salvar alterações"}
+            {saved ? <Check size={16} /> : <Sparkles size={16} />}
+            {saved ? "Alterações salvas!" : "Salvar preferências"}
           </button>
         }
       />
 
-      <div className="profile-grid-layout">
-        {/* Card 1: Identificação Cadastral Oficial */}
-        <section className="profile-card">
-          <div className="profile-card__header">
-            <div>
-              <h2>Identificação Cadastral</h2>
-              <p>Dados oficiais vinculados ao CNPJ na Receita Federal</p>
-            </div>
-            <span className="profile-status-pill">Cadastrado</span>
+      {/* Hero Banner Executivo da Empresa */}
+      <section className="profile-hero-banner">
+        <div className="profile-hero-main">
+          <div className="profile-hero-avatar">
+            {getCompanyInitials(nomeEmpresa, "ME")}
           </div>
-
-          <div className="profile-info-grid">
-            <div className="profile-info-item is-wide">
-              <span className="profile-info-label">Razão Social / Nome da Empresa</span>
-              <strong className="profile-info-value is-title">
-                {nomeEmpresa || "Empresa Cadastrada"}
-              </strong>
+          <div className="profile-hero-details">
+            <div className="profile-hero-title-row">
+              <h2>{nomeEmpresa}</h2>
+              <span className="profile-badge-porte">{porte}</span>
+              <span className="profile-status-pill is-active">
+                <CheckCircle2 size={13} />
+                <span>Situação Ativa • Receita Federal</span>
+              </span>
             </div>
-
-            <div className="profile-info-item">
-              <span className="profile-info-label">CNPJ</span>
-              <div className="profile-cnpj-row">
-                <code className="profile-cnpj-code">
-                  {cnpj ? formatCnpj(cnpj) : "Não informado"}
-                </code>
-                {cnpj && (
+            <div className="profile-hero-meta-row">
+              {cnpj && (
+                <div className="profile-cnpj-chip">
+                  <span className="profile-cnpj-label">CNPJ:</span>
+                  <code>{formatCnpj(cnpj)}</code>
                   <button
                     type="button"
-                    className="profile-copy-btn"
                     onClick={handleCopyCnpj}
                     title="Copiar CNPJ"
                     aria-label="Copiar CNPJ"
+                    className="profile-copy-btn"
                   >
                     {copiedCnpj ? <Check size={13} /> : <Copy size={13} />}
                   </button>
-                )}
-              </div>
-            </div>
-
-            <div className="profile-info-item">
-              <span className="profile-info-label">Porte da Empresa</span>
-              <span className="profile-badge-porte">{porte}</span>
-            </div>
-
-            <div className="profile-info-item">
-              <span className="profile-info-label">Responsável Legal</span>
-              <strong className="profile-info-value">
-                {responsavel || "Não informado"}
-              </strong>
-            </div>
-
-            <div className="profile-info-item">
-              <span className="profile-info-label">E-mail Cadastrado</span>
-              <span className="profile-info-value is-email">
-                {email || "Não informado"}
+                </div>
+              )}
+              <span className="profile-meta-item">
+                <MapPin size={14} />
+                <span>{municipioNome}</span>
+              </span>
+              <span className="profile-meta-item">
+                <ShieldCheck size={14} />
+                <span>Habilitada para Compras Públicas</span>
               </span>
             </div>
-
-            <div className="profile-info-item is-wide">
-              <span className="profile-info-label">Município da Sede</span>
-              <strong className="profile-info-value">
-                {municipioNome}
-              </strong>
-            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Card 2: Ramos de Atuação e Palavras-chave */}
+      {/* Stack de Seções Modernas */}
+      <div className="profile-sections-stack">
+        {/* Card 1: Atividades Econômicas & CNAEs */}
         <section className="profile-card">
           <div className="profile-card__header">
             <div>
-              <h2>Ramos de Atuação e Fornecimento</h2>
-              <p>Atividades econômicas (CNAE) e termos de produtos ou serviços</p>
-            </div>
-          </div>
-
-          {/* CNAE Principal */}
-          <div className="profile-section-block">
-            <span className="profile-block-label">CNAE Principal</span>
-            {companyCnaes[0] ? (
-              <div className="profile-cnae-card is-primary">
-                <div className="profile-cnae-top">
-                  <span className="profile-cnae-badge is-primary">Principal</span>
-                  <code className="profile-cnae-code">{companyCnaes[0].codigo}</code>
-                </div>
-                <p className="profile-cnae-desc">{companyCnaes[0].descricao}</p>
+              <div className="profile-card__title-row">
+                <Building2 size={20} className="profile-card-icon" />
+                <h2>Atividades Econômicas & CNAEs</h2>
               </div>
-            ) : (
-              <p className="profile-empty-text">Nenhum CNAE retornado automaticamente.</p>
-            )}
+              <p>O Radar de Licitações cruza estes códigos com o objeto dos editais para priorizar licitações com alta aderência.</p>
+            </div>
+            <span className="profile-card-count-badge">
+              {companyCnaes.length} {companyCnaes.length === 1 ? "CNAE registrado" : "CNAEs registrados"}
+            </span>
           </div>
 
-          {/* CNAEs Secundários */}
-          {companyCnaes.length > 1 && (
-            <div className="profile-section-block">
-              <span className="profile-block-label">
-                CNAEs Secundários ({companyCnaes.length - 1})
-              </span>
-              <div className="profile-cnaes-list">
-                {companyCnaes.slice(1).map((c) => (
-                  <div key={`${c.codigo}-${c.descricao}`} className="profile-cnae-card">
-                    <code className="profile-cnae-code">{c.codigo}</code>
-                    <p className="profile-cnae-desc">{c.descricao}</p>
+          <div className="profile-card-body">
+            {/* CNAE Principal */}
+            <div className="profile-cnae-section">
+              <span className="profile-field-label">CNAE Principal (Atividade Primária)</span>
+              {companyCnaes[0] ? (
+                <div className="profile-cnae-main-card">
+                  <div className="profile-cnae-main-header">
+                    <span className="profile-cnae-badge is-primary">Principal</span>
+                    <code className="profile-cnae-code">{companyCnaes[0].codigo}</code>
+                    <span className="profile-cnae-match-pill">Prioridade Máxima no Radar</span>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Ramo complementar */}
-          <div className="profile-section-block">
-            <label className="profile-block-label" htmlFor="profile-cnae-complementar">
-              Atividade ou ramo complementar (opcional)
-            </label>
-            <input
-              id="profile-cnae-complementar"
-              className="profile-text-input"
-              value={cnaeInput}
-              onChange={(e) => setCnaeInput(e.target.value)}
-              placeholder="Ex: 4711-3/02 - Comércio varejista ou prestação de serviços"
-            />
-          </div>
-
-          {/* Palavras-chave com tags */}
-          <div className="profile-section-block">
-            <div className="profile-kw-header">
-              <span className="profile-block-label">
-                Palavras-chave de fornecimento
-              </span>
-              {keywords.length > 0 && (
-                <span className="profile-kw-count">
-                  {keywords.length} {keywords.length === 1 ? "palavra cadastrada" : "palavras cadastradas"}
-                </span>
+                  <h3 className="profile-cnae-main-desc">{companyCnaes[0].descricao}</h3>
+                </div>
+              ) : (
+                <div className="profile-cnae-empty">
+                  <Building2 size={24} />
+                  <div>
+                    <strong>Nenhum CNAE principal importado automaticamente</strong>
+                    <p>Você pode indicar abaixo seu ramo ou atividade complementar.</p>
+                  </div>
+                </div>
               )}
             </div>
-            <p className="profile-kw-hint">
-              Adicione termos de produtos ou serviços que você fornece para destacar licitações aderentes.
-            </p>
 
-            <div className="profile-kw-input-row">
-              <input
-                type="text"
-                className="profile-text-input"
-                value={keywordDraft}
-                onChange={(e) => setKeywordDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addKeywordsFromDraft();
-                  }
-                }}
-                placeholder="Ex: merenda escolar, medicamentos, informática, reforma…"
-              />
-              <button
-                type="button"
-                className="profile-kw-add-btn"
-                onClick={addKeywordsFromDraft}
-                disabled={!keywordDraft.trim()}
-              >
-                <Plus size={15} />
-                <span>Adicionar</span>
-              </button>
-            </div>
-
-            {keywords.length > 0 && (
-              <div className="profile-kw-chips">
-                {keywords.map((kw) => (
-                  <span key={kw} className="profile-kw-chip">
-                    <span>{kw}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeKeyword(kw)}
-                      aria-label={`Remover ${kw}`}
-                      title={`Remover ${kw}`}
-                    >
-                      <X size={12} />
-                    </button>
+            {/* CNAEs Secundários */}
+            {companyCnaes.length > 1 && (
+              <div className="profile-cnae-section">
+                <div className="profile-field-header">
+                  <span className="profile-field-label">
+                    CNAEs Secundários ({companyCnaes.length - 1} atividades)
                   </span>
-                ))}
-                <button
-                  type="button"
-                  className="profile-kw-clear-all"
-                  onClick={() => setKeywords([])}
-                >
-                  Limpar todas
-                </button>
+                  <small className="profile-field-hint">Também pontuam na aderência dos editais</small>
+                </div>
+                <div className="profile-cnaes-grid">
+                  {companyCnaes.slice(1).map((c) => (
+                    <div key={`${c.codigo}-${c.descricao}`} className="profile-cnae-subcard">
+                      <div className="profile-cnae-subcard-top">
+                        <code className="profile-cnae-subcode">{c.codigo}</code>
+                        <span className="profile-cnae-subtag">Secundário</span>
+                      </div>
+                      <p className="profile-cnae-subdesc">{c.descricao}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
+
+            {/* Ramo complementar */}
+            <div className="profile-cnae-section">
+              <label className="profile-field-label" htmlFor="profile-cnae-complementar">
+                Atividade ou Ramo Complementar (Opcional)
+              </label>
+              <p className="profile-field-desc">
+                Caso sua empresa atue em atividades complementares ou deseje ampliar as buscas do Radar.
+              </p>
+              <input
+                id="profile-cnae-complementar"
+                className="profile-modern-input"
+                value={cnaeInput}
+                onChange={(e) => setCnaeInput(e.target.value)}
+                placeholder="Ex: 4711-3/02 - Comércio varejista ou prestação de serviços"
+              />
+            </div>
+          </div>
+        </section>
+        {/* Card 2: Dados Cadastrais Oficiais */}
+        <section className="profile-card">
+          <div className="profile-card__header">
+            <div>
+              <div className="profile-card__title-row">
+                <FileText size={20} className="profile-card-icon" />
+                <h2>Dados Cadastrais da Empresa</h2>
+              </div>
+              <p>Informações de registro oficial para emissão de certidões e habilitação nas disputas.</p>
+            </div>
+          </div>
+
+          <div className="profile-card-body">
+            <div className="profile-cadastral-grid">
+              <div className="profile-cadastral-item">
+                <span className="profile-cadastral-label">Razão Social</span>
+                <strong className="profile-cadastral-value">{nomeEmpresa}</strong>
+              </div>
+              <div className="profile-cadastral-item">
+                <span className="profile-cadastral-label">CNPJ</span>
+                <strong className="profile-cadastral-value">{cnpj ? formatCnpj(cnpj) : "Não informado"}</strong>
+              </div>
+              <div className="profile-cadastral-item">
+                <span className="profile-cadastral-label">Porte Empresarial</span>
+                <strong className="profile-cadastral-value">{porte === "ME" ? "Microempresa (ME)" : porte === "EPP" ? "Empresa de Pequeno Porte (EPP)" : porte}</strong>
+              </div>
+              <div className="profile-cadastral-item">
+                <span className="profile-cadastral-label">Responsável Legal</span>
+                <strong className="profile-cadastral-value">{responsavel}</strong>
+              </div>
+              <div className="profile-cadastral-item">
+                <span className="profile-cadastral-label">E-mail Cadastrado</span>
+                <strong className="profile-cadastral-value">{email || "Não informado"}</strong>
+              </div>
+              <div className="profile-cadastral-item">
+                <span className="profile-cadastral-label">Município da Sede</span>
+                <strong className="profile-cadastral-value">{municipioNome}</strong>
+              </div>
+            </div>
           </div>
 
           <div className="profile-card-footer">

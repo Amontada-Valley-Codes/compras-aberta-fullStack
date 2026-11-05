@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  BarChart3,
   Building2,
   Check,
   ChevronDown,
@@ -198,13 +197,6 @@ export function MeBidCard({
     );
   };
 
-  const scoreTone =
-    bid.match.score >= 70
-      ? "is-high"
-      : bid.match.score >= 45
-        ? "is-medium"
-        : "is-neutral";
-
   return (
     <article
       className={`me-bid-card ${isHidden ? "is-hidden-card" : ""}`}
@@ -212,7 +204,7 @@ export function MeBidCard({
         prefetchDetail(bid.agencyCnpj, bid.year, bid.sequential)
       }
     >
-      {/* Topo: Órgão / Portal + Score e ações rápidas */}
+      {/* Topo: Órgão / Portal e ações rápidas */}
       <div className="me-bid-card__top">
         <div className="me-bid-card__org-group">
           <button
@@ -251,17 +243,6 @@ export function MeBidCard({
         </div>
 
         <div className="me-bid-card__top-actions">
-          <span
-            className={`me-bid-card__score ${scoreTone}`}
-            title={
-              bid.match.matchedKeywords.length > 0
-                ? `Compatível com: ${bid.match.matchedKeywords.join(", ")}`
-                : bid.match.matchedCnae ?? "Índice de aderência ao perfil"
-            }
-          >
-            <BarChart3 size={14} />
-            Score {bid.match.score}
-          </span>
 
           <button
             type="button"

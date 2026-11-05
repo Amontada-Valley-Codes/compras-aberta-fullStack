@@ -549,7 +549,7 @@
   border-radius: 10px;
   border: 1px solid #bfdbfe;
   background: #eff6ff;
-  color: #1d4ed8;
+  color: #11169b;
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   text-decoration: none;
@@ -562,8 +562,8 @@
 }
 
 .opp-doc-btn:hover {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: #11169b;
+  border-color: #11169b;
   color: #ffffff;
 }
 
