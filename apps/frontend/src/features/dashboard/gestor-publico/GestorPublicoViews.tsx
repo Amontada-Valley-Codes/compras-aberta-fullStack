@@ -217,32 +217,695 @@ export function GestorPublicoDashboard({ cearaMap }: { cearaMap?: StateMap } = {
 
 function TableHeader({ children }: { children?: React.ReactNode }) { return <th>{children}</th>; }
 
+
 export function GestorPublicoMunicipios() {
+  const PAGE_SIZE = 10;
+
   const [year, setYear] = useState<number>(GESTOR_PUBLICO_YEARS[0]);
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState("");
-  const [sort, setSort] = useState<"mpePercent" | "localPercent" | "total">("mpePercent");
+  const [sort, setSort] = useState<"mpePercent" | "localPercent" | "total">(
+    "mpePercent"
+  );
   const [selected, setSelected] = useState<string[]>([]);
-  const data = useMemo(() => getMunicipalitySummaries(year).filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")) && (!region || item.region === region)).sort((a, b) => b[sort] - a[sort]), [query, region, sort, year]);
-  const toggle = (id: string) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
-  return <div className="gp-main"><PageHeader eyebrow="MUNICÍPIOS" title="Todos os municípios em uma visão" description="Pesquise, ordene e selecione municípios para comparar seus resultados." actions={selected.length > 1 ? <Link className="gp-primary-button" href={`/gestor/comparativos?municipios=${selected.join(",")}`}>Comparar selecionados <ArrowRight size={16} /></Link> : undefined} />
-    <div className="gp-list-tools"><label className="gp-search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Pesquisar município" /></label><label className="gp-inline-field"><span>Região</span><select value={region} onChange={(event) => setRegion(event.target.value)}><option value="">Todas</option><option>Litoral</option><option>Sertão</option><option>Cariri</option><option>Centro-Norte</option></select></label><label className="gp-inline-field"><span>Período</span><select value={year} onChange={(event) => setYear(Number(event.target.value))}>{GESTOR_PUBLICO_YEARS.map((item) => <option key={item}>{item}</option>)}</select></label><label className="gp-inline-field"><span>Ordenar por</span><select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}><option value="mpePercent">Participação de MPEs</option><option value="localPercent">Compras locais</option><option value="total">Valor total</option></select></label></div>
-    <Card title={`${data.length} municípios encontrados`} description="Selecione dois ou mais para abrir um comparativo. Clique em qualquer área da linha para ver o município."><div className="gp-table-wrap"><table className="gp-table"><thead><tr><TableHeader><span className="gp-sr-only">Selecionar</span></TableHeader><TableHeader>Município</TableHeader><TableHeader>Valor total</TableHeader><TableHeader>Valor para MPEs</TableHeader><TableHeader>% MPEs</TableHeader><TableHeader>% locais</TableHeader><TableHeader>Fornecedores</TableHeader><TableHeader>Atualização</TableHeader><TableHeader /></tr></thead><tbody>{data.map((item) => <tr key={item.id} className="gp-clickable-row" role="link" tabIndex={0} onClick={(event) => { if ((event.target as HTMLElement).closest("a,input,button")) return; window.location.href = `/gestor/municipios/${item.id}`; }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.href = `/gestor/municipios/${item.id}`; } }}><td><input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggle(item.id)} aria-label={`Selecionar ${item.name}`} /></td><td><Link className="gp-table-link" href={`/gestor/municipios/${item.id}`}>{item.name}</Link><small>{item.region}</small></td><td>{currency(item.total)}</td><td>{currency(item.mpeValue)}</td><td><strong>{pct(item.mpePercent)}</strong></td><td>{pct(item.localPercent)}</td><td>{number(item.suppliers)}</td><td>{formatDateBr(item.updatedAt)}</td><td><Link href={`/gestor/municipios/${item.id}`} aria-label={`Ver detalhes de ${item.name}`}><ArrowRight size={17} /></Link></td></tr>)}</tbody></table>{!data.length && <EmptyState>Nenhum município corresponde aos filtros escolhidos.</EmptyState>}</div></Card>
-  </div>;
+  const [page, setPage] = useState(1);
+
+  const normalizeText = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLocaleLowerCase("pt-BR");
+
+  const normalizedQuery = normalizeText(query);
+
+  const data = useMemo(() => {
+    return getMunicipalitySummaries(year)
+      .filter((item) => {
+        const matchesName = normalizeText(item.name).includes(
+          normalizedQuery
+        );
+        const matchesRegion = !region || item.region === region;
+
+        return matchesName && matchesRegion;
+      })
+      .sort((a, b) => b[sort] - a[sort]);
+  }, [normalizedQuery, region, sort, year]);
+
+  const pageCount = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+
+  const pageData = data.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const changePage = (nextPage: number) => {
+    setPage(Math.max(1, Math.min(nextPage, pageCount)));
+
+    document
+      .querySelector(".gp-table-wrap")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const toggle = (id: string) => {
+    setSelected((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id]
+    );
+  };
+
+  const openMunicipality = (id: string) => {
+    window.location.href = `/gestor/municipios/${id}`;
+  };
+
+  return (
+    <div className="gp-main gp-municipalities-page">
+      <PageHeader
+        eyebrow="MUNICÍPIOS"
+        title="Todos os municípios em uma visão"
+        description="Pesquise, ordene e selecione municípios para comparar seus resultados."
+        actions={
+          selected.length > 1 ? (
+            <Link
+              className="gp-primary-button"
+              href={`/gestor/comparativos?municipios=${selected.join(",")}`}
+            >
+              Comparar selecionados <ArrowRight size={16} />
+            </Link>
+          ) : undefined
+        }
+      />
+
+      <div className="gp-list-tools gp-municipality-filters">
+        <label className="gp-search-field">
+          <Search size={17} />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Pesquisar município"
+            aria-label="Pesquisar município"
+          />
+        </label>
+
+        <label className="gp-inline-field">
+          <span>Região</span>
+          <select
+            value={region}
+            onChange={(event) => {
+              setRegion(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">Todas</option>
+            <option value="Litoral">Litoral</option>
+            <option value="Sertão">Sertão</option>
+            <option value="Cariri">Cariri</option>
+            <option value="Centro-Norte">Centro-Norte</option>
+          </select>
+        </label>
+
+        <label className="gp-inline-field">
+          <span>Período</span>
+          <select
+            value={year}
+            onChange={(event) => {
+              setYear(Number(event.target.value));
+              setPage(1);
+            }}
+          >
+            {GESTOR_PUBLICO_YEARS.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="gp-inline-field">
+          <span>Ordenar por</span>
+          <select
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value as typeof sort);
+              setPage(1);
+            }}
+          >
+            <option value="mpePercent">Participação de MPEs</option>
+            <option value="localPercent">Compras locais</option>
+            <option value="total">Valor total</option>
+          </select>
+        </label>
+      </div>
+
+      <Card
+        title={`${data.length} municípios encontrados`}
+        description="Selecione dois ou mais para abrir um comparativo. Clique em qualquer área da linha para ver o município."
+      >
+        <div className="gp-table-wrap">
+          <table className="gp-table gp-municipality-table">
+            <thead>
+              <tr>
+                <TableHeader>
+                  <span className="gp-sr-only">Selecionar</span>
+                </TableHeader>
+                <TableHeader>Município</TableHeader>
+                <TableHeader>Valor total</TableHeader>
+                <TableHeader>Valor para MPEs</TableHeader>
+                <TableHeader>% MPEs</TableHeader>
+                <TableHeader>% locais</TableHeader>
+                <TableHeader>Fornecedores</TableHeader>
+                <TableHeader>Atualização</TableHeader>
+                <TableHeader />
+              </tr>
+            </thead>
+
+            <tbody>
+              {pageData.map((item) => (
+                <tr
+                  key={item.id}
+                  className="gp-clickable-row"
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Ver detalhes de ${item.name}`}
+                  onClick={(event) => {
+                    if (
+                      (event.target as HTMLElement).closest(
+                        "a, input, button"
+                      )
+                    ) {
+                      return;
+                    }
+
+                    openMunicipality(item.id);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openMunicipality(item.id);
+                    }
+                  }}
+                >
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(item.id)}
+                      onChange={() => toggle(item.id)}
+                      aria-label={`Selecionar ${item.name}`}
+                    />
+                  </td>
+
+                  <td>
+                    <Link
+                      className="gp-table-link"
+                      href={`/gestor/municipios/${item.id}`}
+                    >
+                      {item.name}
+                    </Link>
+                    <small>{item.region}</small>
+                  </td>
+
+                  <td>{currency(item.total)}</td>
+                  <td>{currency(item.mpeValue)}</td>
+
+                  <td>
+                    <strong>{pct(item.mpePercent)}</strong>
+                  </td>
+
+                  <td>{pct(item.localPercent)}</td>
+                  <td>{number(item.suppliers)}</td>
+                  <td>{formatDateBr(item.updatedAt)}</td>
+
+                  <td>
+                    <Link
+                      className="gp-municipality-details-link"
+                      href={`/gestor/municipios/${item.id}`}
+                      aria-label={`Ver detalhes de ${item.name}`}
+                    >
+                      <ArrowRight size={17} />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {!data.length && (
+            <EmptyState>
+              Nenhum município corresponde aos filtros escolhidos.
+            </EmptyState>
+          )}
+        </div>
+
+        {data.length > PAGE_SIZE && (
+          <nav
+            className="gp-pagination"
+            aria-label="Paginação dos municípios"
+          >
+            <button
+              type="button"
+              onClick={() => changePage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </button>
+
+            <span>
+              Página <strong>{currentPage}</strong> de{" "}
+              <strong>{pageCount}</strong>
+            </span>
+
+            <button
+              type="button"
+              onClick={() => changePage(currentPage + 1)}
+              disabled={currentPage === pageCount}
+            >
+              Próxima
+            </button>
+          </nav>
+        )}
+      </Card>
+    </div>
+  );
 }
+
+const MUNICIPALITY_HISTORY_YEARS = [...GESTOR_PUBLICO_YEARS].sort(
+  (a, b) => a - b,
+);
+
+const MUNICIPALITY_HISTORY_COLORS = [
+  "#11169B",
+  "#0D9488",
+  "#E58A24",
+  "#7C3AED",
+  "#D14D72",
+  "#3976B9",
+  "#6B8E23",
+];
+
+type MunicipalityNatureHistoryRow = {
+  code: NatureCode;
+  label: string;
+  values: number[];
+};
+
+function MunicipalityNatureHistoryChart({
+  rows,
+  years,
+}: {
+  rows: MunicipalityNatureHistoryRow[];
+  years: number[];
+}) {
+  const width = 760;
+  const height = 320;
+  const left = 100;
+  const right = 24;
+  const top = 24;
+  const bottom = 48;
+  const chartWidth = width - left - right;
+  const chartHeight = height - top - bottom;
+
+  const maxValue = Math.max(
+    1,
+    ...rows.flatMap((row) => row.values),
+  );
+
+  const getX = (index: number) =>
+    left + (index / Math.max(1, years.length - 1)) * chartWidth;
+
+  const getY = (value: number) =>
+    top + chartHeight - (value / maxValue) * chartHeight;
+
+  return (
+    <div className="gp-nature-history">
+      <div className="gp-nature-history-chart-wrap">
+        <svg
+          className="gp-nature-history-chart"
+          viewBox={`0 0 ${width} ${height}`}
+          role="img"
+          aria-label="Comparação histórica dos valores das sete naturezas de despesa"
+        >
+          {[0, 1, 2, 3, 4].map((tick) => {
+            const fraction = tick / 4;
+            const y = top + chartHeight * fraction;
+            const value = maxValue * (1 - fraction);
+
+            return (
+              <g key={tick}>
+                <line
+                  x1={left}
+                  x2={width - right}
+                  y1={y}
+                  y2={y}
+                  className="gp-history-grid-line"
+                />
+                <text
+                  x={left - 12}
+                  y={y + 4}
+                  textAnchor="end"
+                  className="gp-history-axis-label"
+                >
+                  {currency(value)}
+                </text>
+              </g>
+            );
+          })}
+
+          {years.map((year, index) => (
+            <text
+              key={year}
+              x={getX(index)}
+              y={height - 15}
+              textAnchor="middle"
+              className="gp-history-year-label"
+            >
+              {year}
+            </text>
+          ))}
+
+          {rows.map((row, rowIndex) => {
+            const color =
+              MUNICIPALITY_HISTORY_COLORS[
+                rowIndex % MUNICIPALITY_HISTORY_COLORS.length
+              ];
+
+            const points = row.values
+              .map(
+                (value, index) =>
+                  `${getX(index)},${getY(value)}`,
+              )
+              .join(" ");
+
+            return (
+              <g key={row.code}>
+                <polyline
+                  points={points}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+
+                {row.values.map((value, index) => (
+                  <circle
+                    key={`${row.code}-${years[index]}`}
+                    cx={getX(index)}
+                    cy={getY(value)}
+                    r="5"
+                    fill={color}
+                    stroke="#FFFFFF"
+                    strokeWidth="2"
+                  >
+                    <title>
+                      {`${row.label} — ${years[index]}: ${currency(value)}`}
+                    </title>
+                  </circle>
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      <div className="gp-nature-history-legend">
+        {rows.map((row, index) => (
+          <span key={row.code}>
+            <i
+              style={{
+                backgroundColor:
+                  MUNICIPALITY_HISTORY_COLORS[
+                    index % MUNICIPALITY_HISTORY_COLORS.length
+                  ],
+              }}
+            />
+            {row.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 export function GestorPublicoMunicipioDetail({ id }: { id: string }) {
   const [year, setYear] = useState<number>(GESTOR_PUBLICO_YEARS[0]);
-  const summary = useMemo(() => getMunicipalitySummaries(year).find((item) => item.id === id), [id, year]);
-  if (!summary) return <div className="gp-main"><EmptyState>Município não encontrado na base demonstrativa.</EmptyState></div>;
-  const natureRows = GESTOR_PUBLICO_NATURES.map((item) => ({ label: item.label, value: summary.natures[item.code], meta: `${pct(summary.natures[item.code] / summary.total * 100)} do total` }));
-  const suppliers = getSupplierSummaries([summary], year).sort((a, b) => b.total - a.total).slice(0, 8);
-  return <div className="gp-main"><PageHeader eyebrow={`MUNICÍPIO • ${year}`} title={summary.name} description={`Detalhamento das compras públicas, fornecedores e participação das MPEs em ${summary.name}.`} actions={<label className="gp-year-picker"><span>Ano</span><select value={year} onChange={(event) => setYear(Number(event.target.value))}>{GESTOR_PUBLICO_YEARS.map((item) => <option key={item}>{item}</option>)}</select></label>} />
-    <Link className="gp-back-link" href="/gestor/municipios">← Voltar para municípios</Link>
-    <section className="gp-metrics gp-metrics-4"><Metric label="Compras analisadas" value={currency(summary.total)} detail="Valor total no período" icon={<BarChart3 />} /><Metric label="Valor para MPEs" value={currency(summary.mpeValue)} detail={`${pct(summary.mpePercent)} do total`} tone="teal" icon={<TrendingUp />} /><Metric label="Compras locais" value={pct(summary.localPercent)} detail={currency(summary.localValue)} tone="green" icon={<CheckCircle2 />} /><Metric label="Fornecedores" value={number(summary.suppliers)} detail="Empresas identificadas" tone="purple" icon={<Users />} /></section>
-    <div className="gp-grid gp-grid-2"><Card title="Compras por natureza da despesa" description="Valor total movimentado em cada categoria."><BarRows rows={natureRows} /></Card><Card title="Evolução histórica" description="Valor mensal homologado no período selecionado."><MonthlyBars values={summary.monthly} /></Card><Card title="Fornecedores contratados" description="Maiores valores identificados no município."><div className="gp-mini-list">{suppliers.map((supplier) => <div key={supplier.id}><span>{supplier.name}<small>{supplier.size} · {supplier.origin}</small></span><strong>{currency(supplier.total)}</strong></div>)}</div></Card><Card title="Origem e atualização dos dados" description="Informações para conferir o recorte exibido."><dl className="gp-definition-list"><div><dt>Município</dt><dd>{summary.name}/CE</dd></div><div><dt>Período</dt><dd>{year}</dd></div><div><dt>Fonte demonstrativa</dt><dd>Dados públicos municipais</dd></div><div><dt>Última atualização</dt><dd>{formatDateBr(summary.updatedAt)}</dd></div></dl></Card></div>
-  </div>;
+
+  const summary = useMemo(
+    () => getMunicipalitySummaries(year).find((item) => item.id === id),
+    [id, year],
+  );
+
+  const historicalSummaries = useMemo(
+    () =>
+      MUNICIPALITY_HISTORY_YEARS.map((historyYear) =>
+        getMunicipalitySummaries(historyYear).find(
+          (item) => item.id === id,
+        ),
+      ),
+    [id],
+  );
+
+  const historyRows = useMemo(
+    () =>
+      GESTOR_PUBLICO_NATURES.map((nature) => ({
+        code: nature.code,
+        label: nature.label,
+        values: historicalSummaries.map(
+          (item) => item?.natures[nature.code] ?? 0,
+        ),
+      })),
+    [historicalSummaries],
+  );
+
+  const allSuppliers = useMemo(
+    () => (summary ? getSupplierSummaries([summary], year) : []),
+    [summary, year],
+  );
+
+  const suppliers = useMemo(
+    () =>
+      [...allSuppliers]
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 8),
+    [allSuppliers],
+  );
+
+  const natureRows = useMemo(
+    () =>
+      summary
+        ? GESTOR_PUBLICO_NATURES.map((item) => ({
+            label: item.label,
+            value: summary.natures[item.code],
+            meta: `${pct(
+              summary.total > 0
+                ? (summary.natures[item.code] / summary.total) * 100
+                : 0,
+            )} do total`,
+          }))
+        : [],
+    [summary],
+  );
+
+  const originRows = useMemo(() => {
+    const origins: SupplierOrigin[] = [
+      "Local",
+      "Regional",
+      "Externa",
+    ];
+
+    return origins
+      .map((origin) => {
+        const matchingSuppliers = allSuppliers.filter(
+          (supplier) => supplier.origin === origin,
+        );
+
+        return {
+          label: origin,
+          value: matchingSuppliers.reduce(
+            (total, supplier) => total + supplier.total,
+            0,
+          ),
+          meta: `${number(matchingSuppliers.length)} fornecedores`,
+        };
+      })
+      .filter((item) => item.value > 0);
+  }, [allSuppliers]);
+
+  if (!summary) {
+    return (
+      <div className="gp-main">
+        <EmptyState>
+          Município não encontrado na base demonstrativa.
+        </EmptyState>
+      </div>
+    );
+  }
+
+  return (
+    <div className="gp-main gp-municipality-detail">
+      <PageHeader
+        eyebrow={`MUNICÍPIO • ${year}`}
+        title={summary.name}
+        description={`Detalhamento das compras públicas, fornecedores e participação das MPEs em ${summary.name}.`}
+        actions={
+          <label className="gp-year-picker">
+            <span>Ano</span>
+            <select
+              value={year}
+              onChange={(event) => setYear(Number(event.target.value))}
+            >
+              {GESTOR_PUBLICO_YEARS.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+        }
+      />
+
+      <Link className="gp-back-link" href="/gestor/municipios">
+        ← Voltar para municípios
+      </Link>
+
+      <section className="gp-metrics gp-metrics-4">
+        <Metric
+          label="Compras analisadas"
+          value={currency(summary.total)}
+          detail="Valor total no período"
+          icon={<BarChart3 />}
+        />
+
+        <Metric
+          label="Valor para MPEs"
+          value={currency(summary.mpeValue)}
+          detail={`${pct(summary.mpePercent)} do total`}
+          tone="teal"
+          icon={<TrendingUp />}
+        />
+
+        <Metric
+          label="Compras locais"
+          value={pct(summary.localPercent)}
+          detail={currency(summary.localValue)}
+          tone="green"
+          icon={<CheckCircle2 />}
+        />
+
+        <Metric
+          label="Fornecedores"
+          value={number(summary.suppliers)}
+          detail="Empresas identificadas"
+          tone="purple"
+          icon={<Users />}
+        />
+      </section>
+
+      <Card
+        title="Evolução histórica por natureza"
+        description="Compare a evolução dos valores de cada natureza de despesa ao longo dos anos disponíveis."
+        className="gp-municipality-history-card"
+      >
+        <MunicipalityNatureHistoryChart
+          rows={historyRows}
+          years={MUNICIPALITY_HISTORY_YEARS}
+        />
+        <p className="gp-history-source-note">
+          <Info size={14} />
+          Série demonstrativa do protótipo. Os valores não representam
+          registros oficiais.
+        </p>
+      </Card>
+
+      <div className="gp-grid gp-grid-2">
+        <Card
+          title="Compras por natureza da despesa"
+          description={`Distribuição dos valores por categoria em ${year}.`}
+        >
+          <BarRows rows={natureRows} />
+        </Card>
+
+        <Card
+          title="Evolução mensal"
+          description={`Distribuição mensal do valor das compras em ${year}.`}
+        >
+          <MonthlyBars values={summary.monthly} />
+        </Card>
+
+        <Card
+          title="Origem dos fornecedores"
+          description="Distribuição dos valores conforme a localização dos fornecedores identificados."
+        >
+          {originRows.length ? (
+            <BarRows rows={originRows} />
+          ) : (
+            <EmptyState>
+              Não há fornecedores classificados por origem neste período.
+            </EmptyState>
+          )}
+        </Card>
+
+        <Card
+          title="Fornecedores contratados"
+          description="Fornecedores com maiores valores identificados no município."
+        >
+          {suppliers.length ? (
+            <div className="gp-mini-list">
+              {suppliers.map((supplier) => (
+                <div key={supplier.id}>
+                  <span>
+                    {supplier.name}
+                    <small>
+                      {supplier.size} · {supplier.origin}
+                    </small>
+                  </span>
+                  <strong>{currency(supplier.total)}</strong>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState>
+              Nenhum fornecedor identificado neste período.
+            </EmptyState>
+          )}
+        </Card>
+
+        <Card
+          title="Informações do município"
+          description="Identificação e atualização do recorte consultado."
+        >
+          <dl className="gp-definition-list">
+            <div>
+              <dt>Município</dt>
+              <dd>{summary.name}/CE</dd>
+            </div>
+            <div>
+              <dt>Período</dt>
+              <dd>{year}</dd>
+            </div>
+            <div>
+              <dt>Fonte</dt>
+              <dd>Base demonstrativa do protótipo</dd>
+            </div>
+            <div>
+              <dt>Última atualização</dt>
+              <dd>{formatDateBr(summary.updatedAt)}</dd>
+            </div>
+          </dl>
+        </Card>
+      </div>
+    </div>
+  );
 }
+
 
 export function GestorPublicoDiagnostico() {
   const [year, setYear] = useState<number>(GESTOR_PUBLICO_YEARS[0]);

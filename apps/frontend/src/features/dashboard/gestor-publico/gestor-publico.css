@@ -459,3 +459,604 @@
   .gp-drawer-actions { padding: 14px 18px 18px; }
   .gp-drawer-actions > * { flex: 1 1 auto; }
 }
+/* Listagem de municípios */
+
+.gp-municipalities-page .gp-municipality-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.5fr) repeat(3, minmax(150px, 1fr));
+    align-items: end;
+    gap: 14px;
+    padding: 18px;
+}
+
+.gp-municipalities-page .gp-search-field {
+    min-width: 0;
+    min-height: 76px;
+    border: 1px solid #dbe6ee;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.gp-municipalities-page .gp-search-field:focus-within {
+    border-color: #11169b;
+    box-shadow: 0 0 0 3px rgba(17, 22, 155, .08);
+}
+
+.gp-municipalities-page .gp-search-field input {
+    min-width: 0;
+    font-size: 15px;
+}
+
+.gp-municipality-table {
+    min-width: 1040px;
+    font-size: 14px;
+}
+
+.gp-municipality-table th {
+    padding: 15px 12px;
+    font-size: 11px;
+}
+
+.gp-municipality-table td {
+    padding: 16px 12px;
+    font-size: 14px;
+}
+
+.gp-municipality-table td small {
+    font-size: 12px;
+}
+
+.gp-municipality-table .gp-table-link {
+    font-size: 14px;
+}
+
+.gp-municipality-table td strong {
+    font-size: 14px;
+}
+
+.gp-municipality-table .gp-clickable-row {
+    cursor: pointer;
+    transition: background .16s ease;
+}
+
+.gp-municipality-table .gp-clickable-row:hover {
+    background: #f1f7fb;
+}
+
+.gp-municipality-table .gp-clickable-row:focus-visible {
+    outline: 2px solid #11169b;
+    outline-offset: -2px;
+}
+
+.gp-municipality-details-link {
+    display: inline-grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 8px;
+    color: #11169b;
+    transition: background .16s ease, transform .16s ease;
+}
+
+.gp-municipality-details-link:hover {
+    background: #eaf1fb;
+    transform: translateX(2px);
+}
+
+.gp-municipality-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    border-top: 1px solid #edf2f5;
+    color: #657d8d;
+    font-size: 13px;
+}
+
+.gp-pagination-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.gp-pagination-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.gp-pagination-controls button {
+    display: inline-flex;
+    min-width: 36px;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    border: 1px solid #dbe6ee;
+    border-radius: 8px;
+    background: #fff;
+    color: #526b7b;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.gp-pagination-controls button.is-active {
+    border-color: #11169b;
+    background: #11169b;
+    color: #fff;
+}
+
+.gp-pagination-controls button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.gp-pagination-controls button:not(:disabled):hover:not(.is-active) {
+    background: #edf4fa;
+}
+
+.gp-pagination-controls button:focus-visible {
+    outline: 2px solid #11169b;
+    outline-offset: 2px;
+}
+
+@media (max-width: 1180px) {
+    .gp-municipalities-page .gp-municipality-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gp-municipalities-page .gp-search-field {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 580px) {
+    .gp-municipalities-page .gp-municipality-filters {
+        grid-template-columns: 1fr;
+        padding: 13px;
+    }
+
+
+    .gp-municipalities-page .gp-search-field {
+        grid-column: auto;
+    }
+
+    .gp-municipality-pagination {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .gp-pagination-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+.gp-municipality-detail {
+  display: grid;
+  gap: 20px;
+}
+
+.gp-municipality-history-card {
+  min-width: 0;
+}
+
+.gp-nature-history {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-nature-history-chart-wrap {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.gp-nature-history-chart {
+  display: block;
+  width: 100%;
+  min-width: 540px;
+  height: auto;
+  overflow: visible;
+}
+
+.gp-history-grid-line {
+  stroke: #e8eef3;
+  stroke-width: 1;
+  stroke-dasharray: 4 5;
+}
+
+.gp-history-axis-label {
+  fill: #82919e;
+  font-size: 11px;
+}
+
+.gp-history-year-label {
+  fill: #425466;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.gp-nature-history-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding-top: 14px;
+  border-top: 1px solid #edf2f5;
+}
+
+.gp-nature-history-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #536779;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gp-nature-history-legend i {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.gp-history-source-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 12px 0 0;
+  color: #8493a0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.gp-history-source-note svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.gp-municipality-detail .gp-card {
+  min-width: 0;
+}
+
+@media (max-width: 580px) {
+  .gp-municipality-detail {
+    gap: 14px;
+  }
+
+  .gp-nature-history-legend {
+    gap: 10px 14px;
+  }
+
+  .gp-nature-history-legend span {
+    font-size: 11px;
+  }
+}/* Ajustes responsivos exclusivos do detalhamento do município */
+@media (max-width: 580px) {
+  .gp-municipality-detail .gp-metrics.gp-metrics-4 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .gp-municipality-detail .gp-metric {
+    min-width: 0;
+    padding: 15px;
+  }
+
+  .gp-municipality-detail .gp-metric small {
+    min-height: auto;
+    font-size: 12px;
+  }
+
+  .gp-municipality-detail .gp-metric strong {
+    font-size: clamp(20px, 6vw, 25px);
+    overflow-wrap: anywhere;
+  }
+
+  .gp-municipality-detail .gp-metric p {
+    min-height: auto;
+    font-size: 12px;
+  }
+
+  .gp-municipality-detail .gp-card {
+    min-width: 0;
+    padding: 16px;
+  }
+
+  .gp-municipality-detail .gp-mini-list > div {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .gp-municipality-detail .gp-mini-list span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .gp-municipality-detail .gp-mini-list strong {
+    flex: none;
+    font-size: 12px;
+  }
+
+  .gp-municipality-detail .gp-definition-list div {
+    gap: 10px;
+  }
+
+  .gp-municipality-detail .gp-definition-list dd {
+    overflow-wrap: anywhere;
+  }
+}
+.gp-municipality-detail .gp-nature-history {
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-nature-history-chart-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+
+.gp-municipality-detail .gp-nature-history-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.gp-municipality-detail .gp-nature-history-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  min-width: 0;
+  margin-top: 16px;
+}
+
+.gp-municipality-detail .gp-nature-history-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: #526b7b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.gp-municipality-detail .gp-nature-history-legend i {
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+@media (max-width: 580px) {
+  .gp-municipality-detail .gp-nature-history-chart {
+    width: 640px;
+    max-width: none;
+    height: auto;
+  }
+
+  .gp-municipality-detail .gp-nature-history-legend {
+    gap: 10px 12px;
+  }
+
+  .gp-municipality-detail .gp-nature-history-legend span {
+    font-size: 11px;
+  }
+}
+.gp-municipality-detail .gp-bar-rows,
+.gp-municipality-detail .gp-bar-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-bar-label {
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-bar-label span {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.gp-municipality-detail .gp-bar-label b {
+  flex: 0 0 auto;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.gp-municipality-detail .gp-monthly-bars {
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-monthly-bars > div {
+  min-width: 0;
+}
+
+@media (max-width: 580px) {
+  .gp-municipality-detail .gp-bar-rows {
+    gap: 17px;
+  }
+
+  .gp-municipality-detail .gp-bar-label {
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .gp-municipality-detail .gp-bar-label b {
+    font-size: 11px;
+  }
+
+  .gp-municipality-detail .gp-bar-row small {
+    font-size: 10px;
+  }
+
+  .gp-municipality-detail .gp-monthly-bars {
+    height: 190px;
+    gap: 5px;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .gp-municipality-detail .gp-monthly-bars > div {
+    gap: 6px;
+  }
+
+  .gp-municipality-detail .gp-monthly-bars span {
+    width: min(22px, 85%);
+  }
+
+  .gp-municipality-detail .gp-monthly-bars small {
+    font-size: 9px;
+  }
+  .gp-municipality-detail .gp-mini-list span {
+  flex: 1;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-mini-list strong {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.gp-municipality-detail .gp-definition-list dt {
+  flex: 0 0 38%;
+}
+
+.gp-municipality-detail .gp-definition-list dd {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+}
+.gp-suppliers-list,
+.gp-suppliers-table {
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-supplier-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.gp-supplier-name button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.gp-supplier-name > span {
+  overflow-wrap: anywhere;
+}
+
+.gp-supplier-value strong {
+  white-space: nowrap;
+}
+.gp-drawer {
+  min-width: 0;
+}
+
+.gp-drawer-head,
+.gp-drawer-body,
+.gp-drawer-actions {
+  min-width: 0;
+}
+
+.gp-drawer-head h2 {
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-cnpj p {
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-highlight {
+  min-width: 0;
+}
+
+.gp-drawer-highlight strong {
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-highlight span {
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-list > div {
+  min-width: 0;
+}
+
+.gp-drawer-list dt,
+.gp-drawer-list dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-note {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.gp-municipalities-page .gp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 0 4px;
+  border-top: 1px solid #edf2f5;
+  color: #657d8d;
+  font-size: 14px;
+}
+
+.gp-municipalities-page .gp-pagination button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid #dbe6ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #11169b;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.gp-municipalities-page .gp-pagination button:not(:disabled):hover {
+  background: #edf4fa;
+}
+
+.gp-municipalities-page .gp-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gp-municipalities-page .gp-pagination button:focus-visible {
+  outline: 2px solid #11169b;
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .gp-municipalities-page .gp-pagination {
+    align-items: stretch;
+  }
+
+  .gp-municipalities-page .gp-pagination button {
+    flex: 1;
+  }
+} 
