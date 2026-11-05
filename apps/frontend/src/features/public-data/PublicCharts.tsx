@@ -21,7 +21,7 @@ const chartColors = {
   generalRemaining: "#B9CEDD",
 };
 const compact = (value: number) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(value);
-const currency = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(value);
+const currency = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 
 function ChartEmptyState({ children }: { children: string }) {
   return <div className="analysis-data-state" role="status"><SearchX aria-hidden="true" /><strong>Nenhum dado encontrado</strong><span>{children}</span></div>;

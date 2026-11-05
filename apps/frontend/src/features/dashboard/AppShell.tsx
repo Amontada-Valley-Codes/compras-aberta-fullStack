@@ -63,6 +63,7 @@ export function AppShell({
   const [loggingOut, setLoggingOut] = useState(false);
   const isAdmin = role === "admin";
   const isPublicManager = role === "gestor-publico";
+  const hasCollapsibleSidebar = role === "me" || isPublicManager;
   const router = useRouter();
   const { profile } = useUserProfile({ skip: isPublicManager });
 
@@ -105,12 +106,12 @@ export function AppShell({
   };
 
   return (
-    <div className={`app-shell is-${role} ${isPublicManager && sidebarCollapsed ? "is-sidebar-collapsed" : ""}`}>
+    <div className={`app-shell is-${role} ${hasCollapsibleSidebar ? "has-collapsible-sidebar" : ""} ${hasCollapsibleSidebar && sidebarCollapsed ? "is-sidebar-collapsed" : ""}`}>
       <aside
         className={`app-sidebar ${mobileOpen ? "is-open" : ""}`}
       >
         <div className="sidebar-head">
-          <BrandLogo href="/" compact={isPublicManager && sidebarCollapsed} />
+          <BrandLogo href="/" compact={hasCollapsibleSidebar && sidebarCollapsed} />
           <button
             className="icon-button sidebar-close"
             onClick={() => setMobileOpen(false)}
@@ -120,7 +121,7 @@ export function AppShell({
           </button>
         </div>
 
-        {!isPublicManager && <div className="workspace-switcher">
+        {!hasCollapsibleSidebar && <div className="workspace-switcher">
           <span className="workspace-avatar">{companyAvatar}</span>
           <span>
             <small>{isAdmin ? "AMBIENTE" : "MINHA EMPRESA"}</small>
@@ -129,11 +130,13 @@ export function AppShell({
         </div>}
 
         <nav className="sidebar-nav" aria-label="Navegação do painel">
-          {!isPublicManager && <small className="nav-group-label">MENU PRINCIPAL</small>}
+          <small className="nav-group-label">MENU PRINCIPAL</small>
           {items.map((item) => (
             <button
               className={active === item.id ? "active" : ""}
               key={item.id}
+              aria-label={item.label}
+              title={hasCollapsibleSidebar && sidebarCollapsed ? item.label : undefined}
               onClick={() => navigate(item.id)}
             >
               {item.icon}
@@ -169,7 +172,7 @@ export function AppShell({
           >
             <Menu size={21} />
           </button>
-          {isPublicManager ? (
+          {hasCollapsibleSidebar && (
             <button
               className="icon-button topbar-sidebar-toggle"
               onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
@@ -179,7 +182,8 @@ export function AppShell({
             >
               {sidebarCollapsed ? <PanelLeftOpen size={22} /> : <PanelLeftClose size={22} />}
             </button>
-          ) : (
+          )}
+          {!isPublicManager && (
             <label className="topbar-search">
               <Search size={18} />
               <input

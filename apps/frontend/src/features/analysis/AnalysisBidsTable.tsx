@@ -1,5 +1,6 @@
 "use client";
 
+import { PublicTable } from "@/components/filters/PublicTable";
 import { useMemo, useState } from "react";
 import { ArrowDownAZ } from "lucide-react";
 import type { DetailedBid } from "@/services/analytics/analytics.types";
@@ -33,12 +34,12 @@ export function AnalysisBidsTable({ rows }: { rows: DetailedBid[] }) {
   }), [ascending, rows, sortKey]);
   const header = (label: string, key: SortKey) => <button className="analysis-sort-button" type="button" onClick={() => sort(key)} aria-label={`Ordenar ${label}`}><span>{label}</span><ArrowDownAZ size={16} aria-hidden="true" /></button>;
 
-  return <div className="analysis-table-scroll"><table>
+  return <div className="analysis-table-scroll"><PublicTable>
     <thead><tr>
       <th>{header("Nº da licitação", "numero")}</th><th>{header("Empresa vencedora", "empresa")}</th><th>{header("CNPJ", "cnpj")}</th><th>{header("Município", "municipio")}</th><th>{header("Tipo de compra", "natureza")}</th><th>{header("Ano", "ano")}</th><th>{header("Valor homologado", "valor")}</th>
     </tr></thead>
     <tbody>{sortedRows.map((bid, index) => <tr key={`${bid.codigo_municipio}-${bid.numero_licitacao}-${bid.cnpj}-${index}`}>
       <td><b>{bid.numero_licitacao}</b></td><td><span className="analysis-table-ellipsis" title={bid.empresa ?? "Não informada"}>{bid.empresa ?? "Não informada"}</span></td><td>{formatCnpj(bid.cnpj)}</td><td>{titleCase(bid.municipio)}</td><td><span className="analysis-table-ellipsis" title={officialNatureName(bid.nome_natureza)}>{natureLabel(bid.codigo_natureza, bid.nome_natureza)}</span></td><td>{bid.ano_licitacao}</td><td><strong>{money(bid.valor_total_vencido)}</strong></td>
     </tr>)}</tbody>
-  </table></div>;
+  </PublicTable></div>;
 }

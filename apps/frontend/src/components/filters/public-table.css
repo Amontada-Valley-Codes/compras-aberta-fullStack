@@ -1,0 +1,12 @@
+.public-data-table { width: 100%; min-width: 980px; border-collapse: collapse; white-space: nowrap; }
+.public-data-table thead th { padding: 13px 12px; background: #f6f9fb; color: #64748b; text-align: left; font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+.public-data-table tbody > tr > * { padding: 14px 12px; border-bottom: 1px solid var(--line); color: #475569; text-align: left; font-size: var(--text-sm); font-weight: 400; vertical-align: middle; }
+.public-data-table td b, .public-data-table td strong, .public-data-table .gp-supplier-name button { color: var(--brand-navy); font-size: var(--text-sm); }
+.public-data-table td small, .public-data-table .gp-supplier-name > span { display: block; margin-top: 4px; font-size: var(--text-xs); color: #64748b; }
+.public-data-table .is-number { text-align: right; font-variant-numeric: tabular-nums; }
+.public-data-table tbody tr:hover > * { background: #f8fafc; }
+.public-data-table .gp-table-link { font-size: var(--text-sm); }
+.public-data-table .gp-supplier-name button { font-weight: 700; }
+.public-data-table .gp-supplier-value strong { font-size: var(--text-sm); }
+.public-data-table .public-table-check { width: 36px; }
+.public-page-item { display: flex; }
