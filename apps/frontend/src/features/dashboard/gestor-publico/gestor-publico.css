@@ -60,12 +60,12 @@
 .gp-table-wrap { overflow-x: auto; }.gp-table { width: 100%; min-width: 920px; border-collapse: collapse; font-size: 12px; }.gp-table th { padding: 11px 9px; border-bottom: 1px solid #dbe6ee; background: #f5f8fa; color: #718592; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-align: left; text-transform: uppercase; white-space: nowrap; }.gp-table td { padding: 12px 9px; border-bottom: 1px solid #edf2f5; color: #5e7483; vertical-align: middle; }.gp-table tbody tr:hover { background: #fbfdfe; }.gp-table td:first-child { width: 38px; }.gp-table td:nth-child(n+3) { white-space: nowrap; }.gp-table td strong { color: #25313c; }.gp-table td small { display: block; margin-top: 3px; color: #8a9aa5; font-size: 10px; }.gp-table-link { color: #11169b; font-weight: 800; text-decoration: none; }.gp-table-link:hover { text-decoration: underline; }.gp-table code { color: #536e7f; font-size: 11px; }.gp-status { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 11px; font-weight: 700; }.gp-status-ok { color: #2e8b6e; }.gp-status-pending { color: #ad7416; }.gp-empty { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 130px; color: #8496a2; font-size: 13px; text-align: center; }
 .gp-year-picker { display: grid; gap: 5px; color: #738695; font-size: 11px; font-weight: 800; }.gp-year-picker select { min-width: 120px; }.gp-mini-list { display: grid; gap: 4px; }.gp-mini-list > div { display: flex; justify-content: space-between; gap: 15px; padding: 11px 5px; border-bottom: 1px solid #edf2f5; }.gp-mini-list span { display: grid; gap: 3px; color: #25313c; font-size: 12px; font-weight: 700; }.gp-mini-list small { color: #8a9aa5; font-size: 10px; font-weight: 500; }.gp-mini-list strong { color: #11169b; font-size: 12px; white-space: nowrap; }.gp-definition-list { display: grid; gap: 0; margin: 0; }.gp-definition-list div { display: flex; justify-content: space-between; gap: 15px; padding: 12px 0; border-bottom: 1px solid #edf2f5; }.gp-definition-list dt { color: #7a8d9b; font-size: 12px; }.gp-definition-list dd { margin: 0; color: #25313c; font-size: 12px; font-weight: 700; text-align: right; }
 .gp-check-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-height: 300px; overflow: auto; }.gp-check-grid label { display: flex; align-items: flex-start; gap: 8px; padding: 9px; border: 1px solid #e3ebf0; border-radius: 8px; color: #344c5c; font-size: 12px; cursor: pointer; }.gp-check-grid label:has(input:checked) { border-color: #7da7c6; background: #edf6fb; }.gp-check-grid span { display: grid; gap: 2px; }.gp-check-grid small { color: #8a9aa5; font-size: 10px; }.gp-comparison-bars { display: grid; gap: 17px; }.gp-comparison-bars > div { display: grid; grid-template-columns: minmax(160px, 1fr) 2fr; align-items: center; gap: 12px; }.gp-comparison-bars > div > span { color: #526b7b; font-size: 12px; }.gp-comparison-bars > div > i { display: block; height: 10px; border-radius: 999px; background: #11169b; }.gp-comparison-bars > div > i + i { margin-top: 5px; background: #6ca6d4; }
-.gp-report-form { display: grid; grid-template-columns: 2fr 1fr auto; align-items: end; gap: 12px; }.gp-icon-button { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 1px solid #dbe6ee; border-radius: 8px; background: #f5f8fa; color: #738695; cursor: not-allowed; }.gp-icon-button:disabled { opacity: .55; }
+.gp-icon-button { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 1px solid #dbe6ee; border-radius: 8px; background: #f5f8fa; color: #738695; cursor: not-allowed; }.gp-icon-button:disabled { opacity: .55; }
 .gp-pin-icon { font-size: 20px; line-height: 1; }
 .gp-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 @media (max-width: 1180px) { .gp-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }.gp-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }.gp-filters-title { grid-column: 1 / -1; }.gp-check-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 900px) { .gp-topbar-inner { width: calc(100% - 24px); min-height: 66px; }.gp-title, .gp-public-link { display: none; }.gp-profile { margin-left: auto; }.gp-main { width: 100%; padding-top: 0; }.gp-page-heading { align-items: flex-start; flex-direction: column; }.gp-heading-actions { width: 100%; }.gp-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }.gp-grid-2 { grid-template-columns: 1fr; }.gp-diagnostic-grid { grid-template-columns: 1fr; }.gp-metrics-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }.gp-check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.gp-report-form { grid-template-columns: 1fr 1fr; }.gp-report-form .gp-primary-button { grid-column: 1 / -1; } }
-@media (max-width: 580px) { .gp-logout span { display: none; }.gp-profile div { display: none; }.gp-main { width: 100%; }.gp-filters { grid-template-columns: 1fr; }.gp-filters-title { grid-column: auto; }.gp-metrics, .gp-metrics-4 { grid-template-columns: 1fr 1fr; gap: 8px; }.gp-metric { padding: 13px; }.gp-metric strong { font-size: 18px; }.gp-grid-2 { gap: 10px; }.gp-card { padding: 16px; }.gp-page-heading h1 { font-size: 28px; }.gp-list-tools { align-items: stretch; }.gp-inline-field { flex: 1 1 calc(50% - 11px); }.gp-check-grid { grid-template-columns: 1fr; }.gp-report-form { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .gp-topbar-inner { width: calc(100% - 24px); min-height: 66px; }.gp-title, .gp-public-link { display: none; }.gp-profile { margin-left: auto; }.gp-main { width: 100%; padding-top: 0; }.gp-page-heading { align-items: flex-start; flex-direction: column; }.gp-heading-actions { width: 100%; }.gp-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }.gp-grid-2 { grid-template-columns: 1fr; }.gp-diagnostic-grid { grid-template-columns: 1fr; }.gp-metrics-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }.gp-check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 580px) { .gp-logout span { display: none; }.gp-profile div { display: none; }.gp-main { width: 100%; }.gp-filters { grid-template-columns: 1fr; }.gp-filters-title { grid-column: auto; }.gp-metrics, .gp-metrics-4 { grid-template-columns: 1fr 1fr; gap: 8px; }.gp-metric { padding: 13px; }.gp-metric strong { font-size: 18px; }.gp-grid-2 { gap: 10px; }.gp-card { padding: 16px; }.gp-page-heading h1 { font-size: 28px; }.gp-list-tools { align-items: stretch; }.gp-inline-field { flex: 1 1 calc(50% - 11px); }.gp-check-grid { grid-template-columns: 1fr; } }
 
 .gp-export-menu { position: relative; }
 .gp-export-menu > summary { list-style: none; }
@@ -81,6 +81,7 @@
 .gp-analysis-filters .analysis-filter-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .gp-analysis-chart-grid { margin-bottom: 15px; }
 .gp-secondary-dashboard-grid { align-items: start; }
+.gp-dashboard-source-note { justify-content: center; text-align: center; }
 .gp-secondary-dashboard-grid .gp-card { margin-bottom: 0; }
 .gp-secondary-dashboard-grid > .gp-card:only-child { grid-column: 1 / -1; }
 .gp-monthly-bars { height: 270px; gap: 12px; padding: 24px 5px 0; }
@@ -98,116 +99,6 @@
   .gp-card, .gp-metric { break-inside: avoid; box-shadow: none; }
 }
 
-/* Ajustes exclusivos do painel do gestor público: sidebar recolhível e leitura ampliada. */
-.app-shell.is-gestor-publico {
-  --gp-sidebar-expanded: 292px;
-  --gp-sidebar-collapsed: 82px;
-}
-.app-shell.is-gestor-publico .app-sidebar {
-  width: var(--gp-sidebar-expanded);
-  padding: 20px 16px 16px;
-  transition: width .28s ease, transform .25s ease;
-}
-.app-shell.is-gestor-publico .app-main {
-  width: calc(100% - var(--gp-sidebar-expanded));
-  margin-left: var(--gp-sidebar-expanded);
-  transition: width .28s ease, margin-left .28s ease;
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .app-sidebar {
-  width: var(--gp-sidebar-collapsed);
-  padding-inline: 10px;
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .app-main {
-  width: calc(100% - var(--gp-sidebar-collapsed));
-  margin-left: var(--gp-sidebar-collapsed);
-}
-.app-shell.is-gestor-publico .sidebar-head {
-  position: relative;
-  height: 82px;
-  padding-inline: 8px;
-}
-.app-shell.is-gestor-publico .topbar-sidebar-toggle {
-  width: 40px;
-  height: 40px;
-  flex: none;
-  border: 1px solid #dbe6ee;
-  border-radius: 10px;
-  color: #11169b;
-  background: #f5f9fb;
-}
-.app-shell.is-gestor-publico .topbar-sidebar-toggle:hover,
-.app-shell.is-gestor-publico .topbar-sidebar-toggle:focus-visible {
-  color: #11169b;
-  background: #e6f7fb;
-}
-.app-shell.is-gestor-publico .sidebar-head .brand-logo,
-.app-shell.is-gestor-publico .sidebar-head .brand-logo img {
-  width: 164px;
-}
-.app-shell.is-gestor-publico .sidebar-head .brand-logo {
-  height: 82px;
-  overflow: visible;
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-head {
-  height: 58px;
-  justify-content: center;
-  padding-inline: 0;
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-head .brand-logo,
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-head .brand-logo img {
-  width: 48px;
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-head .brand-logo {
-  height: 48px;
-  overflow: visible;
-}
-.app-shell.is-gestor-publico .nav-group-label {
-  font-size: var(--text-2xs);
-  padding: 0 14px 10px;
-}
-.app-shell.is-gestor-publico .sidebar-nav {
-  gap: 7px;
-}
-.app-shell.is-gestor-publico .sidebar-nav button {
-  min-height: 52px;
-  padding-inline: 14px;
-  gap: 13px;
-  font-size: var(--text-base);
-  font-weight: var(--weight-bold);
-}
-.app-shell.is-gestor-publico .sidebar-nav button svg {
-  width: 23px;
-  height: 23px;
-  flex: none;
-}
-.app-shell.is-gestor-publico .sidebar-user {
-  padding: 18px 8px 2px;
-}
-.app-shell.is-gestor-publico .sidebar-user strong {
-  font-size: var(--text-sm);
-}
-.app-shell.is-gestor-publico .sidebar-user small {
-  font-size: var(--text-2xs);
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .nav-group-label,
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-nav button span,
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-nav button em,
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-user > span:nth-child(2) {
-  display: none;
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-nav button {
-  justify-content: center;
-  padding-inline: 0;
-  min-height: 58px;
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-nav button svg {
-  width: 27px;
-  height: 27px;
-}
-.app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-user {
-  justify-content: center;
-  padding-inline: 0;
-}
 .app-shell.is-gestor-publico .dashboard-content {
   font-size: var(--text-base);
 }
@@ -248,41 +139,11 @@
   .app-shell.is-gestor-publico .gp-main {
     margin-top: 18px;
   }
-  .app-shell.is-gestor-publico .app-sidebar,
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .app-sidebar {
-    width: min(310px, 86vw);
-    padding: 20px 16px 16px;
-  }
-  .app-shell.is-gestor-publico .app-main,
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .app-main {
-    width: 100%;
-    margin-left: 0;
-  }
-  .app-shell.is-gestor-publico .sidebar-head .brand-logo,
-  .app-shell.is-gestor-publico .sidebar-head .brand-logo img,
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-head .brand-logo,
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-head .brand-logo img {
-    width: 164px;
-  }
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .nav-group-label,
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-nav button span,
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-user > span:nth-child(2) {
-    display: grid;
-  }
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-nav button {
-    justify-content: flex-start;
-    padding-inline: 14px;
-  }
-  .app-shell.is-gestor-publico.is-sidebar-collapsed .sidebar-user {
-    justify-content: flex-start;
-    padding-inline: 8px;
-  }
 }
 
 .gp-comparison-chart{display:grid;gap:15px;overflow-x:auto}.gp-comparison-legend{display:flex;flex-wrap:wrap;gap:14px;color:#526b7b;font-size:11px}.gp-comparison-legend span{display:inline-flex;align-items:center;gap:6px}.gp-comparison-swatch{width:9px;height:9px;border-radius:50%;background:#11169b}.gp-comparison-swatch-1,.gp-comparison-bar-1{background:#25a7bb}.gp-comparison-swatch-2,.gp-comparison-bar-2{background:#d9a441}.gp-comparison-swatch-3,.gp-comparison-bar-3{background:#6ca6d4}.gp-comparison-axis{display:grid;grid-template-columns:minmax(160px,1fr) 2fr;color:#8a9aa5;font-size:10px}.gp-comparison-axis span{grid-row:1;grid-column:2}.gp-comparison-axis span:nth-child(1){justify-self:start}.gp-comparison-axis span:nth-child(2){justify-self:center;transform:translateX(-50%)}.gp-comparison-axis span:nth-child(3){justify-self:center}.gp-comparison-axis span:nth-child(4){justify-self:center;transform:translateX(50%)}.gp-comparison-axis span:nth-child(5){justify-self:end}.gp-comparison-row{display:grid;grid-template-columns:minmax(160px,1fr) 2fr;gap:12px;align-items:center}.gp-comparison-row>span{overflow:hidden;color:#526b7b;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.gp-comparison-row>div{display:grid;gap:5px;padding:4px 0;background:repeating-linear-gradient(to right,transparent 0,transparent calc(25% - 1px),#e7eef3 calc(25% - 1px),#e7eef3 25%)}.gp-comparison-bar{position:relative;display:block;min-width:2px;height:12px;border-radius:0 5px 5px 0;background:#11169b}.gp-comparison-bar b{position:absolute;left:calc(100% + 7px);top:-2px;color:#526b7b;font-size:10px;font-weight:600;white-space:nowrap}
-.gp-report-document{display:grid;gap:0;margin:16px 0;border:1px solid #dbe6ee;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 7px 20px rgba(26,67,93,.05)}.gp-report-cover{padding:40px 42px;color:#fff;background:linear-gradient(135deg,#11169b,#173d71)}.gp-report-cover>span{color:#6ce3f8;font-size:11px;font-weight:800;letter-spacing:.14em}.gp-report-cover h2{max-width:760px;margin:22px 0 8px;font-size:clamp(27px,4vw,42px);line-height:1.08}.gp-report-cover h3{margin:0;color:#d9ecf7;font-size:18px;font-weight:600}.gp-report-cover p{max-width:680px;margin:22px 0 18px;color:#e8f3f8;line-height:1.6}.gp-report-cover small{color:#bfd5e1}.gp-report-section{padding:25px 42px;border-top:1px solid #edf2f5}.gp-report-section h3{margin:0 0 10px;color:#11169b;font-size:19px}.gp-report-section p{max-width:920px;margin:0 0 10px;color:#526b7b;font-size:13px;line-height:1.65}.gp-report-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 0}.gp-report-meta div{padding:12px;border:1px solid #e1ebf0;border-radius:9px;background:#f7fafb}.gp-report-meta dt{color:#8295a2;font-size:10px;font-weight:800;text-transform:uppercase}.gp-report-meta dd{margin:5px 0 0;color:#25313c;font-size:12px;font-weight:700}.gp-report-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.gp-report-kpis div{padding:15px;border-left:3px solid #6ce3f8;background:#f7fafb}.gp-report-kpis small{display:block;color:#718796;font-size:11px}.gp-report-kpis b{display:block;margin-top:5px;color:#11169b;font-size:20px}.gp-report-kpis span{display:block;margin-top:3px;color:#0b7f89;font-size:11px}.gp-report-table-wrap{overflow-x:auto;margin:14px 0}.gp-report-table{width:100%;min-width:650px;border-collapse:collapse;font-size:11px}.gp-report-table th{padding:9px;color:#fff;background:#11169b;font-size:10px;text-align:left}.gp-report-table td{padding:9px;border-bottom:1px solid #e8eef2;color:#526b7b;vertical-align:top}.gp-report-table tr:nth-child(even) td{background:#f8fbfc}.gp-report-table td:not(:first-child){white-space:nowrap}.gp-report-table small{display:block;margin-top:3px;color:#8a9aa5;font-size:9px}.gp-report-section footer{margin-top:18px;padding-top:12px;border-top:1px solid #dbe6ee;color:#7a8d9b;font-size:10px}
 .gp-nature-focus{display:grid;gap:20px;padding:18px 10px 12px}.gp-nature-focus-header{display:flex;justify-content:space-between;gap:20px;align-items:start}.gp-nature-focus-header div{display:grid;gap:5px}.gp-nature-focus-header span{color:#7a8d9b;font-size:11px}.gp-nature-focus-header strong{max-width:440px;color:#11169b;font-size:17px;line-height:1.25}.gp-nature-focus-header b{color:#11169b;font-size:21px;white-space:nowrap}.gp-nature-focus-track{height:22px;overflow:hidden;border-radius:999px;background:#e7eef3}.gp-nature-focus-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#11169b,#25a7bb)}.gp-nature-focus-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.gp-nature-focus-stats div{display:grid;gap:5px;padding:11px;border:1px solid #e4edf1;border-radius:8px}.gp-nature-focus-stats small{color:#7a8d9b;font-size:10px}.gp-nature-focus-stats strong{color:#25313c;font-size:15px}.gp-nature-focus-note{display:flex;align-items:center;gap:6px;color:#718796;font-size:11px}.gp-nature-dot{width:8px;height:8px;border-radius:50%}.gp-nature-dot-total{background:#11169b}.gp-nature-dot-mpe{margin-left:10px;background:#25a7bb}
-.gp-ceara-map-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,.8fr);gap:20px;align-items:stretch}.gp-ceara-map{position:relative;min-height:330px;overflow:hidden;border:1px solid #dfeaf0;border-radius:12px;background:linear-gradient(145deg,#f7fbfc,#edf6f8)}.gp-ceara-map svg{width:100%;height:100%;min-height:330px}.gp-ceara-shape{fill:#dceef2;stroke:#a6cdd6;stroke-width:2}.gp-ceara-point{position:absolute;z-index:2;display:grid;place-items:center;transform:translate(-50%,-50%);border-radius:50%;background:rgba(17,22,155,.15);box-shadow:0 0 0 3px rgba(255,255,255,.8);transition:transform .16s ease,box-shadow .16s ease}.gp-ceara-point span{width:42%;height:42%;border-radius:50%;background:#11169b}.gp-ceara-point:hover,.gp-ceara-point:focus-visible{z-index:5;transform:translate(-50%,-50%) scale(1.25);box-shadow:0 0 0 4px #fff,0 5px 14px rgba(17,22,155,.25);outline:none}.gp-ceara-map-legend{position:absolute;right:12px;bottom:10px;left:12px;display:flex;justify-content:space-between;gap:10px;color:#526b7b;font-size:10px}.gp-ceara-map-legend span{display:inline-flex;align-items:center;gap:5px}.gp-ceara-map-legend i{width:8px;height:8px;border-radius:50%;background:#11169b}.gp-ceara-map-legend small{color:#8497a3}.gp-map-ranking{display:grid;align-content:start;gap:2px}.gp-map-ranking h3{margin:2px 0 8px;color:#25313c;font-size:14px}.gp-map-ranking a{display:grid;grid-template-columns:24px 1fr auto 15px;align-items:center;gap:7px;padding:8px 6px;border-radius:7px;color:inherit;text-decoration:none}.gp-map-ranking a:hover{background:#f0f7fa}.gp-map-ranking b{color:#9bb1be;font-size:10px}.gp-map-ranking span{display:grid;gap:2px;color:#25313c;font-size:11px;font-weight:700}.gp-map-ranking small{color:#8a9aa5;font-size:9px;font-weight:500}.gp-map-ranking strong{color:#11169b;font-size:11px}.gp-clickable-row{cursor:pointer}.gp-clickable-row:focus-visible{outline:3px solid rgba(37,99,166,.28);outline-offset:-3px}.gp-clickable-row:hover td{background:#f5fafc}
+.gp-ceara-map-layout{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch}.gp-ceara-map{position:relative;min-height:330px;overflow:hidden;border:1px solid #dfeaf0;border-radius:12px;background:linear-gradient(145deg,#f7fbfc,#edf6f8)}.gp-ceara-map svg{display:block;width:100%;height:100%;min-height:420px}.gp-ceara-shape{fill:#dceef2;stroke:#a6cdd6;stroke-width:2}.gp-ceara-point{position:absolute;z-index:2;display:grid;place-items:center;transform:translate(-50%,-50%);border-radius:50%;background:rgba(17,22,155,.15);box-shadow:0 0 0 3px rgba(255,255,255,.8);transition:transform .16s ease,box-shadow .16s ease}.gp-ceara-point span{width:42%;height:42%;border-radius:50%;background:#11169b}.gp-ceara-point:hover,.gp-ceara-point:focus-visible{z-index:5;transform:translate(-50%,-50%) scale(1.25);box-shadow:0 0 0 4px #fff,0 5px 14px rgba(17,22,155,.25);outline:none}.gp-ceara-map-legend{position:absolute;right:12px;bottom:10px;left:12px;display:flex;justify-content:space-between;gap:10px;color:#526b7b;font-size:10px}.gp-ceara-map-legend span{display:inline-flex;align-items:center;gap:5px}.gp-ceara-map-legend i{width:8px;height:8px;border-radius:50%;background:#11169b}.gp-ceara-map-legend small{color:#8497a3}.gp-map-ranking{display:grid;align-content:start;gap:2px}.gp-map-ranking h3{margin:2px 0 8px;color:#25313c;font-size:14px}.gp-map-ranking a{display:grid;grid-template-columns:24px 1fr auto 15px;align-items:center;gap:7px;padding:8px 6px;border-radius:7px;color:inherit;text-decoration:none}.gp-map-ranking a:hover{background:#f0f7fa}.gp-map-ranking b{color:#9bb1be;font-size:10px}.gp-map-ranking span{display:grid;gap:2px;color:#25313c;font-size:11px;font-weight:700}.gp-map-ranking small{color:#8a9aa5;font-size:9px;font-weight:500}.gp-map-ranking strong{color:#11169b;font-size:11px}.gp-clickable-row{cursor:pointer}.gp-clickable-row:focus-visible{outline:3px solid rgba(37,99,166,.28);outline-offset:-3px}.gp-clickable-row:hover td{background:#f5fafc}
 @media(max-width:900px){.gp-ceara-map-layout{grid-template-columns:1fr}.gp-report-meta,.gp-report-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.gp-report-section{padding:22px 20px}}
 @media(max-width:580px){.gp-report-meta,.gp-report-kpis,.gp-nature-focus-stats{grid-template-columns:1fr}.gp-report-cover{padding:28px 20px}.gp-nature-focus-header{display:grid}.gp-comparison-row,.gp-comparison-axis{grid-template-columns:120px 520px}}
 @media print{.gp-report-document{display:block;border:0;box-shadow:none;margin:0}.gp-report-cover{min-height:240px;padding:42px 48px}.gp-report-section{padding:22px 48px;break-inside:avoid}.gp-report-page-break{break-before:page}.gp-report-document .gp-report-table{font-size:10px}.gp-report-document .gp-report-table th{background:#11169b!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.gp-report-document .gp-report-kpis div,.gp-report-meta div{background:#f7fafb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
@@ -293,23 +154,12 @@
 .gp-monthly-bars>div{min-width:0}
 .gp-monthly-bars span{max-height:100%;transition:height .2s ease,background .2s ease}
 @media(max-width:580px){.gp-monthly-bars{height:185px;gap:7px}.gp-monthly-bars span{width:min(24px,80%)}}
-.gp-report-filters{margin-bottom:16px}.gp-report-filters .analysis-filter-fields{grid-template-columns:repeat(5,minmax(0,1fr))}.gp-report-municipality-picker{position:relative;min-width:0}.gp-report-municipality-picker summary{list-style:none;cursor:pointer}.gp-report-municipality-picker summary::-webkit-details-marker{display:none}.gp-report-chevron{margin-left:auto;color:#11169b;font-size:18px;line-height:1}.gp-report-municipality-options{position:absolute;z-index:30;top:calc(100% + 7px);left:0;width:min(340px,calc(100vw - 48px));max-height:310px;overflow:auto;padding:8px;border:1px solid #dbe6ee;border-radius:10px;background:#fff;box-shadow:0 14px 30px rgba(26,67,93,.16)}.gp-report-municipality-options label{display:flex;align-items:center;gap:8px;padding:9px 8px;border-radius:7px;color:#526b7b;font-size:12px;cursor:pointer}.gp-report-municipality-options label:hover{background:#edf6fb;color:#11169b}.gp-report-municipality-options input{accent-color:#11169b}.gp-report-filter-note{grid-column:1/-1;margin:0;color:#8295a2;font-size:11px}.gp-report-config{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.5fr) auto;gap:18px;align-items:end}.gp-report-selects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.gp-report-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.gp-report-options label{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 11px;border:1px solid #dbe6ee;border-radius:9px;background:#fbfdfe;color:#526b7b;font-size:12px;font-weight:700;cursor:pointer}.gp-report-options label:has(input:checked){border-color:#91d8e3;background:#edf9fb;color:#11169b}.gp-report-options input{accent-color:#11169b}.gp-report-generate{white-space:nowrap}
-@media(max-width:1180px){.gp-report-filters .analysis-filter-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.gp-report-config{grid-template-columns:1fr}.gp-report-options{grid-template-columns:repeat(3,minmax(0,1fr))}.gp-report-generate{justify-self:start}}
-@media(max-width:580px){.gp-report-filters .analysis-filter-fields{grid-template-columns:1fr}.gp-report-selects,.gp-report-options{grid-template-columns:1fr}.gp-report-options label{min-height:40px}}
-.gp-report-chart{display:grid;gap:13px;margin:12px 0 22px}.gp-report-chart>div{display:grid;grid-template-columns:minmax(180px,1fr) 2fr auto;align-items:center;gap:12px}.gp-report-chart>div>span{overflow:hidden;color:#526b7b;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.gp-report-chart>div>div{height:13px;border-radius:999px;background:#e7eef3}.gp-report-chart i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#11169b,#25a7bb)}.gp-report-chart b{color:#11169b;font-size:11px;white-space:nowrap}
-@media(max-width:580px){.gp-report-chart>div{grid-template-columns:1fr auto}.gp-report-chart>div>div{grid-column:1/-1;grid-row:2}}
 .gp-ceara-municipality{transition:fill-opacity .16s ease,filter .16s ease}.gp-ceara-map-points{position:absolute;inset:0;pointer-events:none}.gp-ceara-map-points .gp-ceara-point{pointer-events:auto}.gp-ceara-tooltip{position:absolute;z-index:10;top:14px;right:14px;display:grid;gap:4px;min-width:210px;max-width:260px;padding:12px 14px;border:1px solid #dbe6ee;border-radius:10px;background:rgba(255,255,255,.97);box-shadow:0 10px 24px rgba(26,67,93,.18);pointer-events:none}.gp-ceara-tooltip strong{color:#11169b;font-size:14px}.gp-ceara-tooltip span{color:#25313c;font-size:12px;font-weight:800}.gp-ceara-tooltip small{color:#607687;font-size:10px}.gp-ceara-tooltip em{margin-top:3px;color:#91a0aa;font-size:9px;font-style:normal}.gp-ceara-municipality:hover{filter:brightness(.82);stroke:#11169b;stroke-width:1.5}
-.gp-report-municipality-search{position:sticky;top:0;z-index:1;display:flex!important;align-items:center;gap:7px!important;margin:-2px -2px 5px;padding:8px!important;border:1px solid #dbe6ee;border-radius:8px;background:#fff!important;color:#6f8797!important}.gp-report-municipality-search input{width:100%;border:0;outline:0;background:transparent;color:#25313c;font:inherit;font-size:12px}.gp-report-municipality-search input::placeholder{color:#91a0aa}.gp-report-municipality-empty{display:block;padding:11px 8px;color:#8496a2;font-size:11px}
 /* Escala de leitura do painel do Gestor Público. */
 .app-shell.is-gestor-publico .analysis-chart-card>header h2{font-size:24px;line-height:1.25}.app-shell.is-gestor-publico .analysis-chart-card>header p{font-size:17px;line-height:1.55}.app-shell.is-gestor-publico .analysis-chart-card .analysis-chart-controls button{font-size:13px}.app-shell.is-gestor-publico .analysis-chart-card .apexcharts-xaxis-label,.app-shell.is-gestor-publico .analysis-chart-card .apexcharts-yaxis-label{font-size:13px!important}.app-shell.is-gestor-publico .analysis-chart-card .apexcharts-text{font-size:13px}.app-shell.is-gestor-publico .gp-card h2{font-size:24px}.app-shell.is-gestor-publico .gp-card header p{font-size:16px}.app-shell.is-gestor-publico .gp-table{font-size:14px}.app-shell.is-gestor-publico .gp-table th{font-size:12px}.app-shell.is-gestor-publico .gp-table td{font-size:14px}.app-shell.is-gestor-publico .gp-table td small{font-size:12px}.app-shell.is-gestor-publico .gp-field,.app-shell.is-gestor-publico .gp-inline-field{font-size:13px}.app-shell.is-gestor-publico .gp-field select,.app-shell.is-gestor-publico .gp-inline-field select{font-size:15px}.app-shell.is-gestor-publico .gp-monthly-bars small{font-size:12px}.app-shell.is-gestor-publico .gp-bar-label,.app-shell.is-gestor-publico .gp-origin-list>div>div:first-child{font-size:14px}.app-shell.is-gestor-publico .gp-bar-row small,.app-shell.is-gestor-publico .gp-origin-list small{font-size:12px}.app-shell.is-gestor-publico .gp-ranking span{font-size:15px}.app-shell.is-gestor-publico .gp-ranking span small{font-size:12px}.app-shell.is-gestor-publico .gp-ranking strong{font-size:15px}.app-shell.is-gestor-publico .public-filter-trigger{min-height:76px}.app-shell.is-gestor-publico .public-filter-copy small{font-size:12px}.app-shell.is-gestor-publico .public-filter-value{font-size:18px}.app-shell.is-gestor-publico .analysis-kpis small{font-size:15px}.app-shell.is-gestor-publico .analysis-kpis p{font-size:15px}.app-shell.is-gestor-publico .analysis-kpis strong{font-size:32px}
 @media(max-width:900px){.app-shell.is-gestor-publico .analysis-chart-card>header h2{font-size:22px}.app-shell.is-gestor-publico .analysis-chart-card>header p,.app-shell.is-gestor-publico .gp-card header p{font-size:15px}.app-shell.is-gestor-publico .public-filter-value{font-size:16px}}
 /* Padronização dos filtros de relatório com o seletor principal da análise. */
-.gp-report-filters .analysis-filter-fields{min-width:0;align-items:stretch}.gp-report-municipality-picker .public-filter-trigger{width:100%;min-height:76px}.gp-report-municipality-options{border-radius:12px;padding:8px}.gp-report-municipality-search{min-height:42px!important;margin:0 0 6px!important;padding:0 11px!important;border:1px solid #18b6d4!important;border-radius:999px!important;background:#fff!important}.gp-report-municipality-search svg{color:#6e8798;flex:none}.gp-report-municipality-options>label:not(.gp-report-municipality-search){min-height:36px;padding:8px 9px}.gp-report-municipality-options>label:not(.gp-report-municipality-search):first-of-type{background:#e5f4f7;color:#11169b}.gp-report-municipality-options>label:not(.gp-report-municipality-search):hover{background:#edf8fa}.gp-report-municipality-options input{width:15px;height:15px}.gp-report-filters .public-filter-select{min-width:0}.gp-report-filters .public-filter-trigger{min-width:0}.gp-report-filters .public-filter-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gp-report-filters .analysis-filter-fields{overflow:visible}
-@media(max-width:1180px){.gp-report-filters .analysis-filter-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.gp-report-filters .analysis-filter-fields>.gp-report-municipality-picker{grid-column:span 2}}
-@media(max-width:700px){.gp-report-filters .analysis-filter-fields{grid-template-columns:1fr}.gp-report-filters .analysis-filter-fields>.gp-report-municipality-picker{grid-column:auto}.gp-report-municipality-options{width:min(360px,calc(100vw - 40px))}}
-.gp-report-cover-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.gp-report-cover-meta span{display:grid;gap:3px;min-width:150px;padding:10px 12px;border:1px solid rgba(255,255,255,.25);border-radius:7px;color:#c7e0eb;font-size:10px}.gp-report-cover-meta b{color:#fff;font-size:11px}.gp-report-subheading{margin-top:26px!important}.gp-report-table-wide{min-width:900px}.gp-report-table tfoot td{border-top:2px solid #11169b;background:#edf4f8;font-weight:800;color:#25313c}.gp-report-caption{display:block;color:#7a8d9b;font-size:10px;font-style:italic}.gp-report-footer{display:block;padding:18px 42px 28px;border-top:1px solid #dbe6ee;color:#7a8d9b;font-size:10px;line-height:1.6}
-@page{size:A4;margin:12mm}.gp-report-document{font-family:Arial,Helvetica,sans-serif}.gp-report-document .gp-report-section{break-inside:avoid}.gp-report-document .gp-report-page-break{break-before:page}.gp-report-document .gp-report-cover{min-height:245px;break-after:page}.gp-report-document .gp-report-table th,.gp-report-document .gp-report-table tfoot td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-@media print{.gp-report-footer{padding-inline:48px}.gp-report-cover-meta span{border-color:#b8cdd8!important;background:#173d71!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+@page{size:A4;margin:12mm}
 
 /* Fornecedores: filtros no padrão da visão geral, tabela legível e painel de detalhes.
    As colunas se ajustam pela largura do próprio bloco (container query), porque a
@@ -391,26 +241,6 @@
   .gp-suppliers-table thead th, .gp-suppliers-table tbody > tr > * { padding-inline: 10px; }
   .gp-supplier-city { white-space: normal; }
 }
-/* Em telas estreitas cada fornecedor vira um cartão: nome e CNPJ, porte e
-   origem, e por último o município ao lado do valor. */
-@container (max-width: 740px) {
-  .gp-suppliers-table thead { position: absolute; display: block; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .gp-suppliers-table, .gp-suppliers-table tbody { display: block; }
-  /* Flex com quebra forçada (o ::after) em vez de grade: assim a largura dos
-     selos não aperta a linha do município e do valor. */
-  .gp-suppliers-table tbody > tr { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; padding: 16px 12px; border-bottom: 1px solid #e8eff3; transition: background-color .15s ease, box-shadow .15s ease; }
-  .gp-suppliers-table tbody > tr::after { content: ""; order: 5; flex-basis: 100%; height: 0; }
-  .gp-suppliers-table tbody > tr > * { display: block; padding: 0; border: 0; }
-  .gp-suppliers-table tbody > tr:hover > *, .gp-suppliers-table tbody > tr:focus-within > * { background: none; box-shadow: none; }
-  .gp-suppliers-table tbody > tr:hover, .gp-suppliers-table tbody > tr:focus-within { background: #f2f8fc; box-shadow: inset 3px 0 0 #11169b; }
-  .gp-supplier-name { order: 1; flex: 1 1 calc(100% - 40px); min-width: 0; }
-  .gp-supplier-chevron { order: 2; flex: none; align-self: flex-start; }
-  .gp-supplier-size { order: 3; margin-top: 10px; }
-  .gp-supplier-origin { order: 4; margin-top: 10px; align-self: flex-start; }
-  .gp-supplier-city { order: 6; flex: 1 1 0; min-width: 0; margin-top: 10px; overflow: hidden; color: #5e7483; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
-  .gp-suppliers-table tbody > tr > .gp-supplier-value { order: 7; flex: none; margin-top: 10px; }
-}
-
 .gp-pagination { padding-top: 20px; }
 .gp-pagination button { border: 1px solid transparent; background: transparent; font: inherit; cursor: pointer; }
 .gp-pagination button:not(:disabled):not(.is-active):hover { background: #e9f4fb; }
@@ -458,4 +288,739 @@
   .gp-drawer-list > div { grid-template-columns: 1fr; gap: 4px; }
   .gp-drawer-actions { padding: 14px 18px 18px; }
   .gp-drawer-actions > * { flex: 1 1 auto; }
+}
+/* Listagem de municípios */
+
+.gp-municipalities-page .gp-municipality-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.5fr) repeat(3, minmax(150px, 1fr));
+    align-items: end;
+    gap: 14px;
+    padding: 18px;
+}
+
+.gp-municipalities-page .gp-search-field {
+    min-width: 0;
+    min-height: 76px;
+    border: 1px solid #dbe6ee;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.gp-municipalities-page .gp-search-field:focus-within {
+    border-color: #11169b;
+    box-shadow: 0 0 0 3px rgba(17, 22, 155, .08);
+}
+
+.gp-municipalities-page .gp-search-field input {
+    min-width: 0;
+    font-size: 15px;
+}
+
+.gp-municipality-table {
+    min-width: 1040px;
+    font-size: 14px;
+}
+
+.gp-municipality-table th {
+    padding: 15px 12px;
+    font-size: 11px;
+}
+
+.gp-municipality-table td {
+    padding: 16px 12px;
+    font-size: 14px;
+}
+
+.gp-municipality-table td small {
+    font-size: 12px;
+}
+
+.gp-municipality-table .gp-table-link {
+    font-size: 14px;
+}
+
+.gp-municipality-table td strong {
+    font-size: 14px;
+}
+
+.gp-municipality-table .gp-clickable-row {
+    cursor: pointer;
+    transition: background .16s ease;
+}
+
+.gp-municipality-table .gp-clickable-row:hover {
+    background: #f1f7fb;
+}
+
+.gp-municipality-table .gp-clickable-row:focus-visible {
+    outline: 2px solid #11169b;
+    outline-offset: -2px;
+}
+
+.gp-municipality-details-link {
+    display: inline-grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 8px;
+    color: #11169b;
+    transition: background .16s ease, transform .16s ease;
+}
+
+.gp-municipality-details-link:hover {
+    background: #eaf1fb;
+    transform: translateX(2px);
+}
+
+.gp-municipality-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    border-top: 1px solid #edf2f5;
+    color: #657d8d;
+    font-size: 13px;
+}
+
+.gp-pagination-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.gp-pagination-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.gp-pagination-controls button {
+    display: inline-flex;
+    min-width: 36px;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    border: 1px solid #dbe6ee;
+    border-radius: 8px;
+    background: #fff;
+    color: #526b7b;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.gp-pagination-controls button.is-active {
+    border-color: #11169b;
+    background: #11169b;
+    color: #fff;
+}
+
+.gp-pagination-controls button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.gp-pagination-controls button:not(:disabled):hover:not(.is-active) {
+    background: #edf4fa;
+}
+
+.gp-pagination-controls button:focus-visible {
+    outline: 2px solid #11169b;
+    outline-offset: 2px;
+}
+
+@media (max-width: 1180px) {
+    .gp-municipalities-page .gp-municipality-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gp-municipalities-page .gp-search-field {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 580px) {
+    .gp-municipalities-page .gp-municipality-filters {
+        grid-template-columns: 1fr;
+        padding: 13px;
+    }
+
+
+    .gp-municipalities-page .gp-search-field {
+        grid-column: auto;
+    }
+
+    .gp-municipality-pagination {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .gp-pagination-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+.gp-municipality-detail {
+  display: grid;
+  gap: 20px;
+}
+
+.gp-municipality-history-card {
+  min-width: 0;
+}
+
+.gp-nature-history {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-nature-history-chart-wrap {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.gp-nature-history-chart {
+  display: block;
+  width: 100%;
+  min-width: 540px;
+  height: auto;
+  overflow: visible;
+}
+
+.gp-history-grid-line {
+  stroke: #e8eef3;
+  stroke-width: 1;
+  stroke-dasharray: 4 5;
+}
+
+.gp-history-axis-label {
+  fill: #82919e;
+  font-size: 11px;
+}
+
+.gp-history-year-label {
+  fill: #425466;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.gp-nature-history-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding-top: 14px;
+  border-top: 1px solid #edf2f5;
+}
+
+.gp-nature-history-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #536779;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gp-nature-history-legend i {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.gp-history-source-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 12px 0 0;
+  color: #8493a0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.gp-history-source-note svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.gp-municipality-detail .gp-card {
+  min-width: 0;
+}
+
+@media (max-width: 580px) {
+  .gp-municipality-detail {
+    gap: 14px;
+  }
+
+  .gp-nature-history-legend {
+    gap: 10px 14px;
+  }
+
+  .gp-nature-history-legend span {
+    font-size: 11px;
+  }
+}/* Ajustes responsivos exclusivos do detalhamento do município */
+@media (max-width: 580px) {
+  .gp-municipality-detail .gp-metrics.gp-metrics-4 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .gp-municipality-detail .gp-metric {
+    min-width: 0;
+    padding: 15px;
+  }
+
+  .gp-municipality-detail .gp-metric small {
+    min-height: auto;
+    font-size: 12px;
+  }
+
+  .gp-municipality-detail .gp-metric strong {
+    font-size: clamp(20px, 6vw, 25px);
+    overflow-wrap: anywhere;
+  }
+
+  .gp-municipality-detail .gp-metric p {
+    min-height: auto;
+    font-size: 12px;
+  }
+
+  .gp-municipality-detail .gp-card {
+    min-width: 0;
+    padding: 16px;
+  }
+
+  .gp-municipality-detail .gp-mini-list > div {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .gp-municipality-detail .gp-mini-list span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .gp-municipality-detail .gp-mini-list strong {
+    flex: none;
+    font-size: 12px;
+  }
+
+  .gp-municipality-detail .gp-definition-list div {
+    gap: 10px;
+  }
+
+  .gp-municipality-detail .gp-definition-list dd {
+    overflow-wrap: anywhere;
+  }
+}
+.gp-municipality-detail .gp-nature-history {
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-nature-history-chart-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+
+.gp-municipality-detail .gp-nature-history-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.gp-municipality-detail .gp-nature-history-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  min-width: 0;
+  margin-top: 16px;
+}
+
+.gp-municipality-detail .gp-nature-history-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: #526b7b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.gp-municipality-detail .gp-nature-history-legend i {
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+@media (max-width: 580px) {
+  .gp-municipality-detail .gp-nature-history-chart {
+    width: 640px;
+    max-width: none;
+    height: auto;
+  }
+
+  .gp-municipality-detail .gp-nature-history-legend {
+    gap: 10px 12px;
+  }
+
+  .gp-municipality-detail .gp-nature-history-legend span {
+    font-size: 11px;
+  }
+}
+.gp-municipality-detail .gp-bar-rows,
+.gp-municipality-detail .gp-bar-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-bar-label {
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-bar-label span {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.gp-municipality-detail .gp-bar-label b {
+  flex: 0 0 auto;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.gp-municipality-detail .gp-monthly-bars {
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-monthly-bars > div {
+  min-width: 0;
+}
+
+@media (max-width: 580px) {
+  .gp-municipality-detail .gp-bar-rows {
+    gap: 17px;
+  }
+
+  .gp-municipality-detail .gp-bar-label {
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .gp-municipality-detail .gp-bar-label b {
+    font-size: 11px;
+  }
+
+  .gp-municipality-detail .gp-bar-row small {
+    font-size: 10px;
+  }
+
+  .gp-municipality-detail .gp-monthly-bars {
+    height: 190px;
+    gap: 5px;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .gp-municipality-detail .gp-monthly-bars > div {
+    gap: 6px;
+  }
+
+  .gp-municipality-detail .gp-monthly-bars span {
+    width: min(22px, 85%);
+  }
+
+  .gp-municipality-detail .gp-monthly-bars small {
+    font-size: 9px;
+  }
+  .gp-municipality-detail .gp-mini-list span {
+  flex: 1;
+  min-width: 0;
+}
+
+.gp-municipality-detail .gp-mini-list strong {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.gp-municipality-detail .gp-definition-list dt {
+  flex: 0 0 38%;
+}
+
+.gp-municipality-detail .gp-definition-list dd {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+}
+.gp-suppliers-list,
+.gp-suppliers-table {
+  width: 100%;
+  min-width: 0;
+}
+
+.gp-supplier-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.gp-supplier-name button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.gp-supplier-name > span {
+  overflow-wrap: anywhere;
+}
+
+.gp-supplier-value strong {
+  white-space: nowrap;
+}
+.gp-drawer {
+  min-width: 0;
+}
+
+.gp-drawer-head,
+.gp-drawer-body,
+.gp-drawer-actions {
+  min-width: 0;
+}
+
+.gp-drawer-head h2 {
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-cnpj p {
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-highlight {
+  min-width: 0;
+}
+
+.gp-drawer-highlight strong {
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-highlight span {
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-list > div {
+  min-width: 0;
+}
+
+.gp-drawer-list dt,
+.gp-drawer-list dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.gp-drawer-note {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.gp-municipalities-page .gp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 0 4px;
+  border-top: 1px solid #edf2f5;
+  color: #657d8d;
+  font-size: 14px;
+}
+
+.gp-municipalities-page .gp-pagination button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid #dbe6ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #11169b;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.gp-municipalities-page .gp-pagination button:not(:disabled):hover {
+  background: #edf4fa;
+}
+
+.gp-municipalities-page .gp-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gp-municipalities-page .gp-pagination button:focus-visible {
+  outline: 2px solid #11169b;
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .gp-municipalities-page .gp-pagination {
+    align-items: stretch;
+  }
+
+  .gp-municipalities-page .gp-pagination button {
+    flex: 1;
+  }
+}
+
+/* Shared list presentation and compact overview. */
+.gp-secondary-dashboard-grid { grid-template-columns: minmax(0, 1.2fr) minmax(340px, .8fr); align-items: center; }
+.gp-secondary-dashboard-grid > .gp-card { min-width: 0; }
+.gp-secondary-dashboard-grid .gp-ceara-map { min-height: 0; height: 490px; }
+.gp-secondary-dashboard-grid .gp-ceara-map svg { min-height: 0; height: 100%; padding: 8px 12px 38px; }
+.gp-ceara-municipality { fill: #11169b; stroke-width: .7; }
+.gp-ceara-map-legend { flex-wrap: wrap; }
+.gp-ceara-tooltip { min-width: 0; max-width: min(260px, calc(100% - 28px)); }
+
+.gp-municipalities-page .gp-municipality-filters { display: block; padding: 0; }
+.gp-municipality-filters .analysis-filter-fields { display: grid; grid-template-columns: minmax(220px, 1.3fr) repeat(3, minmax(0, 1fr)); }
+.gp-municipalities-page .gp-municipality-filters .gp-search-field { grid-column: auto; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: transparent; margin: 0; }
+.gp-municipality-filters .public-filter-select { min-width: 0; }
+.gp-municipality-filters .public-filter-select:last-child { border-right: 0; }
+.gp-supplier-filters .analysis-filter-fields { grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); }
+.gp-supplier-filters .analysis-filter-fields > .public-filter-select:first-child { grid-column: auto; }
+.gp-supplier-filters .analysis-filter-fields > .public-filter-select { border-bottom: 0; border-right: 1px solid var(--line); }
+.gp-supplier-filters .analysis-filter-fields > .public-filter-select:last-child { border-right: 0; }
+
+.gp-table-wrap, .gp-suppliers-list { position: relative; overflow-x: auto; }
+.app-shell.is-gestor-publico .gp-standard-table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 14px; }
+.app-shell.is-gestor-publico .gp-standard-table thead th { padding: 13px 12px; border: 0; border-radius: 0; background: #f6f9fb; color: #64748b; font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; text-align: left; white-space: nowrap; }
+.app-shell.is-gestor-publico .gp-standard-table tbody > tr > * { padding: 14px 12px; border-bottom: 1px solid var(--line); color: #475569; font-size: 14px; text-align: left; vertical-align: middle; }
+.gp-standard-table .gp-supplier-name button { font-size: 14px; }
+.gp-standard-table .gp-supplier-value strong { font-size: 14px; }
+.app-shell.is-gestor-publico .gp-standard-table .is-number { text-align: right; }
+
+/* Supplier details: centered modal, retaining Radix focus and keyboard handling. */
+.gp-drawer.gp-supplier-modal { top: 50%; left: 50%; right: auto; bottom: auto; transform: translate(-50%, -50%); width: min(960px, calc(100vw - 40px)); max-height: calc(100dvh - 48px); border-radius: 20px; box-shadow: 0 24px 80px rgba(18, 59, 93, .25); animation: gp-fade-in .18s ease-out; }
+.gp-supplier-modal .gp-drawer-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+.gp-supplier-modal .gp-drawer-list > div { grid-template-columns: 1fr; gap: 6px; }
+.gp-history-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.gp-history-panel { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 12px; }
+.gp-history-panel h3 { min-height: 40px; margin: 0 0 18px; color: #334155; font-size: 14px; line-height: 1.45; }
+.gp-municipality-detail .gp-metric strong { font-size: clamp(20px, 2.4vw, 30px); overflow-wrap: anywhere; }
+.gp-municipality-detail .gp-grid { align-items: start; }
+.gp-municipality-detail .gp-mini-list > div { flex-wrap: wrap; }
+.gp-municipality-detail .gp-bar-label { flex-wrap: wrap; }
+
+@media (max-width: 900px) {
+  .gp-municipality-filters .analysis-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gp-municipality-filters .analysis-filter-fields > :nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .gp-municipality-filters .analysis-filter-fields > :nth-child(2) { border-right: 0; }
+}
+@media (max-width: 600px) {
+  .gp-history-panels { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .gp-history-panel h3 { min-height: 0; }
+  .gp-supplier-modal .gp-drawer-list { grid-template-columns: minmax(0, 1fr); }
+  .gp-drawer.gp-supplier-modal { width: calc(100vw - 20px); max-height: calc(100dvh - 24px); border-radius: 14px; }
+  .gp-municipality-filters .analysis-filter-fields, .gp-supplier-filters .analysis-filter-fields { grid-template-columns: minmax(0, 1fr); border-radius: 18px; }
+  .gp-municipality-filters .analysis-filter-fields > *, .gp-supplier-filters .analysis-filter-fields > .public-filter-select { border-right: 0; border-bottom: 1px solid var(--line); }
+  .gp-municipalities-page .gp-municipality-filters .gp-search-field { border-right: 0; border-bottom: 1px solid var(--line); }
+  .gp-municipality-filters .analysis-filter-fields > :last-child, .gp-supplier-filters .analysis-filter-fields > :last-child { border-bottom: 0; }
+  .gp-secondary-dashboard-grid .gp-ceara-map { height: 410px; }
+}
+
+.gp-municipality-detail .gp-monthly-bars > div { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px; }
+.gp-municipality-detail .gp-monthly-bars span { flex: 0 0 auto; max-height: calc(100% - 28px); }
+.gp-municipality-detail .gp-monthly-bars small { flex: 0 0 20px; }
+.gp-history-panel .gp-bar-track { height: 8px; }
+
+/* List cards share the scale and pagination of /analise. */
+.app-shell.is-gestor-publico .gp-list-card { padding: 20px; border-radius: 13px; border-color: var(--line); box-shadow: var(--shadow-sm); }
+.app-shell.is-gestor-publico .gp-list-card > header { margin-bottom: 0; padding-bottom: 16px; }
+.app-shell.is-gestor-publico .gp-list-card > header h2 { font-size: var(--text-lg); color: var(--brand-navy); }
+.app-shell.is-gestor-publico .gp-list-card > header p { font-size: var(--text-sm); color: #64748b; }
+.gp-list-card .public-data-table { table-layout: auto; }
+
+.gp-list-card .public-data-table tbody tr { cursor: pointer; }
+.gp-list-card .public-data-table .gp-supplier-name button { font-size: var(--text-sm); }
+.app-shell.is-gestor-publico .gp-municipality-filters .gp-search-field { transition: background .15s, box-shadow .15s; }
+.app-shell.is-gestor-publico .gp-municipality-filters .gp-search-field:focus-within { background: #f6f9ff; box-shadow: inset 0 0 0 2px #b8c6f3; border-radius: 12px; }
+.app-shell.is-gestor-publico .gp-municipality-filters input:focus, .app-shell.is-gestor-publico .gp-municipality-filters input:focus-visible { outline: none; box-shadow: none; }
+.gp-municipality-filters .gp-search-field svg { flex: none; }
+.gp-municipality-filters .gp-search-field input { min-width: 0; height: 52px; appearance: none; }
+.gp-history-area { min-width: 0; }
+.gp-history-area > .public-filter-select { max-width: 560px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; }
+.gp-history-year-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
+.gp-history-year-values > div { padding: 12px 16px; border-left: 3px solid #d5daf9; background: #f8faff; border-radius: 0 8px 8px 0; }
+.gp-history-year-values span { display: block; color: #64748b; font-size: 13px; margin-bottom: 4px; }
+.gp-history-year-values strong { color: var(--brand-navy); font-size: clamp(14px, 1.4vw, 20px); font-variant-numeric: tabular-nums; }
+.gp-municipality-detail .gp-grid > .gp-card { margin-bottom: 0; }
+.gp-secondary-dashboard-grid .gp-card { margin-bottom: 0; }
+.gp-secondary-dashboard-grid .gp-ranking { gap: 8px; }
+.gp-secondary-dashboard-grid .gp-ranking a { padding: 18px 8px; border-bottom: 1px solid var(--line); border-radius: 0; }
+@media (max-width: 1000px) {
+  .gp-secondary-dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+  .gp-secondary-dashboard-grid .gp-ceara-map { height: 480px; }
+}
+@media (max-width: 600px) {
+  .gp-history-year-values { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .gp-history-year-values > div { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; }
+  .gp-history-year-values span { margin-bottom: 0; }
+  .gp-history-area .public-filter-value { white-space: normal; font-size: 14px; }
+  .gp-secondary-dashboard-grid .gp-ceara-map { height: 410px; }
+  .app-shell.is-gestor-publico .gp-list-card { padding: 14px; }
+}
+
+/* Paleta da análise pública. */
+.app-shell.is-gestor-publico, .gp-map-modal {
+  --brand-navy: #11169b;
+  --brand-blue: #11169b;
+  --brand-sky: #6ce3f8;
+}
+.gp-map-expand, .gp-map-close { border-radius: 10px; }
+.gp-map-expand, .gp-map-close { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none; min-height: 42px; padding: 0 16px; border: 1px solid var(--line); background: white; color: var(--brand-navy); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.gp-secondary-dashboard-grid > .gp-card:first-child > header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.gp-map-expand:hover, .gp-map-close:hover { background: #f1f5ff; }
+.gp-map-expand:focus-visible, .gp-map-close:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: 3px; }
+.gp-map-modal { position: fixed; z-index: 91; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(1240px, calc(100vw - 48px)); max-height: calc(100dvh - 48px); overflow-y: auto; padding: 28px; border-radius: 14px; background: white; box-shadow: 0 24px 80px rgba(18, 59, 93, .25); }
+.gp-map-modal-heading { display: flex; align-items: start; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+.gp-map-modal-heading h2 { margin: 0 0 8px; font-size: 26px; color: var(--brand-navy); }
+.gp-map-modal-heading p { margin: 0; color: #64748b; line-height: 1.5; }
+.gp-map-close { width: 42px; padding: 0; }
+.gp-map-modal-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 24px; align-items: center; }
+.gp-map-modal .gp-ceara-map { height: min(66dvh, 660px); min-height: 420px; border-radius: 12px; }
+.gp-map-modal .gp-ceara-map svg { height: 100%; min-height: 0; padding: 12px 12px 40px; }
+.gp-map-information { min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: #f8faff; }
+.gp-map-information h3 { margin: 8px 0; color: var(--brand-navy); font-size: 26px; }
+.gp-map-information > p { margin: 0; color: #64748b; }
+.gp-map-information dl { display: grid; gap: 0; margin: 20px 0; }
+.gp-map-information dl > div { padding: 13px 0; border-bottom: 1px solid var(--line); }
+.gp-map-information dt { font-size: 13px; color: #64748b; }
+.gp-map-information dd { margin: 5px 0 0; color: var(--brand-navy); font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .gp-map-modal { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); padding: 18px; }
+  .gp-map-modal-heading h2 { font-size: 22px; }
+  .gp-map-modal-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .gp-map-modal .gp-ceara-map { height: 440px; min-height: 0; }
+  .gp-map-information { padding: 18px; }
+  .gp-secondary-dashboard-grid > .gp-card:first-child > header { flex-wrap: wrap; }
+  .analysis-pagination.public-table-pagination .analysis-pagination-nav { margin-left: 0; max-width: 100%; overflow-x: auto; }
 }

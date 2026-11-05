@@ -383,7 +383,7 @@
   color: var(--brand-navy);
   margin: 0 0 7px;
 }
-.analysis-chart-card > header p {
+.analysisa-chart-card > header p {
   font-size: 13px;
   line-height: 1.5;
   color: #53697a;
@@ -739,6 +739,14 @@
   font-size: 12px;
   line-height: 1.45;
 }
+.analysis-pagination button {
+  border: 0;
+  appearance: none;
+  padding-block: 0;
+  font-family: inherit;
+  cursor: pointer;
+  background: transparent;
+}
 .analysis-pagination {
   display: flex;
   align-items: center;
@@ -834,15 +842,16 @@
   background: var(--brand-navy);
   box-shadow: 0 3px 9px rgba(18, 59, 93, 0.2);
 }
-.analysis-pagination a:hover,
-.analysis-pagination a:focus-visible {
+.analysis-pagination :is(a, button):hover:not(:disabled),
+.analysis-pagination :is(a, button):focus-visible {
   background: var(--brand-sky);
 }
-.analysis-pagination a:focus-visible {
+.analysis-pagination :is(a, button):focus-visible {
   outline: 2px solid var(--brand-blue);
   outline-offset: 2px;
 }
-.analysis-pagination .is-disabled {
+.analysis-pagination .is-disabled,
+.analysis-pagination button:disabled {
   color: #a4b1ba;
   cursor: default;
 }
@@ -878,7 +887,7 @@
   font-weight: 700;
   transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
 }
-.analysis-pagination .analysis-page-size-options a:hover {
+.analysis-pagination .analysis-page-size-options :is(a, button):hover {
   color: var(--brand-navy);
   background: #fff;
 }

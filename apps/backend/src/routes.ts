@@ -7,6 +7,8 @@ import { sessionRoutes } from "./modules/sessions/session.routes";
 import { businessRoutes } from "./modules/business/business.routes";
 import { adminRoutes } from "./modules/admin/admin.routes";
 import { userRoutes } from "./modules/users/user.routes";
+import { radarRoutes } from "./modules/radar/radar.routes";
+import { workspaceRoutes } from "./modules/workspace/workspace.routes";
 
 // O cadastro de usuário BUSINESS acontece só por POST /access-requests, que
 // cria a conta já vinculada a uma solicitação pendente de aprovação. O gestor
@@ -23,6 +25,8 @@ async function routes(app: FastifyInstance) {
   await app.register(analyticsRoutes);
   await app.register(adminRoutes);
   await app.register(userRoutes);
+  await app.register(radarRoutes);
+  await app.register(workspaceRoutes);
 }
 
 export { routes };

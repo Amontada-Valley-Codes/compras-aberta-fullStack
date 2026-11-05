@@ -58,7 +58,10 @@ export const StepEmpresa = ({ data, errors, lookup, onCnpjChange, onChange }: St
             value={data.porte_empresa}
             onChange={(e) => onChange({ porte_empresa: e.target.value as Porte })}
             {...fieldA11y('porte_empresa', errors.porte_empresa)}>
-            {PORTES.map(({ value, label }) => (
+            <option value='' disabled>
+              Selecione o porte da empresa…
+            </option>
+            {PORTES.filter((p) => Boolean(p.value)).map(({ value, label }) => (
               <option key={value} value={value}>
                 {label}
               </option>

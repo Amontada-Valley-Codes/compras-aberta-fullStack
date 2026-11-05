@@ -485,9 +485,9 @@ export function AdminOverview({
         <Kpi
           index={5}
           onClick={() => onNavigate("companies")}
-          actionLabel="ver microempresas"
+          actionLabel="ver empresas"
           icon={<Store />}
-          label="Microempresas cadastradas"
+          label="Empresas cadastradas"
           value={state.loading ? 0 : approved.length}
           detail={
             state.loading

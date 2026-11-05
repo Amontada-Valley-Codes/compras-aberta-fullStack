@@ -46,6 +46,11 @@ model user {
   accessRequest          accessRequest?  @relation("AccessRequestRequester")
   reviewedAccessRequests accessRequest[] @relation("AccessRequestReviewer")
 
+  radarFilters    radarFilter[]
+  radarBidStates  radarBidState[]
+  trackedBids     trackedBid[]
+  agendaReminders agendaReminder[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -129,3 +134,81 @@ model municipios {
 
   @@map("Municipios")
 }
+
+model radarFilter {
+  id        String   @id @default(uuid())
+  userId    String
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  isDefault Boolean  @default(false)
+  config    Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("RadarFilter")
+}
+
+model radarBidState {
+  id           String   @id @default(uuid())
+  userId       String
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bidControlId String
+  isSaved      Boolean  @default(false)
+  isHidden     Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, bidControlId])
+  @@index([userId])
+  @@map("RadarBidState")
+}
+
+model trackedBid {
+  id           String   @id @default(uuid())
+  userId       String
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bidControlId String
+
+  stage        String   @default("analise")
+  nickname     String?
+  customStatus String?
+  tags         Json     @default("[]")
+  notes        String   @default("")
+
+  bidSnapshot  Json
+  metadata     Json     @default("{}")
+  items        Json     @default("[]")
+
+  reminders    agendaReminder[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, bidControlId])
+  @@index([userId, stage])
+  @@map("TrackedBid")
+}
+
+model agendaReminder {
+  id           String      @id @default(uuid())
+  userId       String
+  user         user        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trackedBidId String?
+  trackedBid   trackedBid? @relation(fields: [trackedBidId], references: [id], onDelete: Cascade)
+
+  title        String
+  description  String?
+  dueAt        DateTime
+  type         String      @default("lembrete")
+  completed    Boolean     @default(false)
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([userId, dueAt])
+  @@map("AgendaReminder")
+}
+

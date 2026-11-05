@@ -202,7 +202,7 @@ export function getDashboardData(filters: GestorPublicFilters): DashboardData {
     (!filters.size || supplier.size === filters.size) &&
     (!filters.nature || supplier.nature === filters.nature)
   ));
-  const topMunicipalities = [...allMunicipalities].sort((a, b) => b.mpePercent - a.mpePercent).slice(0, 8);
+  const topMunicipalities = [...allMunicipalities].sort((a, b) => b.mpePercent - a.mpePercent).slice(0, 5);
   const lowMpe = [...allMunicipalities].sort((a, b) => a.mpePercent - b.mpePercent)[0];
   const mostExternal = [...allMunicipalities].sort((a, b) => (b.total - b.localValue) - (a.total - a.localValue))[0];
   const concentrated = [...allMunicipalities].sort((a, b) => b.total / b.suppliers - a.total / a.suppliers)[0];
@@ -216,7 +216,7 @@ export function getDashboardData(filters: GestorPublicFilters): DashboardData {
     topMunicipalities,
     suppliers: suppliersRows.sort((a, b) => b.total - a.total),
     diagnostics: [
-      { tone: "gold", title: "Baixa participação de MPEs", value: lowMpe.name, description: `${lowMpe.mpePercent.toFixed(1).replace(".", ",")}% do valor comprado fica com MPEs.` },
+      { tone: "gold", title: "Baixa participação de ME", value: lowMpe.name, description: `${lowMpe.mpePercent.toFixed(1).replace(".", ",")}% do valor comprado fica com ME.` },
       { tone: "red", title: "Compras fora do município", value: mostExternal.name, description: `${percent(mostExternal.total - mostExternal.localValue, mostExternal.total).toFixed(1).replace(".", ",")}% do valor sai da economia local.` },
       { tone: "blue", title: "Maior concentração", value: concentrated.name, description: `R$ ${(concentrated.total / concentrated.suppliers).toLocaleString("pt-BR", { maximumFractionDigits: 0 })} por fornecedor, em média.` },
     ],

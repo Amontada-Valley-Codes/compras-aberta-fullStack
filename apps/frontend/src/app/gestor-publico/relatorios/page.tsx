@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
-import { GestorPublicoRelatorios } from "@/features/dashboard/gestor-publico/GestorPublicoViews";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Relatórios | Gestor Público | Compras Abertas" };
-
+// /gestor-publico é o endereço antigo do painel: os relatórios ficam em /gestor.
 export default function GestorPublicoRelatoriosPage() {
-  return <GestorPublicoRelatorios />;
+  redirect("/gestor/relatorios");
 }

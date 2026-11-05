@@ -1,9 +1,10 @@
 "use client";
 
+import { PublicTable, PublicTablePagination, PublicSortHeader } from "@/components/filters/PublicTable";
 import Link from "next/link";
 import { useMemo, useRef, useState, type MouseEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Info, MoreHorizontal, RefreshCw, Search, X } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Copy, Info, RefreshCw, Search, X } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { formatDateBr } from "@/features/dashboard/gestor/gestor-domain";
 import { count, money } from "@/features/public-data/format";
@@ -13,13 +14,11 @@ import {
   getMunicipalitySummaries,
   getSupplierSummaries,
   natureName,
-  type ClassificationStatus,
-  type SupplierOrigin,
   type SupplierSize,
   type SupplierSummary,
 } from "./gestor-publico-data";
 
-const PAGE_SIZE = 20;
+
 
 const SIZE_LABEL: Record<SupplierSize, string> = {
   MEI: "Microempreendedor individual",
@@ -28,25 +27,15 @@ const SIZE_LABEL: Record<SupplierSize, string> = {
   "Demais empresas": "Demais empresas",
 };
 
-const ORIGIN_LABEL: Record<SupplierOrigin, string> = {
-  Local: "Sede no próprio município",
-  Regional: "Sede em outro município da região",
-  Externa: "Sede fora da região",
-};
-
 const SIZES = Object.keys(SIZE_LABEL) as SupplierSize[];
-const ORIGINS = Object.keys(ORIGIN_LABEL) as SupplierOrigin[];
-const CLASSIFICATIONS: ClassificationStatus[] = ["Classificado", "Classificação pendente"];
 
 interface SupplierFilters {
   municipality: string;
   year: number;
   size: SupplierSize | "";
-  origin: SupplierOrigin | "";
-  classification: ClassificationStatus | "";
 }
 
-const EMPTY_FILTERS: SupplierFilters = { municipality: "", year: GESTOR_PUBLICO_YEARS[0], size: "", origin: "", classification: "" };
+const EMPTY_FILTERS: SupplierFilters = { municipality: "", year: GESTOR_PUBLICO_YEARS[0], size: "" };
 
 const plain = (text: string) => text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("pt-BR");
 
@@ -59,26 +48,17 @@ function matchesSearch(supplier: SupplierSummary, query: string): boolean {
   return plain(supplier.name).includes(plain(term));
 }
 
-// Primeira, última e as vizinhas da página atual; o intervalo vira reticências.
-function pageList(current: number, total: number): Array<number | "gap"> {
-  const pages = [...new Set([1, current - 1, current, current + 1, total])]
-    .filter((page) => page >= 1 && page <= total)
-    .sort((a, b) => a - b);
-  return pages.flatMap((page, index) => (index > 0 && page - pages[index - 1] > 1 ? ["gap" as const, page] : [page]));
-}
-
 function SizeTag({ size }: { size: SupplierSize }) {
   return <span className={`gp-tag ${size === "Demais empresas" ? "is-neutral" : "is-mpe"}`}>{size}</span>;
-}
-
-function OriginTag({ origin }: { origin: SupplierOrigin }) {
-  return <span className={`gp-tag is-${origin.toLowerCase()}`}>{origin}</span>;
 }
 
 export function GestorPublicoFornecedores() {
   const [filters, setFilters] = useState<SupplierFilters>(EMPTY_FILTERS);
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<"name" | "size" | "municipality" | "total">("total");
+  const [ascending, setAscending] = useState(false);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [selected, setSelected] = useState<SupplierSummary | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const openedFrom = useRef<HTMLButtonElement | null>(null);
@@ -89,17 +69,18 @@ export function GestorPublicoFornecedores() {
   const rows = useMemo(() => suppliers
     .filter((supplier) => (!filters.municipality || supplier.municipalityId === filters.municipality)
       && (!filters.size || supplier.size === filters.size)
-      && (!filters.origin || supplier.origin === filters.origin)
-      && (!filters.classification || supplier.classification === filters.classification)
       && matchesSearch(supplier, query))
-    .sort((a, b) => b.total - a.total), [suppliers, filters, query]);
+    .sort((a, b) => { const left = a[sort]; const right = b[sort]; const order = typeof left === "number" && typeof right === "number" ? left - right : String(left).localeCompare(String(right), "pt-BR"); return ascending ? order : -order; }), [suppliers, filters, query, sort, ascending]);
 
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const sortColumn = (key: typeof sort) => { setSort(key); setAscending(key === sort ? !ascending : key !== "total"); setPage(1); };
+  const column = (label: string, key: typeof sort) => <PublicSortHeader active={sort === key} ascending={ascending} onClick={() => sortColumn(key)}>{label}</PublicSortHeader>;
+
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
   const currentPage = Math.min(page, pageCount);
-  const firstIndex = (currentPage - 1) * PAGE_SIZE;
-  const pageRows = rows.slice(firstIndex, firstIndex + PAGE_SIZE);
+  const firstIndex = (currentPage - 1) * pageSize;
+  const pageRows = rows.slice(firstIndex, firstIndex + pageSize);
   const totalValue = rows.reduce((sum, supplier) => sum + supplier.total, 0);
-  const hasFilters = Boolean(query.trim() || filters.municipality || filters.size || filters.origin || filters.classification || filters.year !== EMPTY_FILTERS.year);
+  const hasFilters = Boolean(query.trim() || filters.municipality || filters.size || filters.year !== EMPTY_FILTERS.year);
 
   const updateFilters = (patch: Partial<SupplierFilters>) => {
     setFilters((current) => ({ ...current, ...patch }));
@@ -127,9 +108,8 @@ export function GestorPublicoFornecedores() {
 
   return <div className="gp-main gp-suppliers-main">
     <PageHeader
-      eyebrow="FORNECEDORES"
-      title="Fornecedores e classificação"
-      description="Substitua buscas manuais por uma visão organizada dos fornecedores, portes e origens."
+      title="Fornecedores"
+      description="Substitua buscas manuais por uma visão organizada dos fornecedores e portes empresariais."
       actions={hasFilters ? clearButton : undefined}
     />
 
@@ -138,13 +118,11 @@ export function GestorPublicoFornecedores() {
         <PublicFilterSelect name="fornecedores-municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" value={filters.municipality} options={municipalities.map((item) => ({ value: item.id, label: item.name }))} onValueChange={(value) => updateFilters({ municipality: value })} />
         <PublicFilterSelect name="fornecedores-ano" label="Ano" icon="year" variant="analysis" value={String(filters.year)} options={GESTOR_PUBLICO_YEARS.map((year) => ({ value: String(year), label: String(year) }))} onValueChange={(value) => updateFilters({ year: Number(value) || EMPTY_FILTERS.year })} />
         <PublicFilterSelect name="fornecedores-porte" label="Porte" allLabel="Todos" icon="nature" variant="analysis" value={filters.size} options={SIZES.map((size) => ({ value: size, label: size }))} onValueChange={(value) => updateFilters({ size: value as SupplierFilters["size"] })} />
-        <PublicFilterSelect name="fornecedores-origem" label="Origem" allLabel="Todas" icon="nature" variant="analysis" value={filters.origin} options={ORIGINS.map((origin) => ({ value: origin, label: origin }))} onValueChange={(value) => updateFilters({ origin: value as SupplierFilters["origin"] })} />
-        <PublicFilterSelect name="fornecedores-classificacao" label="Classificação" allLabel="Todas" icon="nature" variant="analysis" value={filters.classification} options={CLASSIFICATIONS.map((status) => ({ value: status, label: status }))} onValueChange={(value) => updateFilters({ classification: value as SupplierFilters["classification"] })} />
       </div>
     </div>
 
     <Card
-      className="gp-suppliers-card"
+      className="gp-suppliers-card gp-list-card"
       title={`${count(rows.length)} ${rows.length === 1 ? "fornecedor encontrado" : "fornecedores encontrados"}`}
       description={rows.length ? `Juntos, receberam ${money(totalValue)} em ${filters.year}. Clique em um fornecedor para ver os detalhes.` : undefined}
       actions={<label className="gp-search-field gp-suppliers-search">
@@ -154,15 +132,14 @@ export function GestorPublicoFornecedores() {
       </label>}
     >
       <div className="gp-suppliers-list" ref={listRef}>
-        {pageRows.length ? <table className="gp-suppliers-table">
-          <caption className="gp-sr-only">Fornecedores do maior para o menor valor recebido</caption>
+        {pageRows.length ? <PublicTable>
+          <caption className="gp-sr-only">Fornecedores do recorte selecionado</caption>
           <thead>
             <tr>
-              <th scope="col">Fornecedor</th>
-              <th scope="col">Porte</th>
-              <th scope="col">Município</th>
-              <th scope="col">Origem</th>
-              <th scope="col" className="is-number">Valor recebido</th>
+              {column("Fornecedor", "name")}
+              {column("Porte", "size")}
+              {column("Município", "municipality")}
+              {column("Valor recebido", "total")}
               <th scope="col"><span className="gp-sr-only">Detalhes</span></th>
             </tr>
           </thead>
@@ -174,33 +151,20 @@ export function GestorPublicoFornecedores() {
               </th>
               <td className="gp-supplier-size">
                 <SizeTag size={supplier.size} />
-                {supplier.classification === "Classificação pendente" && <small><Info size={13} aria-hidden="true" /> Classificação pendente</small>}
               </td>
               <td className="gp-supplier-city">{supplier.municipality}/{supplier.state}</td>
-              <td className="gp-supplier-origin"><OriginTag origin={supplier.origin} /></td>
               <td className="gp-supplier-value is-number"><strong>{money(supplier.total)}</strong></td>
               <td className="gp-supplier-chevron" aria-hidden="true"><ChevronRight size={20} /></td>
             </tr>)}
           </tbody>
-        </table> : <div className="gp-empty gp-suppliers-empty" role="status">
+        </PublicTable> : <div className="gp-empty gp-suppliers-empty" role="status">
           <Info size={19} aria-hidden="true" />
           <span>Nenhum fornecedor corresponde aos filtros escolhidos.</span>
           {hasFilters && clearButton}
         </div>}
       </div>
 
-      {rows.length > PAGE_SIZE && <div className="analysis-pagination gp-pagination">
-        <p className="analysis-pagination-count">Mostrando <b>{count(firstIndex + 1)}</b> a <b>{count(firstIndex + pageRows.length)}</b> de <b>{count(rows.length)}</b></p>
-        <nav className="analysis-pagination-nav" aria-label="Páginas da lista de fornecedores">
-          <ul className="analysis-pagination-content">
-            <li><button type="button" className="analysis-pagination-control" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)} aria-label="Página anterior"><ChevronLeft aria-hidden="true" /><span>Anterior</span></button></li>
-            {pageList(currentPage, pageCount).map((item, index) => item === "gap"
-              ? <li key={`gap-${index}`}><span className="analysis-pagination-ellipsis" aria-hidden="true"><MoreHorizontal /></span></li>
-              : <li key={item}><button type="button" className={`analysis-pagination-number${item === currentPage ? " is-active" : ""}`} aria-current={item === currentPage ? "page" : undefined} aria-label={`Página ${item}`} onClick={() => goToPage(item)}>{item}</button></li>)}
-            <li><button type="button" className="analysis-pagination-control" disabled={currentPage === pageCount} onClick={() => goToPage(currentPage + 1)} aria-label="Próxima página"><span>Próxima</span><ChevronRight aria-hidden="true" /></button></li>
-          </ul>
-        </nav>
-      </div>}
+      <PublicTablePagination page={currentPage} pageSize={pageSize} total={rows.length} onPageChange={goToPage} onPageSizeChange={(size) => { setPageSize(size); setPage(1); }} label="Paginação dos fornecedores" />
     </Card>
 
     <Dialog.Root open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
@@ -210,7 +174,7 @@ export function GestorPublicoFornecedores() {
             título) em vez de cair no botão "Copiar"; ao fechar, volta para a linha. */}
         <Dialog.Content
           ref={drawerRef}
-          className="gp-drawer"
+          className="gp-drawer gp-supplier-modal"
           onOpenAutoFocus={(event) => { event.preventDefault(); drawerRef.current?.focus(); }}
           onCloseAutoFocus={(event) => { event.preventDefault(); openedFrom.current?.focus(); }}
         >
@@ -223,7 +187,6 @@ export function GestorPublicoFornecedores() {
 
 function SupplierDetail({ supplier, year }: { supplier: SupplierSummary; year: number }) {
   const [copied, setCopied] = useState(false);
-  const pending = supplier.classification === "Classificação pendente";
   const place = `${supplier.municipality}/${supplier.state}`;
 
   const copyCnpj = async () => {
@@ -255,8 +218,6 @@ function SupplierDetail({ supplier, year }: { supplier: SupplierSummary; year: n
     <div className="gp-drawer-body">
       <div className="gp-drawer-tags">
         <SizeTag size={supplier.size} />
-        <OriginTag origin={supplier.origin} />
-        <span className={`gp-tag ${pending ? "is-pending" : "is-ok"}`}>{supplier.classification}</span>
       </div>
 
       <div className="gp-drawer-highlight">
@@ -267,9 +228,7 @@ function SupplierDetail({ supplier, year }: { supplier: SupplierSummary; year: n
 
       <dl className="gp-drawer-list">
         <div><dt>Porte empresarial</dt><dd>{SIZE_LABEL[supplier.size]}{supplier.size !== "Demais empresas" && <small>{supplier.size}</small>}</dd></div>
-        <div><dt>Classificação</dt><dd>{supplier.classification}{pending && <small>Ainda faltam informações para confirmar o porte da empresa.</small>}</dd></div>
         <div><dt>Município comprador</dt><dd>{place}</dd></div>
-        <div><dt>Origem</dt><dd>{supplier.origin}<small>{ORIGIN_LABEL[supplier.origin]}</small></dd></div>
         <div><dt>Natureza da despesa</dt><dd>{natureName(supplier.nature)}</dd></div>
         <div><dt>Municípios atendidos</dt><dd>{count(supplier.municipalitiesServed)} {supplier.municipalitiesServed === 1 ? "município" : "municípios"}</dd></div>
         <div><dt>Atualização</dt><dd>{formatDateBr(supplier.updatedAt)}</dd></div>
