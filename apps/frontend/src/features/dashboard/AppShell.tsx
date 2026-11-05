@@ -221,7 +221,7 @@ export function AppShell({
                         : "Pregão em Amontada • há 18 min"}
                     </small>
                   </button>
-                  <button onClick={() => { setNotificationsOpen(false); navigate(isAdmin ? "overview" : "alerts"); }}>
+                  <button onClick={() => { setNotificationsOpen(false); navigate(isAdmin ? "overview" : "radar"); }}>
                     <b>
                       {isAdmin
                         ? "Integração concluída"

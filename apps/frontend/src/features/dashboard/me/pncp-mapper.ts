@@ -157,6 +157,8 @@ const KNOWN_BIDDING_PORTALS: PortalPlatformDef[] = [
   },
 ];
 
+export const KNOWN_PORTAL_NAMES = KNOWN_BIDDING_PORTALS.map((p) => p.name);
+
 export function cleanExternalUrl(u?: string | null): string | null {
   if (!u || typeof u !== "string") return null;
   const trimmed = u.trim().replace(/[),.;]+$/, "");
@@ -347,6 +349,49 @@ export function mapRawToBid(raw: RawPncpItem, nowMs = Date.now()): MePncpBid {
             !raw.orcamentoSigilosoDescricao.toLowerCase().includes("sem sigilo"),
         );
 
+  const rawSphere = raw.orgaoEntidade?.esferaId?.trim().toUpperCase() || null;
+  const sphereName =
+    rawSphere === "M"
+      ? "Municipal"
+      : rawSphere === "E"
+        ? "Estadual"
+        : rawSphere === "F"
+          ? "Federal"
+          : rawSphere === "D"
+            ? "Distrital"
+            : null;
+
+  const rawPower = raw.orgaoEntidade?.poderId?.trim().toUpperCase() || null;
+  const powerName =
+    rawPower === "E"
+      ? "Executivo"
+      : rawPower === "L"
+        ? "Legislativo"
+        : rawPower === "J"
+          ? "Judiciário"
+          : null;
+
+  const lowerObj = `${objectText} ${raw.modalidadeNome ?? ""}`
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  const hasServiceHint =
+    /\b(servic|prestacao|locacao|manutencao|reforma|obra|engenharia|assessoria|consultoria|transporte|dedetizacao|limpeza urbana|capacitacao)\w*/i.test(
+      lowerObj,
+    );
+  const hasMaterialHint =
+    /\b(aquisicao|fornecimento|material|materiais|equipamento|medicamento|generos|combustive|veiculo|mobiliario|insumo|produto|pecas|fardamento)\w*/i.test(
+      lowerObj,
+    );
+
+  const inferredKind: "material" | "service" | "both" =
+    hasMaterialHint && !hasServiceHint
+      ? "material"
+      : hasServiceHint && !hasMaterialHint
+        ? "service"
+        : "both";
+
   return {
     id:
       raw.numeroControlePNCP ||
@@ -371,6 +416,10 @@ export function mapRawToBid(raw: RawPncpItem, nowMs = Date.now()): MePncpBid {
     agencyName,
     unitName: raw.unidadeOrgao?.nomeUnidade?.trim() || agencyName,
     uasgCode,
+    sphereId: rawSphere,
+    sphereName,
+    powerName,
+    inferredKind,
     city: raw.unidadeOrgao?.municipioNome?.trim() || "Ceará",
     uf: raw.unidadeOrgao?.ufSigla?.trim() || "CE",
     ibgeCode:
