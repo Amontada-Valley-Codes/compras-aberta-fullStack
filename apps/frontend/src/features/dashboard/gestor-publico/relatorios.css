@@ -1,0 +1,177 @@
+/*
+ * Relatórios do gestor (GestorPublicoRelatorios).
+ *
+ * Reaproveita a barra de filtros da dashboard (analysis-filters /
+ * public-filter-*), os cards (gp-card) e o botão principal (gp-primary-button).
+ * O que é só desta página usa o prefixo gp-rpt-.
+ */
+
+.gp-rpt-main { max-width: 1360px; }
+
+/* ---------- Filtros: Município, Ano e Natureza da despesa ---------- */
+.gp-rpt-filters.gp-analysis-filters .analysis-filter-fields {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.7fr) minmax(0, 1.6fr);
+}
+.gp-rpt-filters .analysis-filter-fields > .public-filter-select:last-child { border-right: 0; }
+
+/* ---------- Escolhas (modelo e formato) ---------- */
+.gp-rpt-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+.gp-rpt-config { display: grid; gap: 16px; min-width: 0; }
+.gp-rpt-config .gp-card { margin-bottom: 0; }
+.gp-rpt-card > header { margin-bottom: 16px; }
+
+.gp-rpt-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gp-rpt-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  min-height: 86px;
+  padding: 14px;
+  border: 1px solid #dbe6ee;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+/* O rádio fica escondido, mas continua focável pelo teclado. */
+.gp-rpt-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.gp-rpt-option:hover { border-color: #b9cfe0; background: #fbfdfe; }
+.gp-rpt-option:has(input:focus-visible) { outline: 3px solid rgba(37, 99, 166, 0.28); outline-offset: 2px; }
+.gp-rpt-option:has(input:checked) {
+  border-color: #11169b;
+  background: #f4f5fd;
+  box-shadow: inset 0 0 0 1px #11169b;
+}
+
+.gp-rpt-option-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #edf6fb;
+  color: #2563a6;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.gp-rpt-option:has(input:checked) .gp-rpt-option-icon { background: #11169b; color: #fff; }
+
+.gp-rpt-option-copy { min-width: 0; }
+.gp-rpt-option-copy strong { display: block; color: #25313c; font-size: 14px; font-weight: 800; line-height: 1.3; }
+.gp-rpt-option-copy small { display: block; margin-top: 4px; color: #687f8e; font-size: 12.5px; line-height: 1.45; }
+
+.gp-rpt-option-check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid #c9d7e2;
+  border-radius: 999px;
+  color: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.gp-rpt-option:has(input:checked) .gp-rpt-option-check { border-color: #11169b; background: #11169b; color: #fff; }
+
+/* Modelo sem fonte de dados (receitas). */
+.gp-rpt-option[data-unavailable] { border-style: dashed; background: #f8fafb; cursor: not-allowed; }
+.gp-rpt-option[data-unavailable]:hover { border-color: #dbe6ee; }
+.gp-rpt-option[data-unavailable] .gp-rpt-option-icon { background: #eef2f5; color: #95a6b2; }
+.gp-rpt-option[data-unavailable] strong { color: #6f8291; }
+.gp-rpt-badge {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eef2f5;
+  color: #6f8291;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Enquanto o arquivo é gerado, a configuração fica travada. */
+.gp-rpt-option:has(input:disabled):not([data-unavailable]) { opacity: 0.65; cursor: progress; }
+
+/* ---------- Resumo e ação principal ---------- */
+.gp-rpt-summary { position: sticky; top: 16px; margin-bottom: 0; }
+.gp-rpt-summary h2 { margin: 0 0 12px; color: #11169b; font-size: 19px; line-height: 1.25; }
+.gp-rpt-summary dl { display: grid; margin: 0 0 18px; }
+.gp-rpt-summary dl > div { display: grid; gap: 3px; padding: 10px 0; border-bottom: 1px solid #edf2f5; }
+.gp-rpt-summary dt { color: #8295a2; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.gp-rpt-summary dd { margin: 0; color: #25313c; font-size: 13.5px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+
+.gp-rpt-generate { width: 100%; min-height: 50px; border-radius: 12px; font-size: 14px; }
+.gp-rpt-generate:disabled { background: #9ea6cf; cursor: not-allowed; }
+.gp-rpt-generate[aria-busy="true"] { background: #11169b; opacity: 0.88; cursor: progress; }
+.gp-rpt-spin { animation: gp-rpt-spin 0.9s linear infinite; }
+@keyframes gp-rpt-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .gp-rpt-spin { animation: none; } }
+
+.gp-rpt-status { margin-top: 12px; }
+.gp-rpt-hint { margin: 0; color: #7c8f9b; font-size: 12px; line-height: 1.5; text-align: center; }
+
+.gp-rpt-progress {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f3f6f9;
+}
+.gp-rpt-progress p { display: grid; gap: 3px; margin: 0; color: #25313c; font-size: 12.5px; line-height: 1.45; }
+.gp-rpt-progress p span { color: #687f8e; font-size: 12px; }
+
+.gp-rpt-message {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 9px;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.gp-rpt-message > svg { margin-top: 1px; }
+.gp-rpt-message p { display: grid; gap: 3px; justify-items: start; margin: 0; }
+.gp-rpt-message span { overflow-wrap: anywhere; }
+.gp-rpt-message .gp-text-button { margin-top: 4px; font-size: 12.5px; }
+.gp-rpt-message.is-success { background: #eaf6f0; color: #1d5b40; }
+.gp-rpt-message.is-success > svg { color: #1f8a5b; }
+.gp-rpt-message.is-error { background: #fdf0ef; color: #7d2621; }
+.gp-rpt-message.is-error > svg { color: #c2412f; }
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 1180px) {
+  .gp-rpt-layout { grid-template-columns: 1fr; }
+  .gp-rpt-summary { position: static; }
+  .gp-rpt-summary dl { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); column-gap: 18px; }
+}
+
+/* Mesmas quebras da barra de filtros da dashboard (analysis.css). */
+@media (max-width: 1050px) {
+  .gp-rpt-filters.gp-analysis-filters .analysis-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gp-rpt-filters .analysis-filter-fields > .public-filter-select:last-child { grid-column: 1 / -1; border-bottom: 0; }
+}
+
+@media (max-width: 720px) {
+  .gp-rpt-filters.gp-analysis-filters .analysis-filter-fields { grid-template-columns: 1fr; }
+  .gp-rpt-options { grid-template-columns: 1fr; }
+  .gp-rpt-option { min-height: 0; }
+}
