@@ -13,6 +13,7 @@
 @import "../../features/landing/sections/footer/styles.css";
 @import "./dashboard.css";
 @import "./dashboard-admin.css";
+@import "./sidebar.css";
 @import "./analysis.css";
 @import "./opportunity-detail.css";
 @import "./auth.css";
