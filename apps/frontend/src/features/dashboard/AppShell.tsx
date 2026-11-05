@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, X } from "lucide-react";
+import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { toast } from "@/components/ui/sonner";
 
@@ -63,7 +63,7 @@ export function AppShell({
   const [loggingOut, setLoggingOut] = useState(false);
   const isAdmin = role === "admin";
   const isPublicManager = role === "gestor-publico";
-  const hasCollapsibleSidebar = role === "me" || isPublicManager;
+  const hasCollapsibleSidebar = true;
   const router = useRouter();
   const { profile } = useUserProfile({ skip: isPublicManager });
 
@@ -84,25 +84,31 @@ export function AppShell({
     const toastId = toast.loading("Encerrando sua sessão…");
 
     try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-      if (!response.ok) throw new Error(`Logout falhou (${response.status})`);
-    } catch {
-      // Sem resposta do servidor os cookies não foram apagados; mandar para o
-      // login faria o proxy.ts devolver a pessoa ao painel.
-      toast.error("Não foi possível sair", {
-        id: toastId,
-        description: "Verifique sua conexão e tente novamente.",
-      });
-      setLoggingOut(false);
-      return;
-    }
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch {
+        // ignore
+      }
 
-    toast.info("Você saiu da sua conta", {
-      id: toastId,
-      description: "Até logo! Sua sessão foi encerrada com segurança.",
-      icon: <LogOut size={18} strokeWidth={2.25} />,
-    });
-    router.push("/auth/login");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1200);
+
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        signal: controller.signal,
+        keepalive: true,
+      }).catch(() => undefined);
+
+      clearTimeout(timeoutId);
+    } finally {
+      toast.info("Você saiu da sua conta", {
+        id: toastId,
+        description: "Até logo! Sua sessão foi encerrada com segurança.",
+        icon: <LogOut size={18} strokeWidth={2.25} />,
+      });
+      window.location.assign("/auth/login");
+    }
   };
 
   return (
@@ -121,13 +127,13 @@ export function AppShell({
           </button>
         </div>
 
-        {!hasCollapsibleSidebar && <div className="workspace-switcher">
+        <div className="workspace-switcher">
           <span className="workspace-avatar">{companyAvatar}</span>
           <span>
-            <small>{isAdmin ? "AMBIENTE" : "MINHA EMPRESA"}</small>
+            <small>{isAdmin ? "AMBIENTE" : isPublicManager ? "AMBIENTE" : "MINHA EMPRESA"}</small>
             <strong>{companyName}</strong>
           </span>
-        </div>}
+        </div>
 
         <nav className="sidebar-nav" aria-label="Navegação do painel">
           <small className="nav-group-label">MENU PRINCIPAL</small>
@@ -182,16 +188,6 @@ export function AppShell({
             >
               {sidebarCollapsed ? <PanelLeftOpen size={22} /> : <PanelLeftClose size={22} />}
             </button>
-          )}
-          {!isPublicManager && (
-            <label className="topbar-search">
-              <Search size={18} />
-              <input
-                placeholder={isAdmin ? "Buscar empresa, CNPJ ou município" : "Buscar oportunidade ou município"}
-                aria-label="Buscar"
-              />
-              <kbd>⌘ K</kbd>
-            </label>
           )}
           <div className="topbar-actions">
             {!isPublicManager && <div className="notification-wrap">

@@ -53,10 +53,14 @@ export const DOCUMENTS = [
 
 export type DocumentField = (typeof DOCUMENTS)[number]['field']
 
-// O cadastro é exclusivo para microempresas: ME é a única opção.
-export const PORTES = [{ value: 'ME', label: 'ME - Microempresa' }] as const
+// Opções de porte da empresa para cadastro de fornecedores
+export const PORTES = [
+  { value: 'ME', label: 'Microempresa (ME)' },
+  { value: 'EPP', label: 'Empresa de Pequeno Porte (EPP)' },
+  { value: 'MEI', label: 'Microempreendedor Individual (MEI)' },
+] as const
 
-export type Porte = (typeof PORTES)[number]['value']
+export type Porte = (typeof PORTES)[number]['value'] | ''
 
 export interface MEData {
   usuario: string
@@ -78,7 +82,7 @@ export const ME_INITIAL_DATA: MEData = {
   passwordConfirmation: '',
   cnpj: '',
   nome_empresa: '',
-  porte_empresa: 'ME',
+  porte_empresa: '',
   files: {},
 }
 
@@ -128,10 +132,9 @@ const empresaSchema = z.object({
     .trim()
     .min(2, 'Informe a razão social ou o nome fantasia.')
     .max(200, 'O nome pode ter no máximo 200 caracteres.'),
-  porte_empresa: z.enum(
-    PORTES.map((porte) => porte.value),
-    'Selecione o porte da empresa.',
-  ),
+  porte_empresa: z.enum(['ME', 'EPP', 'MEI'], {
+    message: 'Selecione o porte da empresa.',
+  }),
 })
 
 const documentosSchema = z.object(

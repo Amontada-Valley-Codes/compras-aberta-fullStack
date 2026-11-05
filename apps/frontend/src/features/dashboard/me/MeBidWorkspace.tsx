@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
-  BarChart3,
   Building2,
   Calculator,
   Calendar,
@@ -984,12 +983,7 @@ export function MeBidWorkspace({
               </div>
 
               <div className="ws-detail-field">
-                <span>
-                  Órgão{" "}
-                  <em className="ws-mini-score">
-                    <BarChart3 size={11} /> Score {enrichedBid.match.score}
-                  </em>
-                </span>
+                <span>Órgão</span>
                 <strong>{orgShort}</strong>
               </div>
 
@@ -1754,11 +1748,11 @@ export function MeBidWorkspace({
                     <th style={{ minWidth: 130 }} title="Seu limite de lance — não aparece na proposta">
                       Valor Mínimo (R$)
                     </th>
-                    <th style={{ minWidth: 135 }} title="Preço que vai na proposta inicial">
+                    <th style={{ minWidth: 155 }} title="Preço que vai na proposta inicial">
                       Valor Inicial (R$)
                     </th>
                     {showFinalColumn && (
-                      <th style={{ minWidth: 130 }} title="Último lance / valor negociado">
+                      <th style={{ minWidth: 155 }} title="Último lance / valor negociado">
                         Valor Final (R$)
                       </th>
                     )}

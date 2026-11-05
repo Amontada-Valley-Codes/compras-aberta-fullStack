@@ -4,7 +4,7 @@ import { CadastroWizard } from "./components/CadastroWizard";
 export const metadata: Metadata = {
   title: "Cadastro | Compras Abertas",
   description:
-    "Crie sua conta no Compras Abertas como microempresa (ME) ou como gestor público municipal.",
+    "Crie sua conta no Compras Abertas como empresa / fornecedor ou como gestor público municipal.",
 };
 
 type CadastroPageProps = {

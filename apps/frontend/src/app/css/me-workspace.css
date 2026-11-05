@@ -5,14 +5,14 @@
 /* ---------- Estado "Gerenciar" e Tarja Salva no Card do Feed ---------- */
 
 .me-bid-btn.is-manage {
-  background: #ea580c;
-  border-color: #ea580c;
+  background: var(--brand-navy, #11169b);
+  border-color: var(--brand-navy, #11169b);
   color: #ffffff;
 }
 
 .me-bid-btn.is-manage:hover {
-  background: #c2410c;
-  border-color: #c2410c;
+  background: #0d1282;
+  border-color: #0d1282;
 }
 
 .me-bid-card__tracked-strip {
@@ -23,9 +23,9 @@
   margin-top: 10px;
   padding: 9px 14px;
   border-radius: 9px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  color: #9a3412;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #11169b;
   font-size: 0.8125rem;
 }
 
@@ -89,54 +89,59 @@
 }
 
 .ws-btn.is-primary {
-  background: var(--brand-blue);
-  border-color: var(--brand-blue);
+  background: var(--brand-navy, #11169b);
+  border-color: var(--brand-navy, #11169b);
   color: #ffffff;
 }
 
 .ws-btn.is-primary:hover:not(:disabled) {
-  background: var(--brand-blue-hover);
+  background: #0d1282;
+  border-color: #0d1282;
 }
 
 .ws-btn.is-navy {
-  background: #0f3a4d;
-  border-color: #0f3a4d;
+  background: var(--brand-navy, #11169b);
+  border-color: var(--brand-navy, #11169b);
   color: #ffffff;
 }
 
 .ws-btn.is-navy:hover:not(:disabled) {
-  background: #0a2937;
+  background: #0d1282;
+  border-color: #0d1282;
 }
 
 .ws-btn.is-accent-orange {
-  background: #ea580c;
-  border-color: #ea580c;
+  background: var(--brand-navy, #11169b);
+  border-color: var(--brand-navy, #11169b);
   color: #ffffff;
 }
 
 .ws-btn.is-accent-orange:hover:not(:disabled) {
-  background: #c2410c;
+  background: #0d1282;
+  border-color: #0d1282;
 }
 
 .ws-btn.is-teal {
-  background: #0d9488;
-  border-color: #0d9488;
+  background: var(--brand-navy, #11169b);
+  border-color: var(--brand-navy, #11169b);
   color: #ffffff;
 }
 
 .ws-btn.is-teal:hover:not(:disabled) {
-  background: #0f766e;
+  background: #0d1282;
+  border-color: #0d1282;
 }
 
 .ws-btn.is-ghost {
   background: #ffffff;
-  border-color: #cbd5e1;
-  color: #1e293b;
+  border-color: #dce6ec;
+  color: #334155;
 }
 
 .ws-btn.is-ghost:hover:not(:disabled) {
   background: #f8fafc;
-  border-color: #94a3b8;
+  border-color: #cbd5e1;
+  color: var(--brand-navy, #11169b);
 }
 
 .ws-icon-btn {
@@ -267,8 +272,8 @@
 }
 
 .ws-checkbox.is-checked {
-  background: #0d9488;
-  border-color: #0d9488;
+  background: var(--brand-navy, #11169b);
+  border-color: var(--brand-navy, #11169b);
 }
 
 .ws-toggle-switch {
@@ -294,7 +299,7 @@
 }
 
 .ws-toggle-switch.is-on .ws-toggle-switch__track {
-  background: #0d9488;
+  background: var(--brand-navy, #11169b);
 }
 
 .ws-toggle-switch__thumb {
@@ -447,7 +452,7 @@
   top: 0;
   z-index: 1;
   background: #f8fafc;
-  color: #0f3a4d;
+  color: #475569;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -672,23 +677,32 @@
   font-weight: 700;
   padding: 1px 7px;
   border-radius: 999px;
-  background: #e2e8f0;
-  color: #1e293b;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
+  color: #475569;
+}
+
+.mybids-stage-tab.is-active em {
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
+  color: #ffffff;
 }
 
 .mybids-stage-tab em.tone-orange,
-.mybids-stage-tab em.tone-blue {
-  background: var(--brand-blue, #11169b);
-  color: #ffffff;
-}
-
-.mybids-stage-tab em.tone-indigo {
-  background: #4f46e5;
-  color: #ffffff;
-}
-
+.mybids-stage-tab em.tone-blue,
+.mybids-stage-tab em.tone-indigo,
 .mybids-stage-tab em.tone-emerald {
-  background: #059669;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
+  color: #475569;
+}
+
+.mybids-stage-tab.is-active em.tone-orange,
+.mybids-stage-tab.is-active em.tone-blue,
+.mybids-stage-tab.is-active em.tone-indigo,
+.mybids-stage-tab.is-active em.tone-emerald {
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
   color: #ffffff;
 }
 
@@ -740,9 +754,9 @@
   height: 36px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
-  color: var(--brand-blue, #11169b);
+  border: 1px solid #dce6ec;
+  background: #f1f5f9;
+  color: var(--brand-navy, #11169b);
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
@@ -825,7 +839,7 @@
   text-align: left;
   font-size: 0.95rem;
   font-weight: 800;
-  color: #0f3a4d;
+  color: #0f172a;
   cursor: pointer;
   line-height: 1.35;
 }
@@ -863,14 +877,23 @@
 .mybids-add-tag-link {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  border: 0;
-  background: transparent;
-  color: #ea580c;
-  font-size: 0.78rem;
-  font-weight: 700;
+  gap: 5px;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 2px 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.mybids-add-tag-link:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #1e293b;
+  text-decoration: none;
 }
 
 .mybids-card__drawer {
@@ -992,12 +1015,12 @@
 }
 
 .mybids-minical__day.is-today {
-  color: #ea580c;
+  color: var(--brand-blue, #11169b);
   font-weight: 800;
 }
 
 .mybids-minical__day.is-selected {
-  background: #0f3a4d;
+  background: var(--brand-navy, #11169b);
   color: #ffffff;
 }
 
@@ -1016,11 +1039,11 @@
 }
 
 .dot-open {
-  background: #ea580c;
+  background: var(--brand-blue, #11169b);
 }
 
 .dot-session {
-  background: #0d9488;
+  background: #0284c7;
 }
 
 .dot-prazo {
@@ -1053,9 +1076,9 @@
   width: 100%;
   height: 34px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dce6ec;
   background: #f8fafc;
-  color: #0f3a4d;
+  color: var(--brand-navy, #11169b);
   font-size: 0.8rem;
   font-weight: 700;
   display: inline-flex;
@@ -1066,8 +1089,8 @@
 }
 
 .mybids-minical__agenda-btn:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .mybids-side-filter h3 {
@@ -1154,7 +1177,7 @@
   margin: 0;
   font-size: clamp(1.15rem, 1.7vw, 1.4rem);
   font-weight: 800;
-  color: #0f3a4d;
+  color: #0f172a;
   line-height: 1.3;
 }
 
@@ -1203,11 +1226,11 @@
   gap: 5px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  color: #065f46;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
+  color: #334155;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ws-meta-pill {
@@ -1217,46 +1240,53 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: #f1f5f9;
+  border: 1px solid #dce6ec;
   color: #334155;
   font-size: 0.75rem;
   font-weight: 600;
 }
 
 .ws-stage-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 0.74rem;
   font-weight: 700;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
+  color: #475569;
 }
 
-.ws-stage-pill.tone-blue {
-  background: #eff6ff;
-  color: #1d4ed8;
+.ws-stage-pill.tone-blue,
+.ws-stage-pill.tone-indigo {
+  background: #eef4fb;
+  border: 1px solid #d0e2f2;
+  color: #11169b;
 }
 
 .ws-stage-pill.tone-orange {
-  background: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
-}
-
-.ws-stage-pill.tone-indigo {
-  background: #eef2ff;
-  color: #4338ca;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
+  color: #334155;
 }
 
 .ws-stage-pill.tone-teal {
-  background: #f0fdfa;
-  color: #0f766e;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
+  color: #334155;
 }
 
 .ws-stage-pill.tone-emerald {
-  background: #ecfdf5;
-  color: #047857;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
+  color: #334155;
 }
 
 .ws-stage-pill.tone-danger {
   background: #fef2f2;
+  border: 1px solid #fecaca;
   color: #dc2626;
 }
 
@@ -1578,7 +1608,7 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #0f3a4d;
+  color: #0f172a;
 }
 
 .ws-card__header p {
@@ -1593,7 +1623,7 @@
   gap: 5px;
   border: 0;
   background: transparent;
-  color: #0d9488;
+  color: var(--brand-navy, #11169b);
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -1630,7 +1660,7 @@
 .ws-detail-field span {
   font-size: 0.74rem;
   font-weight: 700;
-  color: #0f3a4d;
+  color: #475569;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1658,8 +1688,9 @@
   gap: 3px;
   padding: 1px 6px;
   border-radius: 999px;
-  background: #ecfdf5;
-  color: #047857;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
+  color: #475569;
   font-size: 0.7rem;
 }
 
@@ -1679,7 +1710,7 @@
 .ws-notes-block label {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #0f3a4d;
+  color: #334155;
 }
 
 .ws-notes-block textarea {
@@ -1734,12 +1765,12 @@
 .ws-milestone-card__title {
   font-size: 0.76rem;
   font-weight: 700;
-  color: #0f3a4d;
+  color: #0f172a;
 }
 
 .ws-milestone-card.tone-today .ws-milestone-card__title,
 .ws-milestone-card.tone-today .ws-milestone-card__rel {
-  color: #ea580c;
+  color: var(--brand-blue, #11169b);
 }
 
 .ws-milestone-card.tone-urgent .ws-milestone-card__rel {
@@ -1934,7 +1965,7 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #0f3a4d;
+  color: #0f172a;
 }
 
 .ws-pricing-header p {
@@ -1965,7 +1996,7 @@
   gap: 6px;
   border: 0;
   background: transparent;
-  color: #0f3a4d;
+  color: #334155;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -1982,17 +2013,17 @@
   flex-wrap: wrap;
   padding: 10px 14px;
   border-radius: 9px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: #f1f5f9;
+  border: 1px solid #dce6ec;
   font-size: 0.82rem;
-  color: #1e3a8a;
+  color: #1e293b;
 }
 
 .ws-bulk-calc-bar input {
   width: 68px;
   height: 32px;
   border-radius: 6px;
-  border: 1px solid #93c5fd;
+  border: 1px solid #cbd5e1;
   background: #ffffff;
   text-align: center;
   font-weight: 700;
@@ -2012,7 +2043,7 @@
 
 .ws-pricing-table th {
   background: #f8fafc;
-  color: #0f3a4d;
+  color: #475569;
   font-size: 0.74rem;
   font-weight: 700;
   text-align: left;
@@ -2115,7 +2146,7 @@
 
 .ws-proposal-totals > div:first-child strong {
   font-size: 0.9rem;
-  color: #0f3a4d;
+  color: #0f172a;
 }
 
 .ws-proposal-totals > div:first-child span {
@@ -2142,7 +2173,7 @@
 .ws-total-metric strong {
   font-size: 1rem;
   font-weight: 800;
-  color: #0f3a4d;
+  color: #0f172a;
 }
 
 .ws-total-metric.is-highlight strong {
@@ -2173,7 +2204,7 @@
 
 .ws-progress-bar > div {
   height: 100%;
-  background: #0d9488;
+  background: var(--brand-navy, #11169b);
   transition: width 0.25s ease;
 }
 
@@ -2296,7 +2327,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: #0f3a4d;
+  color: #0f172a;
 }
 
 .ws-session-item-card p {
@@ -2412,10 +2443,10 @@
   font-style: normal;
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: 999px;
-  background: #ea580c;
-  color: #ffffff;
+  background: #e0e7ff;
+  color: #11169b;
 }
 
 .agenda-pill.is-active em {
@@ -2499,7 +2530,7 @@
 }
 
 .agenda-empty-banner__btn:hover {
-  background: var(--brand-blue-hover, #1515b8);
+  background: #0d1282;
 }
 
 .agenda-calendar-card {
@@ -2725,8 +2756,8 @@
 }
 
 .agenda-event-chip.type-prazo {
-  border-left-color: #ea580c;
-  background: #fff7ed;
+  border-left-color: #2563eb;
+  background: #eff6ff;
 }
 
 .agenda-event-chip.type-lembrete {
@@ -2854,9 +2885,9 @@
 }
 
 .agenda-type-badge.type-prazo {
-  background: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
+  background: #eff6ff;
+  color: var(--brand-blue, #11169b);
+  border: 1px solid #bfdbfe;
 }
 
 .agenda-type-badge.type-lembrete {
@@ -3200,7 +3231,18 @@
 .ws-cell-stack {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
+  min-width: 145px;
+  width: 100%;
+}
+
+.ws-pricing-table td .ws-cell-stack {
+  min-width: 145px;
+}
+
+.ws-pricing-table td .ws-cell-input {
+  box-sizing: border-box;
+  min-width: 110px;
 }
 
 .ws-cell-input.is-warn {
@@ -3212,13 +3254,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   white-space: nowrap;
   align-self: flex-end;
-  margin-top: 3px;
+  margin-top: 2px;
+  letter-spacing: -0.01em;
 }
 
 .ws-cell-sub.is-ok {

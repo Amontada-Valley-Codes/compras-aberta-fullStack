@@ -36,6 +36,7 @@ import {
 } from "./radar-types";
 import { RadarFilterSidebar } from "./RadarFilterSidebar";
 import { MeBidCard } from "./MeBidCard";
+import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import type { TrackedBid } from "./workspace-types";
 
 const PAGE_SIZES = [10, 20, 30] as const;
@@ -495,17 +496,22 @@ export function MeRadarView({
             </label>
 
             <div className="radar-feed-controls">
-              <select
-                className="radar-sort-select"
+              <PublicFilterSelect
+                name="radar-ordenar"
+                label="Ordenar por"
+                icon="sort"
+                variant="dashboard"
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as MeBidSortBy)}
-                aria-label="Ordenar licitações"
-              >
-                <option value="match">Ordenar: Maior aderência</option>
-                <option value="deadline">Ordenar: Prazo mais próximo</option>
-                <option value="value">Ordenar: Maior valor</option>
-                <option value="recent">Ordenar: Mais recentes</option>
-              </select>
+                options={[
+                  { value: "match", label: "Maior aderência" },
+                  { value: "deadline", label: "Prazo mais próximo" },
+                  { value: "value", label: "Maior valor" },
+                  { value: "recent", label: "Mais recentes" },
+                ]}
+                onValueChange={(val) =>
+                  setSortBy((val as MeBidSortBy) || "match")
+                }
+              />
 
               {hiddenBidIds.size > 0 && (
                 <button

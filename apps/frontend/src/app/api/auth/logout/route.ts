@@ -7,17 +7,25 @@ export async function POST(request: Request) {
   const cookieStore = await cookies();
   const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value;
 
-  if (refreshToken) {
-    try {
-      await backendLogout(request, refreshToken);
-    } catch {
-      // Best-effort: mesmo se o backend não conseguir revogar (ex.: já
-      // estava revogado, ou está fora do ar), a sessão local é encerrada.
-    }
-  }
-
+  // Encerra a sessão nos cookies locais imediatamente
   cookieStore.delete(SESSION_COOKIE);
   cookieStore.delete(REFRESH_COOKIE);
 
-  return NextResponse.json({ ok: true });
+  if (refreshToken) {
+    try {
+      // Best-effort com timeout de 1.2s para nunca travar a resposta do usuário
+      await Promise.race([
+        backendLogout(request, refreshToken),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1200)),
+      ]);
+    } catch {
+      // Best-effort: se o backend falhar ou demorar, a sessão local já foi encerrada com sucesso.
+    }
+  }
+
+  const response = NextResponse.json({ ok: true });
+  response.cookies.delete(SESSION_COOKIE);
+  response.cookies.delete(REFRESH_COOKIE);
+
+  return response;
 }
