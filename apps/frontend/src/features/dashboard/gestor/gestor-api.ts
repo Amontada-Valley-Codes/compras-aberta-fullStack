@@ -42,6 +42,9 @@ export interface ApiBid {
   valor_total_licitacao: string;
   quantidade_empresas: number;
   quantidade_itens: number;
+  // Nomes oficiais (ex.: "MATERIAL DE CONSUMO"); vazio quando a licitação
+  // ainda não tem dotação associada.
+  naturezas_despesa?: string[] | null;
 }
 
 export interface ApiBidItem {
