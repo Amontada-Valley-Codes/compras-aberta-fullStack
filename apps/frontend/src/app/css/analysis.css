@@ -74,11 +74,8 @@
   gap: 24px;
 }
 .analysis-header nav a {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--brand-navy);
-}
-.analysis-header nav a {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   background: var(--brand-blue);
   color: #fff;
   padding: 11px 15px;
@@ -92,8 +89,8 @@
   align-items: center;
   gap: 6px;
   color: var(--brand-blue);
-  font-size: 10px;
-  font-weight: 750;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   margin-bottom: 22px;
 }
 .analysis-back svg {
@@ -112,13 +109,13 @@
 }
 .analysis-title-row h1 {
   color: var(--brand-navy);
-  font-size: 32px;
+  font-size: var(--text-3xl);
   letter-spacing: -0.035em;
   margin: 0 0 8px;
 }
 .analysis-title-row p {
   color: #667883;
-  font-size: 12px;
+  font-size: var(--text-base);
   margin: 0;
 }
 .analysis-title-row p b {
@@ -403,15 +400,15 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 30px;
-  padding: 5px 8px;
+  min-height: 32px;
+  padding: 5px 10px;
   border: 1px solid transparent;
   border-radius: 7px;
   background: transparent;
   color: #637989;
   font: inherit;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
   cursor: pointer;
 }
 .analysis-chart-controls button:hover,
@@ -434,7 +431,7 @@
 .analysis-chart-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 .analysis-chart-table th,
 .analysis-chart-table td {
@@ -452,7 +449,7 @@
   top: 0;
   background: #f5f8fa;
   color: var(--brand-navy);
-  font-size: 11px;
+  font-size: var(--text-2xs);
 }
 .analysis-chart-table tr:last-child td {
   border-bottom: 0;
@@ -464,8 +461,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #7b8b94;
-  font-size: 7px;
+  color: #64748b;
+  font-size: var(--text-2xs);
   padding: 0 8px 5px;
 }
 .chart-legend-note i {
@@ -509,13 +506,13 @@
   padding-bottom: 16px;
 }
 .analysis-table-card header h2 {
-  font-size: 13px;
+  font-size: var(--text-lg);
   color: var(--brand-navy);
   margin: 0 0 4px;
 }
 .analysis-table-card header p {
-  font-size: 8px;
-  color: #82919a;
+  font-size: var(--text-sm);
+  color: #64748b;
   margin: 0;
 }
 .analysis-table-card header > span {
@@ -524,12 +521,13 @@
   gap: 5px;
   background: var(--success-soft);
   color: var(--success);
-  font-size: 7px;
-  padding: 5px 8px;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  padding: 5px 10px;
   border-radius: 12px;
 }
 .analysis-table-card header > span svg {
-  width: 12px;
+  width: 14px;
 }
 .analysis-table-scroll {
   overflow-x: auto;
@@ -551,18 +549,18 @@
 .analysis-table-card th:nth-child(7) { width: 13%; }
 .analysis-table-card th {
   text-align: left;
-  font-size: 7px;
+  font-size: var(--text-2xs);
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #89969e;
+  color: #64748b;
   background: #f6f9fb;
-  padding: 11px;
+  padding: 13px 12px;
 }
 .analysis-table-card td {
-  padding: 13px 11px;
+  padding: 14px 12px;
   border-bottom: 1px solid var(--line);
-  color: #647681;
-  font-size: 8px;
+  color: #475569;
+  font-size: var(--text-sm);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -575,15 +573,16 @@
 .analysis-table-card td b,
 .analysis-table-card td strong {
   color: var(--brand-navy);
-  font-size: 9px;
+  font-size: var(--text-sm);
 }
 .analysis-table-card td em {
   font-style: normal;
-  padding: 5px 7px;
+  padding: 5px 9px;
   border-radius: 12px;
   background: #edf2f5;
-  color: #657681;
-  font-size: 7px;
+  color: #475569;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
 }
 .analysis-table-card td em.local {
   background: var(--success-soft);
@@ -602,12 +601,12 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: #84929b;
-  font-size: 7px;
+  color: #64748b;
+  font-size: var(--text-xs);
   margin: 16px 0 0;
 }
 .analysis-footnote svg {
-  width: 13px;
+  width: 14px;
 }
 .analysis-filter-fields {
   grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr);
@@ -791,6 +790,45 @@
   width: 20px;
   height: 20px;
 }
+/* Carregando a página clicada (LinkPending): spinner no lugar do conteúdo do
+   botão, tabela esmaecida e paginação travada para evitar cliques repetidos. */
+.analysis-pagination a {
+  position: relative;
+}
+.analysis-link-pending {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(17, 22, 155, 0.2);
+  border-top-color: var(--brand-navy);
+  border-radius: 50%;
+  animation: analysis-link-spin 0.7s linear infinite;
+}
+.analysis-pagination a:has(.analysis-link-pending) {
+  color: transparent;
+}
+.analysis-pagination a:has(.analysis-link-pending) svg {
+  visibility: hidden;
+}
+.analysis-pagination:has(.analysis-link-pending) {
+  pointer-events: none;
+}
+.analysis-table-card:has(.analysis-link-pending) .analysis-table-scroll {
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+@keyframes analysis-link-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .analysis-link-pending {
+    animation-duration: 1.6s;
+  }
+}
 .analysis-pagination-number.is-active {
   color: #fff;
   background: var(--brand-navy);
@@ -889,8 +927,8 @@
     height: 64px;
   }
   .analysis-header nav a {
-    font-size: 9px;
-    padding: 9px;
+    font-size: var(--text-xs);
+    padding: 9px 12px;
   }
   .analysis-title-row {
     align-items: flex-start;

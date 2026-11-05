@@ -84,7 +84,7 @@ export const StepEmpresa = ({ data, errors, lookup, onCnpjChange, onChange }: St
             />
             <FileText size={18} />
           </div>
-          <small style={{ display: 'block', marginTop: 6, opacity: 0.78, fontSize: '0.8rem' }}>
+          <small style={{ display: 'block', marginTop: 6, opacity: 0.78, fontSize: 'var(--text-xs)' }}>
             Usaremos o CNAE do seu CNPJ para encontrar licitações compatíveis automaticamente no seu painel (você poderá complementar depois nas configurações).
           </small>
         </div>

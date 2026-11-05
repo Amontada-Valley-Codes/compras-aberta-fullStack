@@ -49,8 +49,8 @@
 }
 .public-filter-copy small {
   color: #768692;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-extrabold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -58,8 +58,8 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
 }
 .public-filter-chevron {
   width: 16px;
@@ -103,12 +103,12 @@
   gap: 2px;
 }
 .public-filter-select.is-dashboard .public-filter-copy small {
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.05em;
 }
 .public-filter-select.is-dashboard .public-filter-value {
-  font-size: 14px;
-  font-weight: 650;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 .public-filter-search-wrap {
   padding: 10px 12px;
@@ -123,7 +123,7 @@
   border-radius: 999px;
   background: white;
   color: var(--brand-navy);
-  font-size: 15px;
+  font-size: var(--text-base);
   outline: none;
 }
 .public-filter-search::placeholder {
@@ -148,7 +148,7 @@
   padding: 9px 32px 9px 12px;
   border-radius: 6px;
   color: var(--brand-navy);
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.35;
   cursor: pointer;
   outline: none;
@@ -179,7 +179,7 @@
   margin: 0;
   padding: 18px 12px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   text-align: center;
 }
 

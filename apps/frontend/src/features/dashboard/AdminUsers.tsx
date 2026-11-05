@@ -198,7 +198,7 @@ export function AdminUsers() {
                             gap: "6px",
                             padding: "4px 10px",
                             borderRadius: "6px",
-                            fontSize: "0.8rem",
+                            fontSize: "var(--text-xs)",
                             fontWeight: 600,
                             background: "#ecfdf5",
                             color: "#047857",
@@ -210,7 +210,7 @@ export function AdminUsers() {
                       <td>{formatDateTime(admin.createdAt)}</td>
                       <td>
                         {isCurrent ? (
-                          <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>—</span>
+                          <span style={{ fontSize: "var(--text-xs)", color: "#94a3b8" }}>—</span>
                         ) : (
                           <button
                             type="button"
@@ -226,7 +226,7 @@ export function AdminUsers() {
                               display: "inline-flex",
                               alignItems: "center",
                               gap: "6px",
-                              fontSize: "0.8rem",
+                              fontSize: "var(--text-xs)",
                               fontWeight: 500,
                             }}
                           >
@@ -254,8 +254,8 @@ export function AdminUsers() {
             <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
               <div>
                 <small style={{ color: "#64748b", fontWeight: 600, letterSpacing: "0.05em" }}>NOVO ACESSO</small>
-                <h2 style={{ fontSize: "1.4rem", fontWeight: 700, margin: "4px 0" }}>Cadastrar Administrador</h2>
-                <p style={{ color: "#64748b", fontSize: "0.875rem" }}>
+                <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700, margin: "4px 0" }}>Cadastrar Administrador</h2>
+                <p style={{ color: "#64748b", fontSize: "var(--text-sm)" }}>
                   Adicione um novo membro para gerenciar as microempresas e a plataforma.
                 </p>
               </div>
@@ -271,7 +271,7 @@ export function AdminUsers() {
 
             <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: 600, marginBottom: "6px" }}>
                   Nome completo *
                 </label>
                 <input
@@ -285,14 +285,14 @@ export function AdminUsers() {
                     padding: "10px 14px",
                     borderRadius: "8px",
                     border: "1px solid #cbd5e1",
-                    fontSize: "0.95rem",
+                    fontSize: "var(--text-base)",
                     outline: "none",
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: 600, marginBottom: "6px" }}>
                   E-mail institucional *
                 </label>
                 <input
@@ -306,14 +306,14 @@ export function AdminUsers() {
                     padding: "10px 14px",
                     borderRadius: "8px",
                     border: "1px solid #cbd5e1",
-                    fontSize: "0.95rem",
+                    fontSize: "var(--text-base)",
                     outline: "none",
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: 600, marginBottom: "6px" }}>
                   Senha provisória *
                 </label>
                 <input
@@ -328,7 +328,7 @@ export function AdminUsers() {
                     padding: "10px 14px",
                     borderRadius: "8px",
                     border: "1px solid #cbd5e1",
-                    fontSize: "0.95rem",
+                    fontSize: "var(--text-base)",
                     outline: "none",
                   }}
                 />
@@ -365,10 +365,10 @@ export function AdminUsers() {
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: "440px", width: "100%", padding: "24px" }}
           >
-            <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#dc2626", margin: "0 0 10px 0" }}>
+            <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "#dc2626", margin: "0 0 10px 0" }}>
               Remover Administrador
             </h3>
-            <p style={{ color: "#475569", fontSize: "0.9rem", lineHeight: "1.5" }}>
+            <p style={{ color: "#475569", fontSize: "var(--text-sm)", lineHeight: "var(--leading-normal)" }}>
               Tem certeza que deseja revogar o acesso de administrador de <b>{confirmDeleteUser.name}</b> ({confirmDeleteUser.email})? Esta ação não pode ser desfeita.
             </p>
             <footer style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>

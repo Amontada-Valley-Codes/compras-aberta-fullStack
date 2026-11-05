@@ -151,7 +151,7 @@ function Requests({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ds-button secondary"
-                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "var(--text-sm)", padding: "8px 12px" }}
                   >
                     📄 Cartão CNPJ
                   </a>
@@ -162,7 +162,7 @@ function Requests({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ds-button secondary"
-                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "var(--text-sm)", padding: "8px 12px" }}
                   >
                     📄 Contrato Social
                   </a>
@@ -173,7 +173,7 @@ function Requests({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ds-button secondary"
-                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "var(--text-sm)", padding: "8px 12px" }}
                   >
                     📄 Comprovante Endereço
                   </a>
@@ -184,7 +184,7 @@ function Requests({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ds-button secondary"
-                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: "var(--text-sm)", padding: "8px 12px" }}
                   >
                     📄 Comprovante Sócio
                   </a>
