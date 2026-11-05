@@ -1,0 +1,131 @@
+/* Sidebar compartilhada pelos painéis de ME e gestor público. */
+.app-shell.has-collapsible-sidebar {
+  --sidebar-expanded: var(--sidebar-width);
+  --sidebar-collapsed: 82px;
+}
+.app-shell.has-collapsible-sidebar .app-sidebar {
+  width: var(--sidebar-expanded);
+  padding: 18px 15px 14px;
+  transition: width .28s ease, transform .25s ease;
+}
+.app-shell.has-collapsible-sidebar .app-main {
+  width: calc(100% - var(--sidebar-expanded));
+  margin-left: var(--sidebar-expanded);
+  transition: width .28s ease, margin-left .28s ease;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .app-sidebar {
+  width: var(--sidebar-collapsed);
+  padding-inline: 10px;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .app-main {
+  width: calc(100% - var(--sidebar-collapsed));
+  margin-left: var(--sidebar-collapsed);
+}
+.app-shell.has-collapsible-sidebar .sidebar-nav {
+  margin-top: 28px;
+  gap: 8px;
+}
+.app-shell.has-collapsible-sidebar .nav-group-label {
+  padding-bottom: 14px;
+}
+.app-shell.has-collapsible-sidebar .topbar-sidebar-toggle {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  margin-right: 16px;
+  border: 1px solid #dbe6ee;
+  border-radius: 10px;
+  color: #11169b;
+  background: #f5f9fb;
+}
+.app-shell.has-collapsible-sidebar .topbar-sidebar-toggle:hover,
+.app-shell.has-collapsible-sidebar .topbar-sidebar-toggle:focus-visible {
+  color: #11169b;
+  background: #e6f7fb;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head {
+  height: 58px;
+  justify-content: center;
+  padding-inline: 0;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head .brand-logo,
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head .brand-logo img {
+  width: 48px;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head .brand-logo {
+  height: 48px;
+  overflow: visible;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .workspace-switcher,
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .nav-group-label,
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button span,
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button em,
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-user > span:nth-child(2) {
+  display: none;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button {
+  justify-content: center;
+  padding-inline: 0;
+  min-height: 58px;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button svg {
+  width: 27px;
+  height: 27px;
+}
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-user {
+  justify-content: center;
+  padding-inline: 0;
+}
+@media (max-width: 900px) {
+  .app-shell.has-collapsible-sidebar .app-sidebar,
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .app-sidebar {
+    width: min(310px, 86vw);
+    padding: 18px 15px 14px;
+  }
+  .app-shell.has-collapsible-sidebar .app-main,
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .app-main {
+    width: 100%;
+    margin-left: 0;
+  }
+  .app-shell.has-collapsible-sidebar .sidebar-head .brand-logo,
+  .app-shell.has-collapsible-sidebar .sidebar-head .brand-logo img,
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head .brand-logo,
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head .brand-logo img {
+    width: 132px;
+  }
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .workspace-switcher {
+    display: flex;
+  }
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head {
+    height: 51px;
+    justify-content: flex-start;
+    padding-inline: 8px;
+  }
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button svg {
+    width: 19px;
+    height: 19px;
+  }
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .nav-group-label,
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button span,
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-user > span:nth-child(2) {
+    display: grid;
+  }
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button {
+    justify-content: flex-start;
+    padding-inline: 13px;
+  }
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-user {
+    justify-content: flex-start;
+    padding-inline: 8px;
+  }
+}
+
+.app-shell.has-collapsible-sidebar .app-sidebar {
+  --brand-navy: #11169b;
+  --brand-blue: #11169b;
+  --brand-sky: #6ce3f8;
+}
+
+@media (max-width: 900px) {
+  .app-shell.has-collapsible-sidebar .topbar-sidebar-toggle { display: none; }
+}
