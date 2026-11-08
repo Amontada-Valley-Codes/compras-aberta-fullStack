@@ -1108,3 +1108,12 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Os dois gráficos de participação precisam caber no cartão sem sobrepor os controles. */
+.analysis-page .analysis-share-comparison {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+.analysis-page .analysis-table-card > header {
+  flex-wrap: wrap;
+  gap: 12px;
+}

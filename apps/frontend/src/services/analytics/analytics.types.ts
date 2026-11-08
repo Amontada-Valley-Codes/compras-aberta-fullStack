@@ -116,6 +116,8 @@ export interface MicroenterpriseResponse {
 }
 
 export interface ParticipationByNatureResponse {
+  associacao: string;
+  observacao: string;
   data: Array<{
     codigo_natureza: string;
     nome_natureza: string;

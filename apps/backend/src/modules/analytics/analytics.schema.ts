@@ -140,3 +140,18 @@ export type {
   ListLocalMicroenterpriseParticipationsDTO,
   ListMicroenterpriseParticipationByNatureDTO,
 };
+
+// Pagamentos usam o código TCE com três caracteres (preservar zeros).
+export const paymentsSummaryQuerySchema = z.object({
+  codigo_municipio: z.string().trim().length(3),
+  ano,
+  coleta_id: z.coerce.number().int().min(1).optional(),
+});
+export const paymentSuppliersQuerySchema = paymentsSummaryQuerySchema.extend({
+  codigo_natureza: codigoNatureza.optional(),
+  categoria_porte: z.string().max(40).default("ME"),
+  limit,
+  offset,
+});
+export type PaymentsSummaryDTO = z.infer<typeof paymentsSummaryQuerySchema>;
+export type PaymentSuppliersDTO = z.infer<typeof paymentSuppliersQuerySchema>;
