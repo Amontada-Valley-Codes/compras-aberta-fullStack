@@ -58,6 +58,7 @@ export const PORTES = [
   { value: 'ME', label: 'Microempresa (ME)' },
   { value: 'EPP', label: 'Empresa de Pequeno Porte (EPP)' },
   { value: 'MEI', label: 'Microempreendedor Individual (MEI)' },
+  { value: 'DEMAIS', label: 'Empresa em Geral (Médio / Grande Porte)' },
 ] as const
 
 export type Porte = (typeof PORTES)[number]['value'] | ''
@@ -132,7 +133,7 @@ const empresaSchema = z.object({
     .trim()
     .min(2, 'Informe a razão social ou o nome fantasia.')
     .max(200, 'O nome pode ter no máximo 200 caracteres.'),
-  porte_empresa: z.enum(['ME', 'EPP', 'MEI'], {
+  porte_empresa: z.enum(['ME', 'EPP', 'MEI', 'DEMAIS'], {
     message: 'Selecione o porte da empresa.',
   }),
 })

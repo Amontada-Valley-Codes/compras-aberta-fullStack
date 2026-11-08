@@ -23,10 +23,16 @@ export default function proxy(request: NextRequest) {
   const session = token ? verifySessionToken(token) : null;
 
   const isAdminArea = pathname.startsWith("/admin");
-  const isBusinessArea = pathname.startsWith("/me");
+  const isBusinessArea = pathname.startsWith("/empresa") || pathname.startsWith("/me");
   const isManagerArea = pathname.startsWith("/gestor");
   const isAccessStatusPage = pathname === ACCESS_STATUS_PATH;
   const isPublicAuthPage = pathname === LOGIN_PATH || pathname === REGISTER_PATH;
+
+  // Redireciona qualquer chamada para a rota legada /me para a rota /empresa
+  if (pathname === "/me" || pathname.startsWith("/me/")) {
+    const newPath = pathname.replace(/^\/me/, "/empresa");
+    return NextResponse.redirect(new URL(`${newPath}${search}`, request.url));
+  }
 
   if ((isAdminArea || isBusinessArea || isManagerArea || isAccessStatusPage) && !session) {
     const url = new URL(LOGIN_PATH, request.url);
@@ -66,5 +72,15 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/me/:path*", "/gestor/:path*", "/acesso/status", "/auth/login", "/auth/cadastro"],
+  matcher: [
+    "/admin/:path*",
+    "/empresa",
+    "/empresa/:path*",
+    "/me",
+    "/me/:path*",
+    "/gestor/:path*",
+    "/acesso/status",
+    "/auth/login",
+    "/auth/cadastro",
+  ],
 };

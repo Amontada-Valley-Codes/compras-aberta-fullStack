@@ -22,7 +22,7 @@ const registerBusinessDocs = {
     "| `password` | string | Senha de acesso (mínimo 6 caracteres) |",
     "| `cnpj` | string | CNPJ da empresa (14 dígitos, com ou sem formatação) |",
     "| `nome_empresa` | string | Nome da empresa (2 a 200 caracteres) |",
-    "| `porte_empresa` | string | Porte: `MEI`, `ME` ou `EPP` |",
+    "| `porte_empresa` | string | Porte: `MEI`, `ME`, `EPP` ou `DEMAIS` |",
     "| `email` | string | E-mail de acesso (normalizado para minúsculas) |",
     "",
     "### Documentos obrigatórios",
@@ -55,7 +55,7 @@ const registerBusinessDocs = {
       nome_empresa: field.string("Nome da empresa (2 a 200 caracteres).", "Empresa Exemplo LTDA"),
       porte_empresa: {
         type: "string",
-        enum: ["MEI", "ME", "EPP"],
+        enum: ["MEI", "ME", "EPP", "DEMAIS"],
         description: "Porte da empresa.",
         example: "ME",
       },
@@ -125,7 +125,7 @@ const registerBusinessDocs = {
           nome_empresa: field.string("Nome da empresa.", "Empresa Exemplo LTDA"),
           porte_empresa: {
             type: "string",
-            enum: ["MEI", "ME", "EPP"],
+            enum: ["MEI", "ME", "EPP", "DEMAIS"],
             description: "Porte da empresa.",
             example: "ME",
           },

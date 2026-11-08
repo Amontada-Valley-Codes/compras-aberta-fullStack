@@ -960,7 +960,6 @@ function MeOverview({
   const prefetchBidDetail = usePrefetchMeBidDetail();
 
   const userFirstName = profile?.name?.trim().split(" ")[0] || "Empresário(a)";
-  const porte = profile?.business?.porte_empresa || "ME";
 
   // KPIs calculados com dados 100% reais do PNCP
   const urgentOpenBids = useMemo(
@@ -1041,7 +1040,6 @@ function MeOverview({
   return (
     <div className="dashboard-page">
       <PageHeading
-        eyebrow={`PAINEL DA EMPRESA • ${porte}`}
         title={`Olá, ${userFirstName}!`}
       />
 
@@ -1058,11 +1056,6 @@ function MeOverview({
           icon={<Sparkles />}
           label="Compatíveis com sua atividade"
           value={loading ? "…" : String(matchedOpenBids.length)}
-          trend={
-            openBids.length > 0
-              ? `${Math.round((matchedOpenBids.length / openBids.length) * 100)}% das abertas`
-              : undefined
-          }
         />
         <Metric
           icon={<Gavel />}
@@ -2937,7 +2930,17 @@ function CompanyProfile({
               </div>
               <div className="profile-cadastral-item">
                 <span className="profile-cadastral-label">Porte Empresarial</span>
-                <strong className="profile-cadastral-value">{porte === "ME" ? "Microempresa (ME)" : porte === "EPP" ? "Empresa de Pequeno Porte (EPP)" : porte}</strong>
+                <strong className="profile-cadastral-value">
+                  {porte === "ME"
+                    ? "Microempresa (ME)"
+                    : porte === "EPP"
+                      ? "Empresa de Pequeno Porte (EPP)"
+                      : porte === "MEI"
+                        ? "Microempreendedor Individual (MEI)"
+                        : porte === "DEMAIS"
+                          ? "Empresa em Geral (Médio / Grande Porte)"
+                          : porte}
+                </strong>
               </div>
               <div className="profile-cadastral-item">
                 <span className="profile-cadastral-label">Responsável Legal</span>
@@ -2976,7 +2979,7 @@ function PageHeading({
   description,
   action,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: string;
   action?: React.ReactNode;
@@ -2984,7 +2987,7 @@ function PageHeading({
   return (
     <header className="dashboard-heading">
       <div>
-        <span>{eyebrow}</span>
+        {eyebrow && <span>{eyebrow}</span>}
         <h1>{title}</h1>
         {description && <p>{description}</p>}
       </div>

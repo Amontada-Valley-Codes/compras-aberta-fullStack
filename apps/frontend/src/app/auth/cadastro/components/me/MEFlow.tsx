@@ -59,7 +59,9 @@ export const MEFlow = ({ data, setData, onExit }: MEFlowProps) => {
         ? 'MEI'
         : rawPorte.includes('ME')
           ? 'ME'
-          : undefined
+          : rawPorte.includes('DEMAIS') || rawPorte.includes('GRANDE') || rawPorte.includes('MEDIO')
+            ? 'DEMAIS'
+            : undefined
 
     updateData({
       nome_empresa: company.razaoSocial,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Building2,
   Check,
@@ -69,6 +69,22 @@ export function MeBidCard({
   const [copiedCode, setCopiedCode] = useState(false);
 
   const prefetchDetail = usePrefetchMeBidDetail();
+  const prefetchTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (prefetchTimerRef.current) clearTimeout(prefetchTimerRef.current);
+    prefetchTimerRef.current = setTimeout(() => {
+      prefetchDetail(bid.agencyCnpj, bid.year, bid.sequential);
+    }, 280);
+  };
+
+  const handleMouseLeave = () => {
+    if (prefetchTimerRef.current) {
+      clearTimeout(prefetchTimerRef.current);
+      prefetchTimerRef.current = null;
+    }
+  };
+
   const shouldFetchDetail = activeTab === "files" || itemsExpanded;
 
   const { data: detailData, isLoading: loadingDetail } = useMeBidDetailQuery({
@@ -200,9 +216,8 @@ export function MeBidCard({
   return (
     <article
       className={`me-bid-card ${isHidden ? "is-hidden-card" : ""}`}
-      onMouseEnter={() =>
-        prefetchDetail(bid.agencyCnpj, bid.year, bid.sequential)
-      }
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Topo: Órgão / Portal e ações rápidas */}
       <div className="me-bid-card__top">

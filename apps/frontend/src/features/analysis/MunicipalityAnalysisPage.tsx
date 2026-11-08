@@ -72,7 +72,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
       <header className="analysis-header">
         <div className="analysis-container">
           <BrandLogo />
-          <nav><Link href="/me">Área da microempresa</Link></nav>
+          <nav><Link href="/empresa">Área da empresa</Link></nav>
         </div>
       </header>
 

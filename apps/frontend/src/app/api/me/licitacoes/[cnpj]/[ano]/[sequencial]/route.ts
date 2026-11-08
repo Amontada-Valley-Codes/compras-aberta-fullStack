@@ -8,8 +8,13 @@ import {
   mapRawToBid,
   type RawPncpItem,
 } from "@/features/dashboard/me/pncp-mapper";
+import { fetchPncpJson } from "@/features/dashboard/me/pncp-limiter";
+import {
+  readDetailDiskCache,
+  writeDetailDiskCache,
+} from "@/features/dashboard/me/pncp-disk-cache";
 
-const CACHE_TTL_MS = 15 * 60 * 1000;
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hora de cache em memória
 
 interface RawPncpFile {
   uri?: string | null;
@@ -42,18 +47,10 @@ const detailCache = new Map<
   { timestamp: number; data: MeBidDetailResponse }
 >();
 
-async function fetchJsonSafe<T>(url: string, timeoutMs = 15_000): Promise<T | null> {
-  try {
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 900 },
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-    if (!res.ok || res.status === 204) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
-  }
+async function fetchJsonSafe<T>(url: string, timeoutMs = 10_000): Promise<T | null> {
+  const res = await fetchPncpJson<T>(url, { timeoutMs, maxAttempts: 2 });
+  if (!res.ok || res.status === 204 || !res.data) return null;
+  return res.data;
 }
 
 function docPriority(typeName: string, title: string): number {
@@ -88,9 +85,18 @@ export async function GET(
   }
 
   const cacheKey = `${cleanCnpj}:${cleanAno}:${cleanSeq}`;
+
+  // 1. Verifica cache em memória
   const cached = detailCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
     return NextResponse.json(cached.data);
+  }
+
+  // 2. Verifica cache persistente em disco
+  const diskCached = await readDetailDiskCache(cacheKey);
+  if (diskCached) {
+    detailCache.set(cacheKey, { timestamp: Date.now(), data: diskCached });
+    return NextResponse.json(diskCached);
   }
 
   const filesUrl = `https://pncp.gov.br/pncp-api/v1/orgaos/${cleanCnpj}/compras/${cleanAno}/${cleanSeq}/arquivos`;
@@ -98,10 +104,11 @@ export async function GET(
   const countUrl = `https://pncp.gov.br/pncp-api/v1/orgaos/${cleanCnpj}/compras/${cleanAno}/${cleanSeq}/itens/quantidade`;
   const singleBidUrl = `https://pncp.gov.br/api/consulta/v1/orgaos/${cleanCnpj}/compras/${cleanAno}/${cleanSeq}`;
 
+  // Consulta através do limitador seguro de taxa
   const [rawFiles, rawItems, rawCount, rawSingleBid] = await Promise.all([
     fetchJsonSafe<RawPncpFile[]>(filesUrl),
     fetchJsonSafe<RawPncpBidItem[]>(itemsUrl),
-    fetchJsonSafe<number>(countUrl, 8_000),
+    fetchJsonSafe<number>(countUrl, 6_000),
     fetchJsonSafe<RawPncpItem>(singleBidUrl),
   ]);
 
@@ -172,6 +179,7 @@ export async function GET(
   };
 
   detailCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+  await writeDetailDiskCache(cacheKey, payload);
 
   return NextResponse.json(payload);
 }

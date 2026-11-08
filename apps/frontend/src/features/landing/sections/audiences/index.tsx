@@ -29,12 +29,12 @@ const audienceCards: AudienceCard[] = [
     tone: "blue",
   },
   {
-    audience: "Microempresa",
+    audience: "Empresas",
     title: "Encontre as oportunidades certas para sua empresa.",
     description:
       "Receba alertas de oportunidades personalizados para sua empresa e tenha acesso a todas as licitações disponíveis na plataforma. Conheça o histórico de compras dos municípios e os prazos de pagamento para planejar suas vendas com mais confiança.",
     cta: "Explorar oportunidades",
-    href: "/me",
+    href: "/empresa",
     icon: "business",
     tone: "gold",
   },
