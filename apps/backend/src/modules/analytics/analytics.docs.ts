@@ -1,3 +1,4 @@
+import { paymentResponses } from "./payments.responses";
 import {
   badGatewayResponse,
   field,
@@ -6,6 +7,8 @@ import {
   validationErrorResponse,
 } from "../../docs/helpers";
 import {
+  paymentsSummaryQuerySchema,
+  paymentSuppliersQuerySchema,
   getMicroenterpriseIndicatorQuerySchema,
   listDetailedBidsQuerySchema,
   listExpensesByNatureQuerySchema,
@@ -287,6 +290,8 @@ const listMicroenterpriseParticipationByNatureDocs = {
   querystring: toJsonSchema(listMicroenterpriseParticipationByNatureQuerySchema),
   response: {
     200: object("Participação de ME por natureza.", {
+      associacao: field.string("Associação dos valores às naturezas no nível da licitação."),
+      observacao: field.string("Limitações da associação; valores não devem ser somados entre naturezas sem deduplicação."),
       data: {
         type: "array",
         description: "Uma linha por natureza.",
@@ -320,4 +325,17 @@ export {
   listGeneralMicroenterpriseParticipationsDocs,
   listLocalMicroenterpriseParticipationsDocs,
   listMicroenterpriseParticipationByNatureDocs,
+};
+
+export const paymentsSummaryDocs = {
+  tags, summary: "Resumo de pagamentos por natureza",
+  description: "Pagamentos efetivos da Prefeitura nas sete naturezas, total de controle e subtotal ME. Inclui metadados da coleta e pendências." + upstreamNote,
+  querystring: toJsonSchema(paymentsSummaryQuerySchema),
+  response: { 200: paymentResponses.summary, ...errors },
+};
+export const paymentSuppliersDocs = {
+  tags, summary: "Pagamentos por fornecedor e natureza",
+  description: "Por padrão retorna ME. categoria_porte vazio inclui todas as categorias. Use coleta_id do resumo para manter a mesma coleta." + upstreamNote,
+  querystring: toJsonSchema(paymentSuppliersQuerySchema),
+  response: { 200: paymentResponses.suppliers, ...errors },
 };

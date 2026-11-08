@@ -10,7 +10,7 @@ const envSchema = z.object({
   API_DADOS: z
     .string()
     .url("API_DADOS deve ser uma URL válida")
-    .default("https://compra-aberta-api.onrender.com"),
+    .default("https://comprasabertas.amontadavalley.com.br/api-dados"),
   // Dados cadastrais de CNPJ (base aberta da Receita Federal), usados para
   // preencher a solicitação de acesso.
   OPEN_CNPJ_API: z

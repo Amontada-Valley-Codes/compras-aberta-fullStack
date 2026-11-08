@@ -14,7 +14,7 @@ export const api = attachInterceptors(
 export const catalogApi = attachInterceptors(
   axios.create({
     ...common,
-    baseURL: process.env.ANALYTICS_API_BASE_URL ?? "https://compra-aberta-api.onrender.com",
+    baseURL: process.env.ANALYTICS_API_BASE_URL ?? "https://comprasabertas.amontadavalley.com.br/api-dados",
   }),
 );
 

@@ -70,7 +70,7 @@ function ChartTable({ labels, values, valueFormatter }: { labels: string[]; valu
   return <div className="analysis-chart-table-wrap"><table className="analysis-chart-table"><thead><tr><th>Natureza da despesa</th><th>Valor</th></tr></thead><tbody>{labels.map((label, index) => <tr key={`${label}-${index}`}><td>{label}</td><td>{valueFormatter(values[index] ?? 0)}</td></tr>)}</tbody></table></div>;
 }
 
-function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, tooltipFormatter, compactView = false }: NatureBarChartProps) {
+export function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, tooltipFormatter, compactView = false }: NatureBarChartProps) {
   const [table, setTable] = useState(false);
   const sorted = useMemo(() => labels.map((label, index) => ({ label, value: Number(values[index] ?? 0) })), [labels, values]);
   const sortedLabels = sorted.map((item) => item.label);
@@ -161,7 +161,7 @@ interface ShareDonutChartProps {
   ariaLabel: string;
 }
 
-function ShareDonutChart({
+export function ShareDonutChart({
   percentage, size, chartId, meLabel, othersLabel, meColor, othersColor,
   meMarkerClass, othersMarkerClass, centerLabel, ariaLabel,
 }: ShareDonutChartProps) {
@@ -226,7 +226,7 @@ export function LocalShareChart({ percentage, size = 210 }: { percentage: number
       meMarkerClass="local-share-tooltip-marker--me"
       othersMarkerClass="local-share-tooltip-marker--others"
       centerLabel="compras com ME locais"
-      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras homologadas ficaram com microempresas locais`}
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras ficaram com microempresas locais`}
     />
   );
 }
@@ -246,7 +246,7 @@ export function GeneralShareChart({ percentage, size = 210 }: { percentage: numb
       meMarkerClass="local-share-tooltip-marker--general-me"
       othersMarkerClass="local-share-tooltip-marker--general-others"
       centerLabel="compras com ME"
-      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras homologadas ficaram com microempresas, de qualquer cidade`}
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras ficaram com microempresas, de qualquer cidade`}
     />
   );
 }

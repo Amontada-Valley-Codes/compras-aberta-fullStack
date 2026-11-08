@@ -1,6 +1,8 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 import {
+  paymentsSummaryQuerySchema,
+  paymentSuppliersQuerySchema,
   getMicroenterpriseIndicatorQuerySchema,
   listDetailedBidsQuerySchema,
   listExpensesByNatureQuerySchema,
@@ -11,6 +13,14 @@ import {
 import { analyticsService } from "./analytics.service";
 
 const analyticsController = {
+  async getPaymentsSummary(request: FastifyRequest, reply: FastifyReply) {
+    const filters = paymentsSummaryQuerySchema.parse(request.query);
+    return reply.status(200).send(await analyticsService.getPaymentsSummary(filters));
+  },
+  async listPaymentSuppliers(request: FastifyRequest, reply: FastifyReply) {
+    const filters = paymentSuppliersQuerySchema.parse(request.query);
+    return reply.status(200).send(await analyticsService.listPaymentSuppliers(filters));
+  },
   async listDetailedBids(request: FastifyRequest, reply: FastifyReply) {
     const filters = listDetailedBidsQuerySchema.parse(request.query);
     const data = await analyticsService.listDetailedBids(filters);
