@@ -31,7 +31,7 @@ export function LandingHeader() {
             Gestor público
           </Link>
           <Link href="/#microempresa" onClick={closeMenu}>
-            Microempresa
+            Empresas
           </Link>
           <Link href="/analise" onClick={closeMenu}>
             Portal público

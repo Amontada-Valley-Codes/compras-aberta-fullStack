@@ -55,7 +55,7 @@ export const AccessStatus = ({ accessRequest }: { accessRequest: AccessRequest |
         toast.success('Acesso liberado!', {
           description: 'Bem-vindo(a) à área da sua empresa.',
         })
-        router.push(data.home ?? '/me')
+        router.push(data.home ?? '/empresa')
         return
       }
 

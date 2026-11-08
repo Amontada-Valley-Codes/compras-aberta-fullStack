@@ -1,0 +1,15 @@
+import type { Metadata } from "next";
+import { MeDashboard } from "@/features/dashboard/MeDashboard";
+
+export const metadata: Metadata = {
+  title: "Área da Empresa | Compras Abertas",
+};
+
+export default async function EmpresaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ oportunidade?: string }>;
+}) {
+  const params = await searchParams;
+  return <MeDashboard initialOpportunityId={params.oportunidade} />;
+}
