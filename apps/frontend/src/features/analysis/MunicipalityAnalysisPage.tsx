@@ -25,7 +25,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
   const exportParams = new URLSearchParams({ tipo: "licitacoes", municipio: filters.municipalityIbge ?? "", ano: String(filters.year) });
   if (filters.natureCode) exportParams.set("natureza", filters.natureCode);
   return <div className="analysis-page">
-    <header className="analysis-header"><div className="analysis-container"><BrandLogo /><nav><Link href="/me">Área da microempresa</Link></nav></div></header>
+    <header className="analysis-header"><div className="analysis-container"><BrandLogo /><nav><Link href="/empresa">Área da empresa</Link></nav></div></header>
     <main className="analysis-container analysis-main">
       <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a página inicial</Link>
       <section className="analysis-title-row"><div><h1>Licitações e microempresas em {municipalityName}</h1><p>Veja as dotações por natureza da despesa, os valores vencidos e a participação das microempresas nas licitações.</p></div></section>

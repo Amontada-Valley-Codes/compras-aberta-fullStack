@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
-  BarChart3,
   Building2,
   Check,
   ChevronDown,
@@ -70,6 +69,22 @@ export function MeBidCard({
   const [copiedCode, setCopiedCode] = useState(false);
 
   const prefetchDetail = usePrefetchMeBidDetail();
+  const prefetchTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (prefetchTimerRef.current) clearTimeout(prefetchTimerRef.current);
+    prefetchTimerRef.current = setTimeout(() => {
+      prefetchDetail(bid.agencyCnpj, bid.year, bid.sequential);
+    }, 280);
+  };
+
+  const handleMouseLeave = () => {
+    if (prefetchTimerRef.current) {
+      clearTimeout(prefetchTimerRef.current);
+      prefetchTimerRef.current = null;
+    }
+  };
+
   const shouldFetchDetail = activeTab === "files" || itemsExpanded;
 
   const { data: detailData, isLoading: loadingDetail } = useMeBidDetailQuery({
@@ -198,21 +213,13 @@ export function MeBidCard({
     );
   };
 
-  const scoreTone =
-    bid.match.score >= 70
-      ? "is-high"
-      : bid.match.score >= 45
-        ? "is-medium"
-        : "is-neutral";
-
   return (
     <article
       className={`me-bid-card ${isHidden ? "is-hidden-card" : ""}`}
-      onMouseEnter={() =>
-        prefetchDetail(bid.agencyCnpj, bid.year, bid.sequential)
-      }
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      {/* Topo: Órgão / Portal + Score e ações rápidas */}
+      {/* Topo: Órgão / Portal e ações rápidas */}
       <div className="me-bid-card__top">
         <div className="me-bid-card__org-group">
           <button
@@ -251,17 +258,6 @@ export function MeBidCard({
         </div>
 
         <div className="me-bid-card__top-actions">
-          <span
-            className={`me-bid-card__score ${scoreTone}`}
-            title={
-              bid.match.matchedKeywords.length > 0
-                ? `Compatível com: ${bid.match.matchedKeywords.join(", ")}`
-                : bid.match.matchedCnae ?? "Índice de aderência ao perfil"
-            }
-          >
-            <BarChart3 size={14} />
-            Score {bid.match.score}
-          </span>
 
           <button
             type="button"

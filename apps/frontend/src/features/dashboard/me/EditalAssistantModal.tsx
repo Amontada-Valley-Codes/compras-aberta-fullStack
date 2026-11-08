@@ -235,9 +235,9 @@ function buildAnswer(
         : "Não houve termos diretos batendo com palavras-chave, mas você pode participar caso seu objeto social atenda ao edital.";
     return {
       text:
-        `📊 **Score calculado: ${bid.match.score}/100**\n` +
+        `📊 **Aderência ao perfil da empresa:**\n` +
         `• **Referência:** ${bid.match.matchedCnae ?? "Análise geral do perfil"}\n` +
-        `• **Mesmo município da sua empresa:** ${bid.match.sameCity ? "Sim (bônus local aplicado)" : "Não"}\n` +
+        `• **Mesmo município da sua empresa:** ${bid.match.sameCity ? "Sim (prioridade local)" : "Não"}\n` +
         `• ${kws}`,
     };
   }
@@ -381,7 +381,7 @@ export function EditalAssistantModal({
         content:
           `Olá! Analisei os dados oficiais do **${bid.modality} nº ${bid.purchaseNumber}** de **${formatOrgName(bid.unitName || bid.agencyName)}** (${bid.city}/${bid.uf}).\n\n` +
           `• **Objeto:** ${formatCleanTitle(bid.object)}\n` +
-          `• **Valor total estimado:** ${valLabel} • **Score:** ${bid.match.score}\n` +
+          `• **Valor total estimado:** ${valLabel}\n` +
           `• **Prazo final:** ${formatDateBr(bid.closingAt)}\n\n` +
           `O que você gostaria de verificar neste edital?`,
       },

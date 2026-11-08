@@ -21,16 +21,25 @@ import {
   BRAZIL_STATES,
   RADAR_SPHERES,
 } from "@/features/dashboard/me/radar-types";
+import {
+  fetchPncpJson,
+  isPncpRateLimited,
+} from "@/features/dashboard/me/pncp-limiter";
+import {
+  readOpenBidsDiskCache,
+  writeOpenBidsDiskCache,
+  type CachedEntry,
+} from "@/features/dashboard/me/pncp-disk-cache";
 
-const PNCP_BASE_URL = "https://pncp.gov.br/api/consulta";
 const DAY_MS = 24 * 60 * 60 * 1000;
-const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos
-const CLOSED_FAV_TTL_MS = 30 * 60 * 1000; // 30 minutos
+const CACHE_FRESH_MS = 20 * 60 * 1000; // 20 minutos (completamente fresco, sem sync)
+const CACHE_STALE_MS = 24 * 60 * 60 * 1000; // 24 horas (stale-while-revalidate imediato)
+const CLOSED_FAV_TTL_MS = 60 * 60 * 1000; // 1 hora
 const GEO_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 const PNCP_PAGE_SIZE = 50;
-const MAX_SAFE_PAGES = 40; // Até 2.000 editais abertos simultaneamente por UF
-const FETCH_CONCURRENCY = 4;
-const MAX_ATTEMPTS = 3;
+const MAX_INITIAL_PAGES = 3; // Até 150 editais carregados na resposta imediata (em ~1.2s)
+const MAX_BACKGROUND_PAGES = 30; // Até 1.500 editais carregados em segundo plano
+const BACKGROUND_PAGE_INTERVAL_MS = 300; // 300ms de espaçamento entre páginas para evitar 429
 
 interface PncpPageResponse {
   data?: RawPncpItem[];
@@ -43,12 +52,6 @@ interface PageFetchResult {
   data: RawPncpItem[];
   totalPaginas: number;
   totalRegistros: number;
-}
-
-interface CachedEntry {
-  timestamp: number;
-  rawOpenBids: MePncpBid[];
-  meta: Omit<MePncpSyncMeta, "totalOpenBids">;
 }
 
 interface MunicipalityCoord {
@@ -67,7 +70,8 @@ interface StateGeoIndex {
 }
 
 const memoryCache = new Map<string, CachedEntry>();
-const inFlightLoads = new Map<string, Promise<CachedEntry>>();
+const inFlightInitialLoads = new Map<string, Promise<CachedEntry>>();
+const inFlightBackgroundSyncs = new Set<string>();
 const closedFavoriteCache = new Map<
   string,
   { timestamp: number; bid: MePncpBid | null }
@@ -118,11 +122,11 @@ async function getStateGeoIndex(uf: string): Promise<StateGeoIndex | null> {
     const [metaRes, citiesRes] = await Promise.all([
       fetch(
         `https://servicodados.ibge.gov.br/api/v3/malhas/estados/${stateDef.ibgeCode}/metadados?intrarregiao=municipio`,
-        { signal: AbortSignal.timeout(12_000) },
+        { signal: AbortSignal.timeout(10_000) },
       ),
       fetch(
         `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${validUf}/municipios`,
-        { signal: AbortSignal.timeout(12_000) },
+        { signal: AbortSignal.timeout(10_000) },
       ),
     ]);
 
@@ -178,88 +182,37 @@ async function getStateGeoIndex(uf: string): Promise<StateGeoIndex | null> {
   }
 }
 
-async function mapWithConcurrency<T, R>(
-  items: T[],
-  limit: number,
-  worker: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const results = new Array<R>(items.length);
-  let nextIdx = 0;
-
-  await Promise.all(
-    Array.from({ length: Math.min(limit, items.length) }, async () => {
-      while (nextIdx < items.length) {
-        const current = nextIdx++;
-        results[current] = await worker(items[current]);
-      }
-    }),
-  );
-
-  return results;
-}
-
 async function fetchPncpProposalPage(
   locationFilter: string,
   futureYmd: string,
   page: number,
-  timeoutMs = 22_000,
+  timeoutMs = 12_000,
 ): Promise<PageFetchResult> {
   const path = `/v1/contratacoes/proposta?dataFinal=${futureYmd}&${locationFilter}&pagina=${page}&tamanhoPagina=${PNCP_PAGE_SIZE}`;
+  const res = await fetchPncpJson<PncpPageResponse>(path, { timeoutMs, maxAttempts: 2 });
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-    try {
-      const res = await fetch(`${PNCP_BASE_URL}${path}`, {
-        headers: { Accept: "application/json" },
-        cache: "no-store",
-        signal: AbortSignal.timeout(timeoutMs),
-      });
-
-      if (res.status === 204) {
-        return { ok: true, data: [], totalPaginas: 0, totalRegistros: 0 };
-      }
-
-      if (res.status === 429) {
-        if (attempt < MAX_ATTEMPTS) {
-          await wait(3_500 * attempt);
-          continue;
-        }
-        return { ok: false, data: [], totalPaginas: 0, totalRegistros: 0 };
-      }
-
-      if (!res.ok) {
-        if (res.status >= 500 && attempt < MAX_ATTEMPTS) {
-          await wait(1_000 * attempt);
-          continue;
-        }
-        return { ok: false, data: [], totalPaginas: 0, totalRegistros: 0 };
-      }
-
-      const json = (await res.json()) as PncpPageResponse;
-      const data = Array.isArray(json?.data) ? json.data : [];
-      return {
-        ok: true,
-        data,
-        totalPaginas:
-          typeof json?.totalPaginas === "number" && json.totalPaginas >= 0
-            ? json.totalPaginas
-            : data.length > 0
-              ? 1
-              : 0,
-        totalRegistros:
-          typeof json?.totalRegistros === "number" && json.totalRegistros >= 0
-            ? json.totalRegistros
-            : data.length,
-      };
-    } catch {
-      if (attempt < MAX_ATTEMPTS) {
-        await wait(1_000 * attempt);
-        continue;
-      }
-      return { ok: false, data: [], totalPaginas: 0, totalRegistros: 0 };
-    }
+  if (res.status === 204) {
+    return { ok: true, data: [], totalPaginas: 0, totalRegistros: 0 };
   }
 
-  return { ok: false, data: [], totalPaginas: 0, totalRegistros: 0 };
+  if (!res.ok || !res.data) {
+    return { ok: false, data: [], totalPaginas: 0, totalRegistros: 0 };
+  }
+
+  const json = res.data;
+  const data = Array.isArray(json?.data) ? json.data : [];
+  const totalPaginas =
+    typeof json?.totalPaginas === "number" && json.totalPaginas >= 0
+      ? json.totalPaginas
+      : data.length > 0
+        ? 1
+        : 0;
+  const totalRegistros =
+    typeof json?.totalRegistros === "number" && json.totalRegistros >= 0
+      ? json.totalRegistros
+      : data.length;
+
+  return { ok: true, data, totalPaginas, totalRegistros };
 }
 
 function refreshBidDeadlineState(bid: MePncpBid, nowMs: number): MePncpBid {
@@ -309,65 +262,123 @@ function materializeOpenBids(entry: CachedEntry): MeOpenBidsResponse {
   };
 }
 
-async function fetchAllOpenBidsFromPncp(
-  ibge: string,
-  uf = "CE",
-): Promise<CachedEntry> {
-  const now = new Date();
-  const nowMs = now.getTime();
-  const futureLimit = new Date(nowMs + 365 * DAY_MS);
-  const futureYmd = ymd(futureLimit);
-  const validUf = sanitizeUf(uf);
-  const scope = ibge || validUf;
-  const locationFilter = ibge
-    ? `codigoMunicipioIbge=${encodeURIComponent(ibge)}`
-    : `uf=${encodeURIComponent(validUf)}`;
+/**
+ * Sincroniza em segundo plano as páginas restantes do PNCP de forma gradual e cadenciada,
+ * sem travar as requisições da interface do usuário e sem gerar 429.
+ */
+function triggerBackgroundSync(
+  scope: string,
+  locationFilter: string,
+  futureYmd: string,
+  startPage: number,
+  totalPages: number,
+  totalRecords: number,
+  initialBids: MePncpBid[],
+) {
+  if (inFlightBackgroundSyncs.has(scope)) return;
+  inFlightBackgroundSyncs.add(scope);
 
+  (async () => {
+    try {
+      const maxPages = Math.min(totalPages, MAX_BACKGROUND_PAGES);
+      const seen = new Set<string>(initialBids.map((b) => b.id));
+      const accumulatedBids = [...initialBids];
+      let fetchedPagesCount = startPage - 1;
+
+      for (let p = startPage; p <= maxPages; p += 1) {
+        if (isPncpRateLimited()) {
+          // Se o PNCP estiver temporariamente em pausa, espera o desbloqueio
+          await wait(22_000);
+        }
+
+        const pageResult = await fetchPncpProposalPage(locationFilter, futureYmd, p);
+        if (pageResult.ok) {
+          fetchedPagesCount += 1;
+          const nowMs = Date.now();
+          for (const raw of pageResult.data) {
+            if (!raw?.numeroControlePNCP || seen.has(raw.numeroControlePNCP)) continue;
+            seen.add(raw.numeroControlePNCP);
+            const mapped = mapRawToBid(raw, nowMs);
+            if (mapped.isOpen) {
+              accumulatedBids.push(mapped);
+            }
+          }
+        }
+
+        // Salva periodicamente a cada 5 páginas ou na última para disponibilizar dados progressivamente
+        if (p % 5 === 0 || p === maxPages) {
+          accumulatedBids.sort((a, b) =>
+            (a.closingAt ?? "9999").localeCompare(b.closingAt ?? "9999"),
+          );
+          const updatedEntry: CachedEntry = {
+            timestamp: Date.now(),
+            rawOpenBids: accumulatedBids,
+            meta: {
+              scope,
+              pncpTotalRecords: totalRecords,
+              pncpTotalPages: totalPages,
+              pncpFetchedPages: fetchedPagesCount,
+              isComplete: fetchedPagesCount >= maxPages || p >= totalPages,
+              updatedAt: new Date().toISOString(),
+            },
+          };
+          memoryCache.set(`pncp-me-open:${scope}`, updatedEntry);
+          await writeOpenBidsDiskCache(scope, updatedEntry);
+        }
+
+        // Espaçamento amigável entre páginas
+        await wait(BACKGROUND_PAGE_INTERVAL_MS);
+      }
+    } catch (err) {
+      console.warn(`[PNCP Background Sync] Erro no sync de ${scope}:`, err);
+    } finally {
+      inFlightBackgroundSyncs.delete(scope);
+    }
+  })();
+}
+
+/**
+ * Carrega a primeira fatia de editais de forma rápida (páginas 1 a MAX_INITIAL_PAGES).
+ */
+async function fetchInitialOpenBids(
+  scope: string,
+  locationFilter: string,
+  futureYmd: string,
+): Promise<CachedEntry> {
+  const nowMs = Date.now();
   const firstPage = await fetchPncpProposalPage(locationFilter, futureYmd, 1);
+
   if (!firstPage.ok) {
-    throw new Error(
-      "Não foi possível consultar as licitações abertas no PNCP.",
-    );
+    throw new Error("Não foi possível consultar as licitações abertas no PNCP neste momento.");
   }
 
   const pncpTotalPages = firstPage.totalPaginas;
   const pncpTotalRecords = firstPage.totalRegistros;
-  const pagesToFetch = Math.min(pncpTotalPages, MAX_SAFE_PAGES);
-
-  let restPages: PageFetchResult[] = [];
-  if (pagesToFetch > 1) {
-    const pageNumbers = Array.from(
-      { length: pagesToFetch - 1 },
-      (_, idx) => idx + 2,
-    );
-    restPages = await mapWithConcurrency(
-      pageNumbers,
-      FETCH_CONCURRENCY,
-      (pageNum) => fetchPncpProposalPage(locationFilter, futureYmd, pageNum),
-    );
-  }
-
-  const succeededPagesCount =
-    pncpTotalPages === 0
-      ? 0
-      : 1 + restPages.filter((result) => result.ok).length;
-
-  const isComplete =
-    pncpTotalPages === 0 ||
-    (succeededPagesCount === pncpTotalPages &&
-      pncpTotalPages <= MAX_SAFE_PAGES);
+  const initialPagesToFetch = Math.min(pncpTotalPages, MAX_INITIAL_PAGES);
 
   const seen = new Set<string>();
   const openBids: MePncpBid[] = [];
 
-  for (const pageResult of [firstPage, ...restPages]) {
-    if (!pageResult.ok) continue;
-    for (const raw of pageResult.data) {
-      if (!raw?.numeroControlePNCP || seen.has(raw.numeroControlePNCP)) continue;
-      seen.add(raw.numeroControlePNCP);
-      const mapped = mapRawToBid(raw, nowMs);
-      if (mapped.isOpen) {
-        openBids.push(mapped);
+  for (const raw of firstPage.data) {
+    if (!raw?.numeroControlePNCP || seen.has(raw.numeroControlePNCP)) continue;
+    seen.add(raw.numeroControlePNCP);
+    const mapped = mapRawToBid(raw, nowMs);
+    if (mapped.isOpen) openBids.push(mapped);
+  }
+
+  let pagesFetched = 1;
+
+  // Busca páginas 2 e 3 em sequência rápida
+  for (let p = 2; p <= initialPagesToFetch; p += 1) {
+    await wait(200);
+    const nextPage = await fetchPncpProposalPage(locationFilter, futureYmd, p);
+    if (nextPage.ok) {
+      pagesFetched += 1;
+      for (const raw of nextPage.data) {
+        if (!raw?.numeroControlePNCP || seen.has(raw.numeroControlePNCP)) continue;
+        seen.add(raw.numeroControlePNCP);
+        const mapped = mapRawToBid(raw, nowMs);
+        if (mapped.isOpen) openBids.push(mapped);
       }
     }
   }
@@ -376,48 +387,121 @@ async function fetchAllOpenBidsFromPncp(
     (a.closingAt ?? "9999").localeCompare(b.closingAt ?? "9999"),
   );
 
-  return {
+  const isComplete = pagesFetched >= pncpTotalPages || pncpTotalPages <= 1;
+
+  const entry: CachedEntry = {
     timestamp: Date.now(),
     rawOpenBids: openBids,
     meta: {
       scope,
       pncpTotalRecords,
       pncpTotalPages,
-      pncpFetchedPages: succeededPagesCount,
+      pncpFetchedPages: pagesFetched,
       isComplete,
       updatedAt: new Date().toISOString(),
     },
   };
+
+  // Se houver páginas adicionais, dispara o sincronismo em background sem bloquear o usuário
+  if (!isComplete && pagesFetched < pncpTotalPages) {
+    triggerBackgroundSync(
+      scope,
+      locationFilter,
+      futureYmd,
+      pagesFetched + 1,
+      pncpTotalPages,
+      pncpTotalRecords,
+      openBids,
+    );
+  }
+
+  return entry;
 }
 
+/**
+ * Obtém ou carrega os editais abertos com estratégia Stale-While-Revalidate e persistência em disco.
+ */
 async function getOrLoadOpenBids(
   ibge: string,
   uf = "CE",
   forceRefresh = false,
 ): Promise<MeOpenBidsResponse> {
   const validUf = sanitizeUf(uf);
-  const cacheKey = `pncp-me-open:${ibge || validUf}`;
-  const existing = memoryCache.get(cacheKey);
+  const scope = ibge || validUf;
+  const cacheKey = `pncp-me-open:${scope}`;
 
-  if (
-    !forceRefresh &&
-    existing &&
-    Date.now() - existing.timestamp < CACHE_TTL_MS
-  ) {
-    return materializeOpenBids(existing);
+  const locationFilter = ibge
+    ? `codigoMunicipioIbge=${encodeURIComponent(ibge)}`
+    : `uf=${encodeURIComponent(validUf)}`;
+  const nowMs = Date.now();
+  const futureLimit = new Date(nowMs + 365 * DAY_MS);
+  const futureYmd = ymd(futureLimit);
+
+  // 1. Verifica cache em memória
+  let existing = memoryCache.get(cacheKey);
+
+  // 2. Se não estiver em memória, tenta ler do cache em disco
+  if (!existing) {
+    const fromDisk = await readOpenBidsDiskCache(scope);
+    if (fromDisk) {
+      existing = fromDisk;
+      memoryCache.set(cacheKey, fromDisk);
+    }
   }
 
-  let pending = inFlightLoads.get(cacheKey);
+  // 3. Se temos dados em cache:
+  if (existing) {
+    const age = nowMs - existing.timestamp;
+
+    // Se o usuário solicitou refresh explícito via botão
+    if (forceRefresh) {
+      try {
+        const freshInitial = await fetchInitialOpenBids(scope, locationFilter, futureYmd);
+        memoryCache.set(cacheKey, freshInitial);
+        await writeOpenBidsDiskCache(scope, freshInitial);
+        return materializeOpenBids(freshInitial);
+      } catch {
+        // Se a chamada ao PNCP falhar no refresh forçado, usa os dados que já temos
+        return materializeOpenBids(existing);
+      }
+    }
+
+    // Se o cache for recente (< 20 min), responde imediatamente
+    if (age < CACHE_FRESH_MS) {
+      return materializeOpenBids(existing);
+    }
+
+    // Se o cache for razoavelmente recente (< 24 horas): STALE-WHILE-REVALIDATE!
+    // Devolve imediatamente o que temos na memória (< 5ms) e revalida em segundo plano
+    if (age < CACHE_STALE_MS) {
+      if (!inFlightBackgroundSyncs.has(scope)) {
+        triggerBackgroundSync(
+          scope,
+          locationFilter,
+          futureYmd,
+          1,
+          existing.meta.pncpTotalPages || 1,
+          existing.meta.pncpTotalRecords || existing.rawOpenBids.length,
+          existing.rawOpenBids,
+        );
+      }
+      return materializeOpenBids(existing);
+    }
+  }
+
+  // 4. Sem cache ou cache muito antigo (> 24 horas): faz carga inicial rápida
+  let pending = inFlightInitialLoads.get(cacheKey);
   if (!pending) {
-    pending = fetchAllOpenBidsFromPncp(ibge, validUf)
-      .then((fresh) => {
+    pending = fetchInitialOpenBids(scope, locationFilter, futureYmd)
+      .then(async (fresh) => {
         memoryCache.set(cacheKey, fresh);
+        await writeOpenBidsDiskCache(scope, fresh);
         return fresh;
       })
       .finally(() => {
-        inFlightLoads.delete(cacheKey);
+        inFlightInitialLoads.delete(cacheKey);
       });
-    inFlightLoads.set(cacheKey, pending);
+    inFlightInitialLoads.set(cacheKey, pending);
   }
 
   try {
@@ -445,25 +529,39 @@ async function fetchSingleBidByControlId(
   if (!parsed) return null;
 
   try {
-    const res = await fetch(
-      `${PNCP_BASE_URL}/v1/orgaos/${parsed.cnpj}/compras/${parsed.ano}/${parsed.sequencial}`,
-      {
-        headers: { Accept: "application/json" },
-        cache: "no-store",
-        signal: AbortSignal.timeout(12_000),
-      },
-    );
-    if (!res.ok || res.status === 204) {
+    const path = `/v1/orgaos/${parsed.cnpj}/compras/${parsed.ano}/${parsed.sequencial}`;
+    const res = await fetchPncpJson<RawPncpItem>(path, { timeoutMs: 8_000, maxAttempts: 2 });
+    if (!res.ok || !res.data) {
       closedFavoriteCache.set(controlId, { timestamp: Date.now(), bid: null });
       return null;
     }
-    const raw = (await res.json()) as RawPncpItem;
+    const raw = res.data;
     const bid = raw ? mapRawToBid(raw, Date.now()) : null;
     closedFavoriteCache.set(controlId, { timestamp: Date.now(), bid });
     return bid;
   } catch {
     return null;
   }
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  worker: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIdx = 0;
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (nextIdx < items.length) {
+        const current = nextIdx++;
+        results[current] = await worker(items[current]);
+      }
+    }),
+  );
+
+  return results;
 }
 
 export async function GET(request: Request) {
@@ -531,11 +629,11 @@ export async function POST(request: Request) {
       const foundIds = new Set(foundOpen.map((b) => b.id));
       const missingIds = favoriteIds
         .filter((id) => !foundIds.has(id))
-        .slice(0, 20);
+        .slice(0, 15);
 
       const resolvedMissing =
         missingIds.length > 0
-          ? await mapWithConcurrency(missingIds, 4, fetchSingleBidByControlId)
+          ? await mapWithConcurrency(missingIds, 2, fetchSingleBidByControlId)
           : [];
 
       sourceBids = [

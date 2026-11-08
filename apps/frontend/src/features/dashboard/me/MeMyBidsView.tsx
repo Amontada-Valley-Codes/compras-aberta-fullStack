@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  BarChart3,
   Building2,
   Calculator,
   Calendar as CalendarIcon,
@@ -30,18 +29,28 @@ import {
 } from "./bid-formatters";
 import type { WorkspaceSubTab } from "./MeBidWorkspace";
 import { useMeBidDetailQuery } from "./use-me-licitacoes";
+import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import {
-  BID_STAGES,
   enrichSnapshotBid,
   STAGE_MAP,
   toLocalDateKey,
-  type BidStage,
   type CalendarEventItem,
   type TrackedBid,
 } from "./workspace-types";
 
-type StageFilter = BidStage | "todas";
+type StageFilter = "todas" | "analise" | "disputa" | "concluidas";
 type MyBidsSort = "opening" | "recent" | "value";
+
+const ESSENTIAL_STAGES: Array<{
+  id: StageFilter;
+  label: string;
+  tone: string;
+}> = [
+  { id: "todas", label: "Todas", tone: "blue" },
+  { id: "analise", label: "Em Análise", tone: "blue" },
+  { id: "disputa", label: "Disputa / Proposta", tone: "indigo" },
+  { id: "concluidas", label: "Concluídas", tone: "emerald" },
+];
 
 export interface MeMyBidsViewProps {
   trackedBids: TrackedBid[];
@@ -89,7 +98,15 @@ export function MeMyBidsView({
   onNavigateAgenda,
 }: MeMyBidsViewProps) {
   const [stageFilter, setStageFilter] = useState<StageFilter>(() => {
-    if (trackedBids.some((t) => t.stage === "proposta")) return "proposta";
+    if (
+      trackedBids.some(
+        (t) =>
+          t.stage === "proposta" ||
+          t.stage === "lance" ||
+          t.stage === "sessao",
+      )
+    )
+      return "disputa";
     if (trackedBids.some((t) => t.stage === "analise")) return "analise";
     return "todas";
   });
@@ -105,20 +122,28 @@ export function MeMyBidsView({
   const [calMonth, setCalMonth] = useState(now.getMonth());
 
   const stageCounts = useMemo(() => {
-    const counts: Record<BidStage, number> = {
-      analise: 0,
-      proposta: 0,
-      lance: 0,
-      sessao: 0,
-      homologada: 0,
-      desistida: 0,
-    };
+    let analise = 0;
+    let disputa = 0;
+    let concluidas = 0;
     for (const tb of trackedBids) {
-      if (counts[tb.stage] !== undefined) {
-        counts[tb.stage] += 1;
+      if (tb.stage === "analise") {
+        analise += 1;
+      } else if (
+        tb.stage === "proposta" ||
+        tb.stage === "lance" ||
+        tb.stage === "sessao"
+      ) {
+        disputa += 1;
+      } else if (tb.stage === "homologada" || tb.stage === "desistida") {
+        concluidas += 1;
       }
     }
-    return counts;
+    return {
+      todas: trackedBids.length,
+      analise,
+      disputa,
+      concluidas,
+    };
   }, [trackedBids]);
 
   const allTags = useMemo(() => {
@@ -141,7 +166,22 @@ export function MeMyBidsView({
     const q = searchQuery.trim().toLowerCase();
 
     const list = trackedBids.filter((tb) => {
-      if (stageFilter !== "todas" && tb.stage !== stageFilter) {
+      if (stageFilter === "analise" && tb.stage !== "analise") {
+        return false;
+      }
+      if (
+        stageFilter === "disputa" &&
+        tb.stage !== "proposta" &&
+        tb.stage !== "lance" &&
+        tb.stage !== "sessao"
+      ) {
+        return false;
+      }
+      if (
+        stageFilter === "concluidas" &&
+        tb.stage !== "homologada" &&
+        tb.stage !== "desistida"
+      ) {
         return false;
       }
       if (tagFilter && !tb.tags.includes(tagFilter)) {
@@ -287,23 +327,13 @@ export function MeMyBidsView({
 
       {/* Abas de Fase do Funil */}
       <nav className="mybids-stage-tabs" aria-label="Fases das licitações">
-        <button
-          type="button"
-          className={`mybids-stage-tab ${stageFilter === "todas" ? "is-active" : ""}`}
-          onClick={() => setStageFilter("todas")}
-        >
-          <span>Todas</span>
-          {trackedBids.length > 0 && <em>{trackedBids.length}</em>}
-        </button>
-
-        {BID_STAGES.map((st) => {
+        {ESSENTIAL_STAGES.map((st) => {
           const count = stageCounts[st.id];
-          const isDesistida = st.id === "desistida";
           return (
             <button
               key={st.id}
               type="button"
-              className={`mybids-stage-tab ${stageFilter === st.id ? "is-active" : ""} ${isDesistida ? "is-danger" : ""}`}
+              className={`mybids-stage-tab ${stageFilter === st.id ? "is-active" : ""}`}
               onClick={() => setStageFilter(st.id)}
             >
               <span>{st.label}</span>
@@ -365,15 +395,19 @@ export function MeMyBidsView({
         </div>
 
         <div className="mybids-toolbar__right">
-          <select
-            className="mybids-filter-select"
+          <PublicFilterSelect
+            name="mybids-ordenar"
+            label="Ordenar por"
+            icon="sort"
+            variant="dashboard"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as MyBidsSort)}
-          >
-            <option value="opening">Ordenar: Abertura mais próxima</option>
-            <option value="recent">Ordenar: Atualizadas recentemente</option>
-            <option value="value">Ordenar: Maior valor estimado</option>
-          </select>
+            options={[
+              { value: "opening", label: "Abertura mais próxima" },
+              { value: "recent", label: "Atualizadas recentemente" },
+              { value: "value", label: "Maior valor estimado" },
+            ]}
+            onValueChange={(val) => setSortBy((val as MyBidsSort) || "opening")}
+          />
         </div>
       </div>
 
@@ -629,10 +663,6 @@ function TrackedBidCard({
         </div>
 
         <div className="mybids-card__top-right">
-          <span className="me-bid-card__score is-high">
-            <BarChart3 size={13} />
-            Score {bid.match.score}
-          </span>
           <a
             href={bid.portalUrl || bid.pncpGovUrl}
             target="_blank"
@@ -780,7 +810,7 @@ function TrackedBidCard({
       <div className="mybids-card__actions">
         <button
           type="button"
-          className="ws-btn is-navy"
+          className="ws-btn is-primary"
           onClick={() => onManage("overview")}
         >
           Gerenciar
@@ -808,7 +838,7 @@ function TrackedBidCard({
 
         <button
           type="button"
-          className="ws-btn is-teal"
+          className="ws-btn is-ghost"
           onClick={onOpenChat}
         >
           <Sparkles size={15} />

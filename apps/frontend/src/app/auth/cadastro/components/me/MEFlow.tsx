@@ -25,6 +25,7 @@ import {
   type DocumentField,
   type MEData,
   type MEField,
+  type Porte,
 } from './form'
 import { StepDocumentos } from './StepDocumentos'
 import { StepEmpresa } from './StepEmpresa'
@@ -50,7 +51,23 @@ export const MEFlow = ({ data, setData, onExit }: MEFlowProps) => {
   })
   const { step, furthest, errors, isReview } = wizard
 
-  const cnpjLookup = useCnpjLookup((company) => updateData({ nome_empresa: company.razaoSocial }))
+  const cnpjLookup = useCnpjLookup((company) => {
+    const rawPorte = company.porte?.toUpperCase() || ''
+    const detectedPorte: Porte | undefined = rawPorte.includes('EPP')
+      ? 'EPP'
+      : rawPorte.includes('MEI')
+        ? 'MEI'
+        : rawPorte.includes('ME')
+          ? 'ME'
+          : rawPorte.includes('DEMAIS') || rawPorte.includes('GRANDE') || rawPorte.includes('MEDIO')
+            ? 'DEMAIS'
+            : undefined
+
+    updateData({
+      nome_empresa: company.razaoSocial,
+      ...(detectedPorte ? { porte_empresa: detectedPorte } : {}),
+    })
+  })
 
   function updateData(patch: Partial<MEData>) {
     setData((prev) => ({ ...prev, ...patch }))
