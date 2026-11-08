@@ -7,7 +7,7 @@ export const registerBusinessSchema = z.object({
   password: password.describe("Senha de acesso (mínimo 6 caracteres)."),
   cnpj: cnpj,
   nome_empresa: z.string().trim().min(2).max(200).describe("Nome da empresa (2 a 200 caracteres)."),
-  porte_empresa: z.enum(["MEI", "ME", "EPP"]).describe("Porte da empresa."),
+  porte_empresa: z.enum(["MEI", "ME", "EPP", "DEMAIS"]).describe("Porte da empresa."),
   email: email,
 });
 

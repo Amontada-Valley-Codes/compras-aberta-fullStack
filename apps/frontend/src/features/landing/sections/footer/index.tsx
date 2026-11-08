@@ -20,7 +20,7 @@ export function LandingFooter() {
         </div>
         <div>
           <b>Acessos</b>
-          <Link href="/me">Área da microempresa</Link>
+          <Link href="/empresa">Área da empresa</Link>
           <Link href="/gestor">Área do gestor público</Link>
           <Link href="/contato">Contato</Link>
         </div>

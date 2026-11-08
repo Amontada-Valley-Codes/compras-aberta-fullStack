@@ -59,7 +59,7 @@ export function verifySessionToken(token: string): SessionPayload | null {
 export function sessionHomePath(session: SessionPayload): string {
   if (session.role === "ADMIN") return "/admin";
   if (session.role === "MANAGER") return "/gestor";
-  return session.accessStatus === "APPROVED" ? "/me" : ACCESS_STATUS_PATH;
+  return session.accessStatus === "APPROVED" ? "/empresa" : ACCESS_STATUS_PATH;
 }
 
 export const authCookieOptions = {

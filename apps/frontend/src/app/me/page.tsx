@@ -1,9 +1,4 @@
-import type { Metadata } from "next";
-import { MeDashboard } from "@/features/dashboard/MeDashboard";
-
-export const metadata: Metadata = {
-  title: "Área da Microempresa | Compras Abertas",
-};
+import { redirect } from "next/navigation";
 
 export default async function MicroempresaPage({
   searchParams,
@@ -11,5 +6,8 @@ export default async function MicroempresaPage({
   searchParams: Promise<{ oportunidade?: string }>;
 }) {
   const params = await searchParams;
-  return <MeDashboard initialOpportunityId={params.oportunidade} />;
+  const query = params.oportunidade
+    ? `?oportunidade=${encodeURIComponent(params.oportunidade)}`
+    : "";
+  redirect(`/empresa${query}`);
 }

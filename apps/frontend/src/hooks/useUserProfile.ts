@@ -18,7 +18,7 @@ export interface UserProfile {
   business: {
     cnpj: string;
     nome_empresa: string;
-    porte_empresa: "MEI" | "ME" | "EPP";
+    porte_empresa: "MEI" | "ME" | "EPP" | "DEMAIS";
     cnaePrincipal?: { codigo: string; descricao: string } | null;
     cnaes?: CompanyCnae[];
     municipio?: { nome: string; uf: string; codigoIbge: number | null } | null;

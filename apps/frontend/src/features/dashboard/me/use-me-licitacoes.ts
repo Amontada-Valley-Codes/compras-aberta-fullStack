@@ -79,6 +79,8 @@ async function fetchBidDetail(
   return (await res.json()) as MeBidDetailResponse;
 }
 
+const prefetchedDetailKeys = new Set<string>();
+
 /**
  * Consulta completa de todas as licitações abertas no estado selecionado (visão geral, gráficos, KPIs e contadores).
  */
@@ -88,8 +90,10 @@ export function useMeOpenBidsQuery(ibge = "", uf = "CE") {
   const query = useQuery({
     queryKey: meLicitacoesKeys.openSummary(ibge, uf),
     queryFn: () => fetchOpenBidsSummary(ibge, uf, false),
-    staleTime: 5 * 60 * 1000, // 5 min
-    gcTime: 30 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 min
+    gcTime: 60 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   const refreshMutation = useMutation({
@@ -122,8 +126,10 @@ export function useMePaginatedBidsQuery(params: MePaginatedBidsRequest) {
     queryKey: meLicitacoesKeys.page(params),
     queryFn: () => fetchPaginatedBids(params),
     placeholderData: keepPreviousData,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 20 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   const totalPages = query.data?.totalPages ?? 1;
@@ -140,7 +146,7 @@ export function useMePaginatedBidsQuery(params: MePaginatedBidsRequest) {
       void queryClient.prefetchQuery({
         queryKey: meLicitacoesKeys.page(nextParams),
         queryFn: () => fetchPaginatedBids(nextParams),
-        staleTime: 5 * 60 * 1000,
+        staleTime: 10 * 60 * 1000,
       });
     }
   }, [currentPage, totalPages, params, query.data, query.isPlaceholderData, queryClient]);
@@ -157,7 +163,7 @@ export function useMePaginatedBidsQuery(params: MePaginatedBidsRequest) {
       void queryClient.prefetchQuery({
         queryKey: meLicitacoesKeys.page(targetParams),
         queryFn: () => fetchPaginatedBids(targetParams),
-        staleTime: 5 * 60 * 1000,
+        staleTime: 10 * 60 * 1000,
       });
     },
     [currentPage, params, queryClient, totalPages],
@@ -191,8 +197,10 @@ export function useMeBidDetailQuery(params: {
     queryKey: meLicitacoesKeys.detail(cleanCnpj, year, sequential),
     queryFn: () => fetchBidDetail(cleanCnpj, year, sequential),
     enabled: valid,
-    staleTime: 15 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -203,11 +211,14 @@ export function usePrefetchMeBidDetail() {
     (agencyCnpj?: string | null, year?: number | null, sequential?: number | null) => {
       const cleanCnpj = (agencyCnpj ?? "").replace(/\D/g, "");
       if (cleanCnpj.length !== 14 || !year || !sequential) return;
+      const key = `${cleanCnpj}:${year}:${sequential}`;
+      if (prefetchedDetailKeys.has(key)) return;
+      prefetchedDetailKeys.add(key);
 
       void queryClient.prefetchQuery({
         queryKey: meLicitacoesKeys.detail(cleanCnpj, year, sequential),
         queryFn: () => fetchBidDetail(cleanCnpj, year, sequential),
-        staleTime: 15 * 60 * 1000,
+        staleTime: 30 * 60 * 1000,
       });
     },
     [queryClient],
