@@ -1,5 +1,6 @@
 # Refatoração de /analise — pagamentos
 
+> Substituído pelo fluxo de pagamentos confirmado pelo usuário: [FONTE-PAGAMENTOS-GRAFICOS.md](FONTE-PAGAMENTOS-GRAFICOS.md).
 > Histórico: o fluxo atual de `/analise` está em [ALINHAMENTO-GRAFICOS-ANALISE.md](ALINHAMENTO-GRAFICOS-ANALISE.md).
 Contrato consultado em 05/11/2026: https://comprasabertas.amontadavalley.com.br/api-dados/docs.
 

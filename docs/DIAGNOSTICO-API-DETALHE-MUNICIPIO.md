@@ -1,5 +1,6 @@
 # Diagnóstico e integração da visão detalhada do município
 
+> Substituído pelo fluxo de pagamentos confirmado pelo usuário: [FONTE-PAGAMENTOS-GRAFICOS.md](FONTE-PAGAMENTOS-GRAFICOS.md).
 Verificação ao vivo em 08/11/2026 do Swagger e de respostas da origem `https://comprasabertas.amontadavalley.com.br/api-dados`.
 
 ## Causas identificadas

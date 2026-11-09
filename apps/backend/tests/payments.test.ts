@@ -38,7 +38,7 @@ test("pagamentos: contrato, filtros, cache, validação e falhas", async () => {
   } finally { await app.close(); }
 });
 
-test("/analise: encaminha cada métrica para sua operação e preserva as observações de natureza", async () => {
+test("analytics legados: preserva encaminhamento e observações para outros consumidores", async () => {
   const app = fastify();
   app.setValidatorCompiler(() => () => true);
   app.setSerializerCompiler(() => data => JSON.stringify(data));

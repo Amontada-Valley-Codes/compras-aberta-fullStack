@@ -35,7 +35,7 @@ export function AnalysisExportLinks({
         <Download /> Exportar dados <ChevronDown className="analysis-export-chevron" />
       </summary>
       <div className="analysis-export-options">
-        <a href={`/analise/exportar?tipo=licitacoes&${params}`}>Planilha de licitações com ME (CSV)</a>
+        <a href={`/analise/exportar?tipo=pagamentos&${params}`}>Planilha de pagamentos a ME (CSV)</a>
         <button type="button" onClick={handleExportPdf} disabled={status === "generating"}>
           {status === "generating" ? (
             <><Loader2 className="analysis-export-spinner" size={16} /> Gerando PDF…</>

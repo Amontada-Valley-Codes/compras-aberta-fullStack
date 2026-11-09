@@ -93,7 +93,7 @@ export function NatureBarChart({ id, color, seriesName, labels, values, axisForm
       y: { formatter: tooltipFormatter },
     },
   };
-  const height = compactView ? 130 : Math.max(230, 60 + labels.length * 46);
+  const height = compactView ? 130 : Math.max(300, 120 + labels.length * 52);
   return <>
     <ChartViewControls table={table} onTableChange={setTable} />
     {table ? <ChartTable labels={sortedLabels} values={sortedValues} valueFormatter={tooltipFormatter} /> : <Chart type="bar" height={height} options={options} series={[{ name: seriesName, data: sortedValues }]} />}
@@ -172,6 +172,7 @@ export function ShareDonutChart({
   const options: ApexOptions = {
     ...base,
     chart: { ...base.chart, id: chartId, type: "donut" },
+    states: { hover: { filter: { type: "none" } } },
     labels: [meLabel, othersLabel],
     colors: [meColor, othersColor],
     stroke: { colors: [colors.white], width: 2 },

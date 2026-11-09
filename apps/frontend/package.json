@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:analytics": "tsx --tsconfig tsconfig.json --test tests/analysis-data.test.ts tests/municipality-detail.test.ts",
+    "test:analytics": "tsx --tsconfig tsconfig.json --test tests/analysis-data.test.ts tests/municipality-detail.test.ts tests/local-payments.test.ts",
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
