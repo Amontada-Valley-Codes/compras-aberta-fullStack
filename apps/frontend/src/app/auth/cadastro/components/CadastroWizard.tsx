@@ -118,7 +118,12 @@ export const CadastroWizard = ({ initialProfile }: CadastroWizardProps) => {
 
               {profile === null && <ProfileSelector onSelect={changeProfile} />}
               {profile === 'me' && (
-                <MEFlow data={meData} setData={setMeData} onExit={() => changeProfile(null)} />
+                <MEFlow
+                  data={meData}
+                  setData={setMeData}
+                  onExit={() => changeProfile(null)}
+                  onSent={setSentTo}
+                />
               )}
               {profile === 'gestor' && (
                 <GestorFlow
@@ -136,20 +141,34 @@ export const CadastroWizard = ({ initialProfile }: CadastroWizardProps) => {
   )
 }
 
-// Fim do fluxo do Gestor: a conta já nasce liberada, sem análise. (A ME vai
-// direto para o login com o aviso de análise.)
 const AccountCreated = ({ email }: { email: string }) => (
   <div className='auth-result auth-step-enter'>
     <span className='auth-result-icon is-success'>
-      <CheckCircle2 size={28} />
+      <CheckCircle2 size={32} />
     </span>
-    <h1>Conta criada!</h1>
+    <h1>Conta criada com sucesso!</h1>
+    
+    <div style={{
+      margin: '16px 0',
+      padding: '16px',
+      borderRadius: '12px',
+      backgroundColor: 'rgba(217, 164, 65, 0.12)',
+      border: '1px solid rgba(217, 164, 65, 0.3)',
+      textAlign: 'left'
+    }}>
+      <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#d9a441' }}>
+        🎁 7 Dias de Acesso Gratuito Liberado!
+      </h3>
+      <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.5', opacity: 0.9 }}>
+        Você já pode explorar todas as oportunidades, radar de editais e ferramentas do sistema. Não é necessário cadastrar cartão para começar a testar.
+      </p>
+    </div>
+
     <p>
-      Sua conta de gestor público já está pronta. Entre com <b>{email}</b> e a senha
-      cadastrada para acessar o painel da sua prefeitura.
+      Acesse com o e-mail <b>{email}</b> e a senha cadastrada para entrar no seu painel.
     </p>
-    <Link href='/auth/login' className='button button-primary auth-submit'>
-      Entrar no painel
+    <Link href='/auth/login?status=trial_started' className='button button-primary auth-submit'>
+      Fazer login e começar teste grátis
     </Link>
   </div>
 )

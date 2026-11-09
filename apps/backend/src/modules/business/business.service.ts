@@ -91,6 +91,7 @@ export const businessService = {
         },
       });
 
+      const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       const user = await tx.user.create({
         data: {
           name: data.usuario,
@@ -98,7 +99,9 @@ export const businessService = {
           password: hashedPassword,
           role: "BUSINESS",
           cnpj: data.cnpj,
-          isActive: false, // Inicia inativo aguardando aprovação do Admin
+          isActive: true, // Ativo com 7 dias de demonstração gratuita
+          subscriptionStatus: "trialing",
+          trialEndsAt,
         },
       });
 

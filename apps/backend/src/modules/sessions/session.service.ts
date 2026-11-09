@@ -14,6 +14,8 @@ interface UserSessionData {
   id: string;
   role: string;
   accessRequest?: { status: AccessRequestStatus } | null;
+  subscriptionStatus?: string | null;
+  trialEndsAt?: Date | null;
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;

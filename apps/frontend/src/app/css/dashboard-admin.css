@@ -1128,3 +1128,151 @@
     overflow: auto;
   }
 }
+
+/* ---------- Modal Centralizado de Planos & Visualização de Situação ---------- */
+
+.ws-select-modal.admin-plan-modal {
+  width: min(720px, 100%);
+}
+
+.admin-plan-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.admin-plan-modal__section {
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid var(--line, #dce6ec);
+}
+
+.admin-plan-modal__section h3 {
+  margin: 0 0 10px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--brand-navy);
+}
+
+.admin-plan-stripe-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--line, #dce6ec);
+  margin-bottom: 14px;
+}
+
+.admin-plan-stripe-bar > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: #334155;
+}
+
+.admin-plan-stripe-ids {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-plan-copy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-plan-copy-chip:hover {
+  border-color: var(--brand-blue);
+  color: var(--brand-blue);
+  background: #eff6ff;
+}
+
+.plan-status-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plan-features-preview {
+  list-style: none;
+  padding: 12px 14px;
+  margin: 0 0 16px;
+  background: #f8fafc;
+  border: 1px solid #eef2f6;
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+}
+
+.plan-features-preview li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--text-xs);
+  color: #334155;
+  min-width: 0;
+}
+
+.plan-features-preview li svg {
+  width: 14px;
+  height: 14px;
+  color: var(--success);
+  flex: none;
+}
+
+.plan-features-preview li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.integration-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid #eef2f6;
+}
+
+.admin-status-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.admin-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 680px) {
+  .admin-plan-modal__grid,
+  .plan-features-preview {
+    grid-template-columns: 1fr;
+  }
+}

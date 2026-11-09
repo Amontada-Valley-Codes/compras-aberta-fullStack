@@ -85,11 +85,14 @@ const userRepository = {
   },
 
   async createManager(data: { name: string; email: string; password: string }) {
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     return prisma.user.create({
       data: {
         ...data,
         role: "MANAGER",
         isActive: true,
+        subscriptionStatus: "trialing",
+        trialEndsAt,
       },
       select: {
         id: true,
@@ -98,6 +101,8 @@ const userRepository = {
         role: true,
         municipioIbge: true,
         createdAt: true,
+        subscriptionStatus: true,
+        trialEndsAt: true,
       },
     });
   },

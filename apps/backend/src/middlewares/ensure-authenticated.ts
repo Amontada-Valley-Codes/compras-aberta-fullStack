@@ -52,6 +52,8 @@ async function ensureAuthenticated(request: FastifyRequest, _reply: FastifyReply
     id: user.id,
     role: user.role,
     accessStatus: resolveAccessStatus(user),
+    subscriptionStatus: user.subscriptionStatus,
+    trialEndsAt: user.trialEndsAt,
   };
 }
 

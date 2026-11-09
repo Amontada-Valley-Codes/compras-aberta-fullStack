@@ -52,6 +52,13 @@ model user {
   trackedBids     trackedBid[]
   agendaReminders agendaReminder[]
 
+  // Assinatura e Demonstração / Trial
+  subscriptionStatus   String    @default("trialing") // trialing, active, past_due, canceled, expired
+  trialEndsAt          DateTime?
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -212,4 +219,25 @@ model agendaReminder {
   @@index([userId, dueAt])
   @@map("AgendaReminder")
 }
+
+model plan {
+  id              String   @id @default(uuid())
+  name            String
+  targetRole      UserRole @default(BUSINESS) // BUSINESS ou MANAGER
+  priceCents      Int      // Valor em centavos: 2399 = R$ 23,99
+  interval        String   @default("month") // "month", "year"
+  trialDays       Int      @default(7)
+  description     String?
+  features        Json     @default("[]") // Array de strings com os benefícios
+  stripeProductId String?
+  stripePriceId   String?
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("Plan")
+}
+
 
