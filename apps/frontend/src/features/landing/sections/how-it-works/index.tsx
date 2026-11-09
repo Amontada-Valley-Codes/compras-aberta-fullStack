@@ -39,8 +39,8 @@ const processBlocks: ProcessBlock[] = [
     ],
   },
   {
-    eyebrow: "Microempresa",
-    title: "COMO FUNCIONA PARA A MICROEMPRESA",
+    eyebrow: "Empresas",
+    title: "COMO FUNCIONA PARA AS EMPRESAS",
     variant: "business",
     steps: [
       {

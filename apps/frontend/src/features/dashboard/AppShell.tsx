@@ -8,6 +8,7 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { toast } from "@/components/ui/sonner";
 
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { SubscriptionBanner } from "./SubscriptionBanner";
 
 function getInitials(name?: string, fallback = "ME"): string {
   if (!name) return fallback;
@@ -247,7 +248,10 @@ export function AppShell({
             <span className="topbar-avatar">{userAvatar}</span>
           </div>
         </header>
-        <main className="dashboard-content">{children}</main>
+        <main className="dashboard-content">
+          {!isAdmin && <SubscriptionBanner />}
+          {children}
+        </main>
       </div>
     </div>
   );

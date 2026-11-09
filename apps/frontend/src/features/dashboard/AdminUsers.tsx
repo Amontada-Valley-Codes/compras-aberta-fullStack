@@ -243,154 +243,170 @@ export function AdminUsers() {
         </div>
       </section>
 
-      {/* Modal de cadastro de novo admin */}
+      {/* Modal centralizado de cadastro de novo admin */}
       {showAddModal && (
-        <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
-          <section
-            className="review-drawer"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "480px", width: "100%", padding: "28px" }}
+        <div
+          className="ws-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAddModal(false);
+          }}
+        >
+          <div
+            className="ws-select-modal"
+            style={{ width: "min(500px, 100%)" }}
           >
-            <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+            <div className="ws-select-modal__header">
               <div>
-                <small style={{ color: "#64748b", fontWeight: 600, letterSpacing: "0.05em" }}>NOVO ACESSO</small>
-                <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700, margin: "4px 0" }}>Cadastrar Administrador</h2>
-                <p style={{ color: "#64748b", fontSize: "var(--text-sm)" }}>
-                  Adicione um novo membro para gerenciar as microempresas e a plataforma.
+                <h2>Cadastrar Administrador</h2>
+                <p>
+                  Adicione um novo membro para gerenciar as empresas e a plataforma.
                 </p>
               </div>
               <button
                 type="button"
+                className="ws-modal-close"
                 onClick={() => setShowAddModal(false)}
                 aria-label="Fechar"
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b" }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
-            </header>
+            </div>
 
-            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: 600, marginBottom: "6px" }}>
-                  Nome completo *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Carlos Silva"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px 14px",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    fontSize: "var(--text-base)",
-                    outline: "none",
-                  }}
-                />
+            <form onSubmit={handleCreate}>
+              <div
+                className="ws-select-modal__body"
+                style={{ minHeight: "auto", display: "grid", gap: "14px" }}
+              >
+                <div className="ws-field">
+                  <label>Nome completo *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Carlos Silva"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+
+                <div className="ws-field">
+                  <label>E-mail institucional *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="Ex: carlos@comprasabertas.com.br"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="ws-field">
+                  <label>Senha provisória *</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="Mínimo de 6 caracteres"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <div>
-                <label style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: 600, marginBottom: "6px" }}>
-                  E-mail institucional *
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="Ex: carlos@comprasabertas.com.br"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px 14px",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    fontSize: "var(--text-base)",
-                    outline: "none",
-                  }}
-                />
+              <div className="ws-select-modal__footer">
+                <span className="ws-select-modal__counter">Acesso administrativo total</span>
+                <div className="ws-select-modal__actions">
+                  <button
+                    type="button"
+                    className="ds-button secondary sm"
+                    onClick={() => setShowAddModal(false)}
+                    disabled={submitting}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="ds-button primary sm"
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      "Salvando..."
+                    ) : (
+                      <>
+                        <Plus size={16} /> Criar administrador
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
 
+      {/* Modal centralizado de confirmação para remover admin */}
+      {confirmDeleteUser && (
+        <div
+          className="ws-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmDeleteUser(null);
+          }}
+        >
+          <div
+            className="ws-select-modal"
+            style={{ width: "min(460px, 100%)" }}
+          >
+            <div className="ws-select-modal__header">
               <div>
-                <label style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: 600, marginBottom: "6px" }}>
-                  Senha provisória *
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="Mínimo de 6 caracteres"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px 14px",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    fontSize: "var(--text-base)",
-                    outline: "none",
-                  }}
-                />
+                <h2 style={{ color: "#dc2626" }}>Remover Administrador</h2>
+                <p>Confirme a revogação de acesso ao painel administrativo.</p>
               </div>
+              <button
+                type="button"
+                className="ws-modal-close"
+                onClick={() => setConfirmDeleteUser(null)}
+                aria-label="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-              <footer style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "16px" }}>
+            <div className="ws-select-modal__body" style={{ minHeight: "auto" }}>
+              <p style={{ color: "#475569", fontSize: "var(--text-sm)", margin: 0 }}>
+                Tem certeza que deseja revogar o acesso de administrador de{" "}
+                <b>{confirmDeleteUser.name}</b> ({confirmDeleteUser.email})? Esta
+                ação não pode ser desfeita.
+              </p>
+            </div>
+
+            <div className="ws-select-modal__footer">
+              <span />
+              <div className="ws-select-modal__actions">
                 <button
                   type="button"
-                  className="ds-button secondary"
-                  onClick={() => setShowAddModal(false)}
-                  disabled={submitting}
+                  className="ds-button secondary sm"
+                  onClick={() => setConfirmDeleteUser(null)}
+                  disabled={deletingId !== null}
                 >
                   Cancelar
                 </button>
                 <button
-                  type="submit"
-                  className="ds-button primary"
-                  disabled={submitting}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                  type="button"
+                  className="ds-button sm"
+                  style={{ background: "#dc2626", color: "#fff", borderColor: "#dc2626" }}
+                  onClick={() => void handleDelete(confirmDeleteUser)}
+                  disabled={deletingId !== null}
                 >
-                  {submitting ? "Salvando..." : <><Plus size={16} /> Criar administrador</>}
+                  {deletingId === confirmDeleteUser.id
+                    ? "Removendo..."
+                    : "Confirmar remoção"}
                 </button>
-              </footer>
-            </form>
-          </section>
-        </div>
-      )}
-
-      {/* Modal de confirmação para remover admin */}
-      {confirmDeleteUser && (
-        <div className="modal-backdrop" onClick={() => setConfirmDeleteUser(null)}>
-          <section
-            className="review-drawer"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "440px", width: "100%", padding: "24px" }}
-          >
-            <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "#dc2626", margin: "0 0 10px 0" }}>
-              Remover Administrador
-            </h3>
-            <p style={{ color: "#475569", fontSize: "var(--text-sm)", lineHeight: "var(--leading-normal)" }}>
-              Tem certeza que deseja revogar o acesso de administrador de <b>{confirmDeleteUser.name}</b> ({confirmDeleteUser.email})? Esta ação não pode ser desfeita.
-            </p>
-            <footer style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
-              <button
-                type="button"
-                className="ds-button secondary"
-                onClick={() => setConfirmDeleteUser(null)}
-                disabled={deletingId !== null}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="ds-button"
-                style={{ background: "#dc2626", color: "#fff", borderColor: "#dc2626" }}
-                onClick={() => void handleDelete(confirmDeleteUser)}
-                disabled={deletingId !== null}
-              >
-                {deletingId === confirmDeleteUser.id ? "Removendo..." : "Confirmar remoção"}
-              </button>
-            </footer>
-          </section>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

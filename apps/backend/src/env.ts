@@ -74,7 +74,12 @@ const envSchema = z.object({
     .trim()
     .optional()
     .transform((v) => v || undefined),
+
+  STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY é obrigatória"),
+  STRIPE_PRICE_ID_MONTHLY: z.string().min(1, "STRIPE_PRICE_ID_MONTHLY é obrigatória"),
+  STRIPE_WEBHOOK_SECRET: z.string().optional().default(""),
 });
+
 
 const parsedEnv = envSchema.safeParse(process.env);
 
