@@ -1,6 +1,5 @@
 .closing-cta-section {
   position: relative;
-  min-height: 430px;
   overflow: hidden;
   border-top: 1px solid #e5ecef;
   background:
@@ -15,23 +14,21 @@
 .closing-cta-inner {
   position: relative;
   z-index: 2;
-  min-height: 430px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .closing-cta-copy {
-  width: min(1000px, 100%);
-  padding-block: 62px;
+  width: min(960px, 100%);
+  padding-block: 64px;
   text-align: center;
 }
 .closing-cta-copy h2 {
-  max-width: 1000px;
   margin: 0;
   color: #27333e;
-  font-size: clamp(38px, 3.7vw, 56px);
+  font-size: 2.625rem;
   line-height: 1.08;
-  letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 .closing-cta-highlight {
   color: var(--brand-blue);
@@ -53,9 +50,9 @@
   justify-content: center;
 }
 .closing-cta-actions .button {
-  min-height: 58px;
-  padding-inline: 28px;
-  border-radius: 12px;
+  min-height: 48px;
+  padding-inline: 20px;
+  border-radius: var(--landing-action-radius);
   font-size: 16px;
   box-shadow: 0 12px 23px rgba(19, 42, 61, 0.16);
 }
@@ -76,15 +73,15 @@
   transform: translateY(-2px);
 }
 .closing-cta-whatsapp {
-  width: 58px;
-  height: 58px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   border: 3px solid #fff;
   border-radius: 50%;
   background: #25d366;
   color: #fff;
-  font-size: 31px;
+  font-size: 25px;
   box-shadow: 0 12px 23px rgba(19, 42, 61, 0.18);
 }
 .closing-cta-whatsapp:hover {
@@ -92,30 +89,17 @@
   transform: translateY(-2px);
 }
 @media (max-width: 900px) {
-  .closing-cta-section,
-  .closing-cta-inner {
-    min-height: 600px;
-  }
-  .closing-cta-inner {
-    align-items: flex-start;
-  }
   .closing-cta-copy {
-    width: min(100%, 650px);
-    padding-top: 58px;
+    padding-block: 54px;
+  }
+  .closing-cta-copy h2 {
+    font-size: 2rem;
   }
 }
 
 @media (max-width: 680px) {
-  .closing-cta-section,
-  .closing-cta-inner {
-    min-height: 660px;
-  }
   .closing-cta-copy {
-    padding-top: 48px;
-    text-align: center;
-  }
-  .closing-cta-copy h2 {
-    font-size: 38px;
+    padding-block: 48px;
   }
   .closing-cta-copy p {
     font-size: 15px;
@@ -127,7 +111,7 @@
   }
   .closing-cta-actions .button {
     width: 100%;
-    min-height: 54px;
+    min-height: 48px;
   }
   .closing-cta-whatsapp {
     display: none;

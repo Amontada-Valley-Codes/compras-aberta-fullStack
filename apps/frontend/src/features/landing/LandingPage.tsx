@@ -16,7 +16,7 @@ export function LandingPage() {
   // useScrollReveal(rootRef);
   
   return (
-    <div className="public-site" ref={rootRef}>
+    <div className="public-site landing-page" ref={rootRef}>
       <LandingHeader />
       <main>
         <DataExplorerSection />

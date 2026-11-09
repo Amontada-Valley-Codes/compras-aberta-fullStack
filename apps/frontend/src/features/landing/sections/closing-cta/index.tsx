@@ -9,9 +9,9 @@ export function ClosingCtaSection() {
       <div className="public-container closing-cta-inner">
         <div className="closing-cta-copy">
           <h2>
-            Pronto para <span className="closing-cta-highlight">impulsionar</span> a economia
+            Pronto para <span className="closing-cta-highlight">impulsionar</span> a economia do
             <br />
-            do seu município?
+            seu município?
           </h2>
           <p>
             Solicite seu acesso ao Compras Abertas e descubra como gestores

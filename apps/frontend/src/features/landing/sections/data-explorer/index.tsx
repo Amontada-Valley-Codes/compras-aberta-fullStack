@@ -26,8 +26,8 @@ export function DataExplorerSection() {
             <span className="data-source-badge"><Image src="/images/data-sources/ibge.svg" alt="IBGE" width={80} height={28} /></span>
           </div>
         </div>
-        <div className="opportunity-person opportunity-hero-image" aria-hidden="true">
-          <Image src="/images/hero/foto-hero.png" alt="" fill sizes="(max-width: 900px) 100vw, 62vw" />
+        <div className="opportunity-hero-image" aria-hidden="true">
+          <Image src="/images/hero/foto-hero.png" alt="" fill sizes="(max-width: 767px) 1px, (max-width: 900px) 875px, min(85vw, 1460px)" />
         </div>
         <form className="opportunity-search" action="/analise" method="get">
           <PublicFilterSelect name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="landing" options={data.municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []} />

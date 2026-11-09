@@ -158,8 +158,17 @@ img {
   opacity: 0.96;
 }
 .public-container {
-  width: min(1660px, calc(100% - 64px));
+  width: min(1200px, calc(100% - 64px));
   margin-inline: auto;
+}
+.landing-page {
+  --landing-action-radius: 12px;
+}
+@media (min-width: 681px) {
+  .landing-page .public-container {
+    /* Reclaim two thirds of the original side gutters. */
+    width: calc((200% + min(1200px, 100% - 64px)) / 3);
+  }
 }
 .button,
 .ds-button {
@@ -243,5 +252,40 @@ img {
 @media (max-width: 680px) {
   .public-container {
     width: calc(100% - 32px);
+  }
+}
+
+/* Noupe mounts outside the public page wrapper. */
+body:has(.public-site) .embedded-agent-container.noupe-agent.align-right.square {
+  --noupe-right: max(12px, env(safe-area-inset-right));
+  --noupe-bottom: max(12px, env(safe-area-inset-bottom));
+  right: var(--noupe-right);
+  bottom: var(--noupe-bottom);
+  margin: 0;
+}
+
+body:has(.public-site) .embedded-agent-container.noupe-agent .chat-button-variant-2.noupe-chat-button-variant-2 {
+  border-radius: 12px;
+}
+
+body:has(.public-site) .embedded-agent-container.noupe-agent .noupe-chat-button.noupe-chat-button-variant-2 {
+  width: 52px;
+  justify-content: center;
+  padding: 8px;
+}
+
+body:has(.public-site) .embedded-agent-container.noupe-agent .noupe-chat-button .noupe-variant-2-avatar {
+  width: 36px;
+  height: 36px;
+}
+
+@media (max-width: 480px) {
+  body:has(.public-site) .embedded-agent-container.noupe-agent.align-right.square .ai-agent-chat-animation-container.isOpened {
+    --noupe-top: max(12px, env(safe-area-inset-top));
+    --noupe-left: max(12px, env(safe-area-inset-left));
+    position: fixed;
+    inset: auto var(--noupe-right) var(--noupe-bottom) var(--noupe-left);
+    width: auto;
+    height: calc(100dvh - var(--noupe-top) - var(--noupe-bottom));
   }
 }

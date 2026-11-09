@@ -1,16 +1,16 @@
 .faq-section {
-  padding: 96px 0;
+  padding: 72px 0;
   background: #fff;
 }
 .faq-grid {
   display: grid;
   grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
   align-items: start;
-  gap: clamp(50px, 7vw, 110px);
+  gap: 48px;
 }
 .faq-heading {
   position: sticky;
-  top: 120px;
+  top: 98px;
 }
 .faq-heading > span {
   color: var(--brand-blue);
@@ -21,9 +21,8 @@
 .faq-heading h2 {
   margin: 16px 0 14px;
   color: var(--brand-navy);
-  font-size: clamp(38px, 4vw, 56px);
+  font-size: 2.625rem;
   line-height: 1.08;
-  letter-spacing: -0.04em;
 }
 .faq-heading p {
   max-width: 440px;
@@ -40,9 +39,9 @@
 }
 .faq-list summary {
   position: relative;
-  padding: 25px 56px 25px 0;
+  padding: 18px 48px 18px 0;
   color: var(--brand-navy);
-  font-size: 21px;
+  font-size: 18px;
   font-weight: 750;
   line-height: 1.4;
   cursor: pointer;
@@ -56,13 +55,13 @@
   position: absolute;
   top: 50%;
   right: 4px;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #e8f5f8;
-  color: #087586;
+  background: color-mix(in srgb, var(--brand-blue) 10%, var(--surface));
+  color: var(--brand-blue);
   font-size: 25px;
   font-weight: 500;
   transform: translateY(-50%);
@@ -78,7 +77,7 @@
 }
 .faq-list details p {
   max-width: 760px;
-  margin: -7px 54px 25px 0;
+  margin: 0 48px 18px 0;
   color: #647681;
   font-size: 16px;
   line-height: 1.7;
@@ -89,7 +88,7 @@
 
 @media (max-width: 900px) {
   .faq-section {
-    padding: 72px 0;
+    padding: 54px 0;
   }
   .faq-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -103,7 +102,7 @@
 
 @media (max-width: 680px) {
   .faq-section {
-    padding: 58px 0;
+    padding: 48px 0;
   }
   .faq-grid {
     gap: 32px;
@@ -113,14 +112,14 @@
   }
   .faq-heading h2 {
     margin-top: 12px;
-    font-size: 36px;
+    font-size: 2rem;
   }
   .faq-heading p {
     font-size: 15px;
   }
   .faq-list summary {
-    padding: 21px 48px 21px 0;
-    font-size: 18px;
+    padding: 16px 42px 16px 0;
+    font-size: var(--text-base);
   }
   .faq-list summary::after {
     width: 32px;

@@ -1,91 +1,62 @@
-import { ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import Link from "next/link";
-import { ME_PLAN_MONTHLY_PRICE } from "@/lib/plans";
-import { AudienceIcon, type AudienceIconName } from "../audiences";
-
-type PlanPrice = {
-  value: string;
-  suffix?: string;
-  note?: string;
-};
+import { money } from "@/features/public-data/format";
 
 type Plan = {
   id: "portal" | "me" | "gestor";
   title: string;
-  icon: AudienceIconName;
-  price: PlanPrice;
-  description: string;
+  price: number;
   benefits: string[];
   cta: string;
   href: string;
   featured?: boolean;
 };
 
-const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-// Sem valor definido em ME_PLAN_MONTHLY_PRICE, o card mostra só "Assinatura mensal".
-const mePlanPrice: PlanPrice =
-  ME_PLAN_MONTHLY_PRICE == null
-    ? { value: "Assinatura mensal" }
-    : { value: brl.format(ME_PLAN_MONTHLY_PRICE), suffix: "/mês", note: "Assinatura mensal" };
-
 const plans: Plan[] = [
   {
     id: "portal",
-    title: "Portal Público",
-    icon: "citizen",
-    price: { value: "Gratuito" },
-    description:
-      "Para cidadãos que desejam acompanhar como os recursos públicos são utilizados.",
+    title: "Gratuito",
+    price: 0,
     benefits: [
-      "Consulta de receitas e despesas",
-      "Acesso às licitações e aos contratos",
-      "Consulta de fornecedores",
-      "Visualização dos gastos municipais",
-      "Acesso sem assinatura",
+      "Veja os gastos por município, ano e tipo de despesa",
+      "Veja a participação das microempresas locais nas compras",
+      "Consulte quanto cada microempresa recebeu",
     ],
-    cta: "Acessar Portal Público",
+    cta: "Acessar painel",
     href: "/analise",
-  },
-  {
-    id: "me",
-    title: "Microempresa",
-    icon: "business",
-    price: mePlanPrice,
-    description:
-      "Para empresas que desejam encontrar oportunidades e se preparar para vender ao setor público.",
-    benefits: [
-      "Licitações compatíveis com o segmento",
-      "Alertas personalizados",
-      "Histórico de compras dos municípios",
-      "Comparação entre municípios",
-      "Consulta aos prazos de pagamento",
-      "Análise de fornecedores e valores",
-    ],
-    cta: "Assinar plano ME",
-    href: "/auth/cadastro?perfil=me",
-    featured: true,
   },
   {
     id: "gestor",
     title: "Gestor Público",
-    icon: "manager",
-    price: { value: "Plano personalizado" },
-    description:
-      "Para municípios que precisam acompanhar recursos, compras, contratos e fornecedores.",
+    price: 59.99,
     benefits: [
-      "Painel de receitas e despesas",
-      "Acompanhamento de licitações e contratos",
-      "Análise de fornecedores",
-      "Indicadores municipais",
-      "Comparações por período",
-      "Relatórios",
-      "Acesso para a equipe",
-      "Suporte especializado",
+      "Compare o plano anual de compras com o que já foi publicado",
+      "Acompanhe licitações e vencimentos de contratos do PNCP",
+      "Analise valores licitados por secretaria e modalidade",
+      "Compare a evolução dos gastos municipais",
+      "Detalhe pagamentos por fornecedor e tipo de despesa",
+      "Veja no mapa os municípios dos fornecedores que receberam pagamentos",
+      "Gere relatórios municipais em PDF ou PNG",
     ],
-    cta: "Solicitar proposta",
-    // Ainda não há formulário de proposta: o pedido entra pelo cadastro do Gestor.
+    cta: "Solicitar acesso",
     href: "/auth/cadastro?perfil=gestor",
+    featured: true,
+  },
+  {
+    id: "me",
+    title: "Empresas",
+    price: 39.99,
+    benefits: [
+      "Encontre editais abertos compatíveis com seu CNAE",
+      "Filtre licitações por local, modalidade e faixa de valor",
+      "Salve licitações e acompanhe cada etapa da participação",
+      "Organize seus prazos com lembretes na agenda",
+      "Controle certidões e exigências com um checklist de habilitação",
+      "Calcule preços iniciais e lances mínimos com base nos seus custos e margens",
+      "Gere propostas iniciais e ajustadas para salvar em PDF",
+    ],
+    cta: "Cadastrar empresa",
+    href: "/auth/cadastro?perfil=me",
   },
 ];
 
@@ -99,39 +70,25 @@ function PlanCard({ plan, index }: { plan: Plan; index: number }) {
       data-aos="fade-up"
       data-aos-delay={String(index * 100)}
     >
-      <div className="plans-card-header">
-        <span className="plans-card-icon">
-          <AudienceIcon name={plan.icon} />
-        </span>
-        <h3 id={titleId}>{plan.title}</h3>
-      </div>
+      <h3 className="plans-card-title" id={titleId}>{plan.title}</h3>
+      <p className="plans-card-price">{money(plan.price)}</p>
 
-      <p className="plans-card-price">
-        <strong>{plan.price.value}</strong>
-        {plan.price.suffix && <span className="plans-card-price-suffix">{plan.price.suffix}</span>}
-        {plan.price.note && <span className="plans-card-price-note">{plan.price.note}</span>}
-      </p>
+      <Link
+        className={`button plans-card-cta ${plan.featured ? "button-primary" : "button-outline"}`}
+        href={plan.href}
+      >
+        {plan.cta}
+      </Link>
 
-      <p className="plans-card-description">{plan.description}</p>
-
-      <ul className="plans-card-benefits">
+      <h4 className="plans-card-benefits-title">Vantagens</h4>
+      <ul className="plans-card-benefits" role="list">
         {plan.benefits.map((benefit) => (
           <li key={benefit}>
-            <span className="plans-card-check" aria-hidden="true">
-              <Check size={14} strokeWidth={3} />
-            </span>
+            <Check className="plans-card-check" size={16} strokeWidth={3} aria-hidden="true" />
             {benefit}
           </li>
         ))}
       </ul>
-
-      <Link
-        className={`button plans-card-cta${plan.featured ? " plans-card-cta--featured" : " button-outline"}`}
-        href={plan.href}
-      >
-        <span>{plan.cta}</span>
-        <ArrowRight size={18} aria-hidden="true" />
-      </Link>
     </article>
   );
 }
@@ -141,10 +98,10 @@ export function PlansSection() {
     <section className="plans-section" id="planos" aria-labelledby="plans-title">
       <div className="public-container">
         <div className="plans-heading" data-aos="fade-up">
-          <h2 id="plans-title">Um acesso para cada necessidade</h2>
+          <h2 id="plans-title">Escolha seu plano</h2>
           <p>
-            Consulte gratuitamente, encontre oportunidades ou leve mais
-            inteligência para a gestão do seu município.
+            Acompanhe os gastos do seu município, encontre editais para sua
+            empresa ou analise contratações na gestão pública.
           </p>
         </div>
 

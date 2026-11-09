@@ -20,10 +20,9 @@
 .how-it-works-grid {
   display: grid;
   grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
-  gap: clamp(56px, 8vw, 144px);
+  gap: 56px;
   align-items: center;
-  min-height: 680px;
-  padding-block: 104px;
+  padding-block: 72px;
 }
 
 .how-it-works-block--business .how-it-works-grid {
@@ -58,10 +57,10 @@
   max-width: 680px;
   margin: 0;
   color: #fff;
-  font-size: clamp(38px, 4.3vw, 62px);
+  font-size: 2.75rem;
   font-weight: 850;
-  line-height: 0.98;
-  letter-spacing: -0.055em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .how-it-works-content {
@@ -70,7 +69,7 @@
 
 .how-it-works-steps {
   display: grid;
-  gap: 24px;
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -79,7 +78,7 @@
 .how-it-works-step {
   position: relative;
   display: grid;
-  grid-template-columns: 86px minmax(0, 1fr);
+  grid-template-columns: 68px minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -92,16 +91,15 @@
   position: relative;
   z-index: 1;
   color: var(--brand-sky);
-  font-size: 62px;
+  font-size: 3rem;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.06em;
 }
 
 .how-it-works-step h3 {
   margin: 2px 0 7px;
   color: #fff;
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 800;
   line-height: 1.2;
 }
@@ -118,11 +116,10 @@
   .how-it-works-grid,
   .how-it-works-block--business .how-it-works-grid {
     display: flex;
-    min-height: 0;
     flex-direction: column;
     align-items: stretch;
     gap: 54px;
-    padding-block: 76px 84px;
+    padding-block: 60px;
   }
 
   .how-it-works-block--business .how-it-works-heading,
@@ -137,7 +134,7 @@
 
   .how-it-works-heading h2 {
     max-width: 620px;
-    font-size: clamp(42px, 10vw, 64px);
+    font-size: 2.5rem;
   }
 }
 
@@ -145,7 +142,7 @@
   .how-it-works-grid,
   .how-it-works-block--business .how-it-works-grid {
     gap: 38px;
-    padding-block: 62px 68px;
+    padding-block: 48px;
   }
 
   .how-it-works-eyebrow {
@@ -154,11 +151,11 @@
   }
 
   .how-it-works-heading h2 {
-    font-size: 39px;
+    font-size: 2rem;
   }
 
   .how-it-works-steps {
-    gap: 22px;
+    gap: 11px;
   }
 
   .how-it-works-step {
@@ -171,7 +168,7 @@
   }
 
   .how-it-works-step-marker {
-    font-size: 50px;
+    font-size: 2.25rem;
   }
 
   .how-it-works-step h3 {
