@@ -18,6 +18,13 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   parseAnyDate,
   toLocalDateKey,
   type AgendaEventType,
@@ -785,34 +792,52 @@ export function MeAgendaView({
 
               <div className="ws-field">
                 <label>Tipo de compromisso</label>
-                <select
-                  className="ws-select"
+                <Select
                   value={newType}
-                  onChange={(e) => setNewType(e.target.value as AgendaEventType)}
+                  onValueChange={(v) => setNewType(v as AgendaEventType)}
                 >
-                  <option value="lembrete">Lembrete geral</option>
-                  <option value="prazo">Prazo interno / impugnação</option>
-                  <option value="sessao">Sessão de lances / disputa</option>
-                  <option value="abertura">Abertura de proposta</option>
-                </select>
+                  <SelectTrigger aria-label="Tipo de compromisso">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lembrete">Lembrete geral</SelectItem>
+                    <SelectItem value="prazo">
+                      Prazo interno / impugnação
+                    </SelectItem>
+                    <SelectItem value="sessao">
+                      Sessão de lances / disputa
+                    </SelectItem>
+                    <SelectItem value="abertura">
+                      Abertura de proposta
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {trackedBids.length > 0 && (
                 <div className="ws-field">
                   <label>Vincular a uma licitação (opcional)</label>
-                  <select
-                    className="ws-select"
-                    value={newBidId}
-                    onChange={(e) => setNewBidId(e.target.value)}
+                  <Select
+                    value={newBidId || "__none__"}
+                    onValueChange={(v) =>
+                      setNewBidId(v === "__none__" ? "" : v)
+                    }
                   >
-                    <option value="">Sem vínculo específico</option>
-                    {trackedBids.map((tb) => (
-                      <option key={tb.id} value={tb.id}>
-                        {tb.nickname ||
-                          `${tb.bidSnapshot.modality || "Licitação"} ${tb.bidSnapshot.purchaseNumber || tb.bidControlId}`}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger aria-label="Vincular a uma licitação">
+                      <SelectValue placeholder="Sem vínculo específico" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">
+                        Sem vínculo específico
+                      </SelectItem>
+                      {trackedBids.map((tb) => (
+                        <SelectItem key={tb.id} value={tb.id}>
+                          {tb.nickname ||
+                            `${tb.bidSnapshot.modality || "Licitação"} ${tb.bidSnapshot.purchaseNumber || tb.bidControlId}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
 

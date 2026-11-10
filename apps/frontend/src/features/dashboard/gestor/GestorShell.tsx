@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  Building2, ClipboardList, FileSignature, FileText, Globe, LayoutDashboard, Map as MapIcon, Megaphone, PiggyBank, Wallet, Workflow,
+  Building2, ClipboardList, CreditCard, FileSignature, FileText, Globe, LayoutDashboard, Map as MapIcon, Megaphone, PiggyBank, Wallet, Workflow,
 } from "lucide-react";
 import { SideMenu, SideMenuProvider, type SideMenuItem } from "@/components/navigation/side-menu/SideMenu";
 import { GestorHeader, type FilterOption } from "./GestorHeader";
@@ -49,6 +49,7 @@ export function GestorShell({
     ["fornecedores", "Fornecedores", <Building2 key="fornecedores" />],
     ["mapa", "Mapa", <MapIcon key="mapa" />],
     ["fluxo", "Fluxo das licitações", <Workflow key="fluxo" />],
+    ["assinatura", "Assinatura", <CreditCard key="assinatura" />],
   ];
   const items: SideMenuItem[] = [
     { id: "overview", label: "Visão geral", icon: <LayoutDashboard />, href: `/gestor?${query}` },

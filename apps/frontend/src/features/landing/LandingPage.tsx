@@ -11,6 +11,10 @@ import { LandingHeader } from "./sections/header";
 import { HowItWorksSection } from "./sections/how-it-works";
 import { PlansSection } from "./sections/plans";
 
+const NOUPE_CHATBOT_URL =
+  process.env.NEXT_PUBLIC_NOUPE_CHATBOT_URL ||
+  "https://www.noupe.com/embed/01a0c0bf7d1070008c519ce4b0af52a479ec.js";
+
 export function LandingPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   // useScrollReveal(rootRef);
@@ -27,11 +31,13 @@ export function LandingPage() {
         <ClosingCtaSection />
       </main>
       <LandingFooter />
-      <Script
-        id="noupe-chatbot"
-        src="https://www.noupe.com/embed/01a0c0bf7d1070008c519ce4b0af52a479ec.js"
-        strategy="afterInteractive"
-      />
+      {NOUPE_CHATBOT_URL && (
+        <Script
+          id="noupe-chatbot"
+          src={NOUPE_CHATBOT_URL}
+          strategy="afterInteractive"
+        />
+      )}
     </div>
   );
 }

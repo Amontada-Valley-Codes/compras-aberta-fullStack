@@ -12,6 +12,27 @@ async function ensureAccessApproved(
   if (user?.role === "ADMIN") return;
 
   const now = new Date();
+
+  if (user?.subscriptionStatus === "canceled") {
+    throw new AppError(
+      "Sua assinatura foi cancelada e o acesso às funcionalidades está bloqueado.",
+      403,
+    );
+  }
+
+  if (
+    user?.subscriptionStatus === "expired" ||
+    user?.subscriptionStatus === "trial_expired" ||
+    (user?.subscriptionStatus === "trialing" &&
+      user?.trialEndsAt &&
+      new Date(user.trialEndsAt) <= now)
+  ) {
+    throw new AppError(
+      "Seu período de teste de 7 dias expirou. Assine o plano para continuar utilizando a plataforma.",
+      403,
+    );
+  }
+
   const hasActiveTrial =
     user?.subscriptionStatus === "trialing" &&
     user?.trialEndsAt &&
@@ -21,18 +42,6 @@ async function ensureAccessApproved(
   // Se tiver período de teste ativo ou assinatura ativa, o acesso é liberado
   if (hasActiveTrial || hasActiveSubscription) {
     return;
-  }
-
-  // Se o teste expirou
-  if (
-    user?.subscriptionStatus === "trialing" &&
-    user?.trialEndsAt &&
-    new Date(user.trialEndsAt) <= now
-  ) {
-    throw new AppError(
-      "Seu período de teste de 7 dias expirou. Assine o plano para continuar utilizando a plataforma.",
-      403,
-    );
   }
 
   const accessStatus = request.user?.accessStatus;

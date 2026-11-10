@@ -2,7 +2,7 @@
   --sidebar-width: 252px;
   --brand-sky: #eff6ff;
   --brand-blue: #11169b;
-  --brand-navy: #0f172a;
+  --brand-navy: #11169b;
   min-height: 100vh;
   background: #f5f8fa;
   display: flex;
@@ -130,16 +130,16 @@
 }
 .sidebar-nav button:hover:not(.active) {
   background: #f1f5f9;
-  color: #0f172a;
+  color: #11169b;
 }
 .sidebar-nav button:hover:not(.active) svg {
-  color: #1d4ed8;
+  color: #11169b;
 }
 .sidebar-nav button.active {
-  background: #1e3a8a;
+  background: var(--brand-blue, #11169b);
   color: #ffffff;
   font-weight: var(--weight-bold);
-  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.18);
+  box-shadow: 0 4px 12px rgba(17, 22, 155, 0.2);
 }
 .sidebar-nav button.active svg {
   color: #ffffff;
@@ -159,7 +159,7 @@
 .user-avatar,
 .topbar-avatar {
   border-radius: 50%;
-  background: var(--brand-navy);
+  background: var(--brand-blue, #11169b);
   color: #fff;
 }
 .app-main {
@@ -918,17 +918,40 @@
   width: 100%;
   font-size: var(--text-base);
 }
-.filter-bar select,
+.filter-bar select {
+  height: 44px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  color: #1e293b;
+  padding: 0 38px 0 12px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.filter-bar select:hover {
+  border-color: #94a3b8;
+}
+.filter-bar select:focus {
+  border-color: var(--brand-blue, #11169b);
+  box-shadow: 0 0 0 3px rgba(17, 22, 155, 0.12);
+  outline: none;
+}
 .filter-button {
   height: 44px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fff;
   color: #475569;
   padding: 0 12px;
   font-size: var(--text-sm);
-}
-.filter-button {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -947,11 +970,20 @@
   color: var(--brand-navy);
 }
 .result-summary select {
-  border: 0;
-  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px 14px;
+  padding: 6px 32px 6px 12px;
+  appearance: none;
+  -webkit-appearance: none;
   color: var(--brand-navy);
   font-weight: var(--weight-bold);
   font-size: var(--text-sm);
+  cursor: pointer;
 }
 .opp-toolbar {
   overflow: hidden;
@@ -1411,7 +1443,7 @@
   border-radius: 10px;
   border: 1px solid #dbeafe;
   background: #eff6ff;
-  color: #1d4ed8;
+  color: var(--brand-blue, #11169b);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   display: inline-flex;
@@ -1428,8 +1460,8 @@
   transition: transform 0.16s ease;
 }
 .opp-card:hover .opp-card-cta {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
   color: #ffffff;
 }
 .opp-card:hover .opp-card-cta svg {
@@ -1495,7 +1527,7 @@
 }
 .opp-page-size-btn.is-active {
   background: #ffffff;
-  color: #1d4ed8;
+  color: var(--brand-blue, #11169b);
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 .opp-pagination-nav {
@@ -1535,12 +1567,12 @@
 .opp-page-btn:hover:not(:disabled):not(.is-active),
 .opp-page-control:hover:not(:disabled) {
   background: #eff6ff;
-  color: #1d4ed8;
+  color: var(--brand-blue, #11169b);
 }
 .opp-page-btn.is-active {
-  background: #1e3a8a;
+  background: var(--brand-blue, #11169b);
   color: #ffffff;
-  box-shadow: 0 3px 10px rgba(30, 58, 138, 0.2);
+  box-shadow: 0 3px 10px rgba(17, 22, 155, 0.22);
 }
 .opp-page-control:disabled {
   color: #94a3b8;

@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ChevronLeft, Clock3, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
+import { AlertTriangle, ChevronLeft, Clock3, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { toast } from '@/components/ui/sonner'
@@ -25,7 +25,10 @@ export const Login = ({ next }: { next?: string }) => {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isPendingRegistration = searchParams.get('status') === 'pending'
+  const statusParam = searchParams.get('status')
+  const isPendingRegistration = statusParam === 'pending'
+  const isCanceledSubscription = statusParam === 'canceled'
+  const isExpiredSubscription = statusParam === 'expired'
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -120,6 +123,36 @@ export const Login = ({ next }: { next?: string }) => {
                   Solicitação Cadastral em Análise
                 </strong>
                 Seus dados e documentos foram enviados. Aguarde a validação do administrador para que seu acesso seja liberado.
+              </div>
+            </div>
+          )}
+
+          {(isCanceledSubscription || isExpiredSubscription) && (
+            <div
+              style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#991b1b',
+                padding: '12px 14px',
+                borderRadius: '8px',
+                fontSize: 'var(--text-sm)',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px',
+                lineHeight: 'var(--leading-normal)',
+              }}
+            >
+              <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#dc2626' }} />
+              <div>
+                <strong style={{ display: 'block', marginBottom: '2px', fontWeight: 600 }}>
+                  {isCanceledSubscription
+                    ? 'Assinatura Cancelada — Acesso Bloqueado'
+                    : 'Período de Avaliação Expirado — Acesso Bloqueado'}
+                </strong>
+                {isCanceledSubscription
+                  ? 'Sua assinatura foi cancelada e o acesso às funcionalidades da plataforma foi bloqueado. Seus dados cadastrais e histórico permanecem salvos com segurança.'
+                  : 'Seus 7 dias de avaliação gratuita chegaram ao fim e o acesso ao painel foi bloqueado. Seus dados permanecem preservados na plataforma.'}
               </div>
             </div>
           )}

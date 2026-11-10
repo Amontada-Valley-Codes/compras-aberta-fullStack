@@ -4,7 +4,7 @@ import type { FastifyInstance } from "fastify";
 import { ensureAuthenticated } from "../../middlewares/ensure-authenticated";
 import { verifyUserAuthorization } from "../../middlewares/verify-user-authorization";
 import { prisma } from "../../lib/prisma";
-import { supabase } from "../../lib/supabase";
+import { supabase, SUPABASE_STORAGE_BUCKET } from "../../lib/supabase";
 import {
   sendApprovalEmail,
   sendRejectionEmail,
@@ -183,7 +183,7 @@ export async function adminRoutes(app: FastifyInstance) {
       }
 
       try {
-        const { data, error } = await supabase.storage.from("documentos-empresas").download(filePath);
+        const { data, error } = await supabase.storage.from(SUPABASE_STORAGE_BUCKET).download(filePath);
 
         if (error || !data) {
           console.error("Erro ao baixar arquivo do Supabase:", error);

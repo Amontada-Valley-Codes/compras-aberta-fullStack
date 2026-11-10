@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     }
 
     const origin = request.headers.get("origin") || undefined;
+    const reqBody = await request.json().catch(() => ({}));
 
     const response = await fetch(`${BACKEND_URL}/payments/portal-session`, {
       method: "POST",
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
         ...(origin ? { origin } : {}),
       },
+      body: JSON.stringify(reqBody),
     });
 
     const data = await response.json().catch(() => null);

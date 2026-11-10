@@ -31,6 +31,13 @@ import type { WorkspaceSubTab } from "./MeBidWorkspace";
 import { useMeBidDetailQuery } from "./use-me-licitacoes";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   enrichSnapshotBid,
   STAGE_MAP,
   toLocalDateKey,
@@ -366,18 +373,25 @@ export function MeMyBidsView({
           </label>
 
           {allTags.length > 0 && (
-            <select
-              className="mybids-filter-select"
-              value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value)}
+            <Select
+              value={tagFilter || "__all__"}
+              onValueChange={(v) => setTagFilter(v === "__all__" ? "" : v)}
             >
-              <option value="">Tags: Todas</option>
-              {allTags.map((tg) => (
-                <option key={tg} value={tg}>
-                  Tag: {tg}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                className="mybids-filter-select"
+                aria-label="Filtrar por tag"
+              >
+                <SelectValue placeholder="Tags: Todas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Tags: Todas</SelectItem>
+                {allTags.map((tg) => (
+                  <SelectItem key={tg} value={tg}>
+                    Tag: {tg}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
 
           {selectedDateKey && (
@@ -572,17 +586,26 @@ export function MeMyBidsView({
               <h3>Filtros de pesquisa</h3>
               <label>
                 <span>Modalidade</span>
-                <select
-                  value={modalityFilter}
-                  onChange={(e) => setModalityFilter(e.target.value)}
+                <Select
+                  value={modalityFilter || "__all__"}
+                  onValueChange={(v) =>
+                    setModalityFilter(v === "__all__" ? "" : v)
+                  }
                 >
-                  <option value="">Todas as modalidades</option>
-                  {allModalities.map((mod) => (
-                    <option key={mod} value={mod}>
-                      {mod}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger aria-label="Filtrar por modalidade">
+                    <SelectValue placeholder="Todas as modalidades" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">
+                      Todas as modalidades
+                    </SelectItem>
+                    {allModalities.map((mod) => (
+                      <SelectItem key={mod} value={mod}>
+                        {mod}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </label>
             </div>
           )}
