@@ -15,6 +15,13 @@ import {
 import { PageHeading } from "./MeDashboard";
 import { initials } from "./useAccessRequests";
 import { toast } from "@/components/ui/sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface PlanItem {
   id: string;
@@ -596,15 +603,20 @@ export function AdminPlans() {
 
                 <div className="ws-field">
                   <label>Público-alvo</label>
-                  <select
+                  <Select
                     value={formRole}
-                    onChange={(e) =>
-                      setFormRole(e.target.value as "BUSINESS" | "MANAGER")
+                    onValueChange={(v) =>
+                      setFormRole(v as "BUSINESS" | "MANAGER")
                     }
                   >
-                    <option value="BUSINESS">Empresas em Geral</option>
-                    <option value="MANAGER">Gestor Público</option>
-                  </select>
+                    <SelectTrigger aria-label="Público-alvo">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="BUSINESS">Empresas em Geral</SelectItem>
+                      <SelectItem value="MANAGER">Gestor Público</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="ws-field">

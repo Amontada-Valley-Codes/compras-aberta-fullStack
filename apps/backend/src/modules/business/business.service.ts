@@ -1,7 +1,7 @@
 import path from "node:path";
 import { hash } from "bcryptjs";
 import { prisma } from "../../lib/prisma";
-import { supabase } from "../../lib/supabase";
+import { supabase, SUPABASE_STORAGE_BUCKET } from "../../lib/supabase";
 import { AppError } from "../../utils/AppError";
 import { validateFile } from "../../utils/upload";
 import { userRepository } from "../users/user.repository";
@@ -45,7 +45,6 @@ export const businessService = {
       validateFile(file.mimetype, file.data.length);
     }
 
-    const BUCKET_NAME = "documentos-empresas";
     const cleanCnpj = data.cnpj.replace(/\D/g, "");
 
     const saveFile = async (file: UploadedFile, prefix: string) => {
@@ -53,7 +52,7 @@ export const businessService = {
       const fileName = `${cleanCnpj}/${prefix}${ext}`;
 
       const { data: uploadData, error } = await supabase.storage
-        .from(BUCKET_NAME)
+        .from(SUPABASE_STORAGE_BUCKET)
         .upload(fileName, file.data, {
           contentType: file.mimetype,
           upsert: true,

@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import {
   Building2,
+  CreditCard,
   FileBarChart,
   LayoutDashboard,
   Scale,
@@ -16,6 +17,7 @@ const items: NavItem[] = [
   { id: "fornecedores", label: "Fornecedores", icon: <Users size={19} /> },
   { id: "comparativos", label: "Comparativos", icon: <Scale size={19} /> },
   { id: "relatorios", label: "Relatórios", icon: <FileBarChart size={19} /> },
+  { id: "assinatura", label: "Assinatura", icon: <CreditCard size={19} /> },
 ];
 
 function activeId(pathname: string, basePath: string): string {

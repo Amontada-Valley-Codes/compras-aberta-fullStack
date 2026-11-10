@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Clock3,
   Copy,
+  CreditCard,
   Download,
   ExternalLink,
   FileText,
@@ -38,6 +39,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { AppShell, type NavItem } from "./AppShell";
+import { SubscriptionManagementView } from "./SubscriptionManagementView";
 import { OpportunityDonut, SpendingAreaChart } from "./DashboardCharts";
 import {
   evaluateBidMatch,
@@ -710,6 +712,11 @@ export function MeDashboard({
         label: "Perfil e CNAE",
         icon: <Building2 size={19} />,
       },
+      {
+        id: "subscription",
+        label: "Assinatura",
+        icon: <CreditCard size={19} />,
+      },
     ],
     [
       openBids.length,
@@ -910,6 +917,9 @@ export function MeDashboard({
               extraKeywords={preferences.extraKeywords}
               onSavePreferences={savePreferences}
             />
+          )}
+          {active === "subscription" && (
+            <SubscriptionManagementView role="BUSINESS" />
           )}
         </>
       )}
