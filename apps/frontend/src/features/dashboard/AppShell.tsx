@@ -249,7 +249,11 @@ export function AppShell({
           </div>
         </header>
         <main className="dashboard-content">
-          {!isAdmin && <SubscriptionBanner />}
+          {!isAdmin && (
+            <SubscriptionBanner
+              hideVisual={active === "subscription" || active === "assinatura"}
+            />
+          )}
           {children}
         </main>
       </div>

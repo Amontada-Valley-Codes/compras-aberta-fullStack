@@ -48,6 +48,16 @@ export const paymentController = {
     return reply.status(200).send(status);
   },
 
+  async cancelSubscription(request: FastifyRequest, reply: FastifyReply) {
+    const userId = request.user?.id;
+    if (!userId) {
+      throw new AppError("Usuário não autenticado.", 401);
+    }
+
+    const result = await paymentService.cancelSubscription({ userId });
+    return reply.status(200).send(result);
+  },
+
   async webhook(request: FastifyRequest, reply: FastifyReply) {
     const signature = request.headers["stripe-signature"] as string;
 

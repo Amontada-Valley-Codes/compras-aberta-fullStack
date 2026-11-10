@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import axios from "axios";
 import { authApi } from "@/api/client";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth/session";
 
@@ -36,7 +37,13 @@ export async function loadGestorAccess(): Promise<GestorAccess | null> {
     }
     if (data.role === "ADMIN") return { kind: "admin", userName: data.name };
     return null;
-  } catch {
+  } catch (err) {
+    if (
+      axios.isAxiosError(err) &&
+      (err.response?.status === 401 || err.response?.status === 403)
+    ) {
+      return null;
+    }
     return { kind: "error" };
   }
 }

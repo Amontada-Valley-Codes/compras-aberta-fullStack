@@ -4,6 +4,11 @@ import { z } from "zod";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL é obrigatória"),
+  DIRECT_URL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
   JWT_SECRET: z
     .string()
     .min(32, "JWT_SECRET deve ter pelo menos 32 caracteres"),
@@ -44,6 +49,32 @@ const envSchema = z.object({
 
   PORT: z.coerce.number().int().min(1).default(3333),
 
+  SUPABASE_URL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SUPABASE_SERVICE_ROLE_KEY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SUPABASE_STORAGE_BUCKET: z
+    .string()
+    .trim()
+    .default("documentos-empresas"),
+
+  ADMIN_EMAIL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  ADMIN_PASSWORD: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+
   FRONTEND_URL: z
     .string()
     .trim()
@@ -75,9 +106,21 @@ const envSchema = z.object({
     .optional()
     .transform((v) => v || undefined),
 
-  STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY é obrigatória"),
-  STRIPE_PRICE_ID_MONTHLY: z.string().min(1, "STRIPE_PRICE_ID_MONTHLY é obrigatória"),
-  STRIPE_WEBHOOK_SECRET: z.string().optional().default(""),
+  STRIPE_SECRET_KEY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  STRIPE_PRICE_ID_MONTHLY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  STRIPE_WEBHOOK_SECRET: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
 });
 
 

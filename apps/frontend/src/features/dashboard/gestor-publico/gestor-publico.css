@@ -33,8 +33,9 @@
 .gp-filters-title strong { font-size: 14px; }
 .gp-filters-title span { color: #7a8d9b; font-size: 11px; }
 .gp-field, .gp-inline-field { display: grid; gap: 6px; color: #667d8c; font-size: 11px; font-weight: 800; }
-.gp-field select, .gp-inline-field select, .gp-year-picker select { width: 100%; min-height: 42px; padding: 0 10px; border: 1px solid #cedde7; border-radius: 9px; background: #fbfdfe; color: #25313c; font: inherit; font-weight: 600; }
-.gp-field select:focus-visible, .gp-inline-field select:focus-visible, .gp-search-field input:focus-visible, .gp-primary-button:focus-visible, .gp-text-button:focus-visible, .gp-table a:focus-visible, .gp-icon-button:focus-visible { outline: 3px solid rgba(37, 99, 166, .28); outline-offset: 2px; }
+.gp-field select, .gp-inline-field select, .gp-year-picker select { width: 100%; min-height: 42px; padding: 0 36px 0 12px; border: 1px solid #cbd5e1; border-radius: 10px; background-color: #ffffff; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px 16px; appearance: none; -webkit-appearance: none; color: #1e293b; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color .15s, background-color .15s, box-shadow .15s; }
+.gp-field select:hover, .gp-inline-field select:hover, .gp-year-picker select:hover { border-color: #94a3b8; background-color: #f8fafc; }
+.gp-field select:focus-visible, .gp-inline-field select:focus-visible, .gp-year-picker select:focus-visible, .gp-search-field input:focus-visible, .gp-primary-button:focus-visible, .gp-text-button:focus-visible, .gp-table a:focus-visible, .gp-icon-button:focus-visible { border-color: #11169b; box-shadow: 0 0 0 3px rgba(17, 22, 155, .12); outline: none; }
 .gp-field-wide select { min-height: 42px; }
 .gp-filter-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 17px; color: #708594; font-size: 12px; }
 .gp-filter-summary span { padding: 5px 9px; border-radius: 999px; background: #eaf3f8; }

@@ -889,15 +889,15 @@
 }
 
 .opp-cta-primary {
-  background: #1d4ed8;
-  border: 1px solid #1d4ed8;
+  background: var(--brand-blue, #11169b);
+  border: 1px solid var(--brand-blue, #11169b);
   color: #ffffff;
-  box-shadow: 0 8px 18px -8px rgba(29, 78, 216, 0.55);
+  box-shadow: 0 8px 18px -8px rgba(17, 22, 155, 0.45);
 }
 
 .opp-cta-primary:hover {
-  background: #1e40af;
-  border-color: #1e40af;
+  background: #0d1282;
+  border-color: #0d1282;
   transform: translateY(-1px);
 }
 

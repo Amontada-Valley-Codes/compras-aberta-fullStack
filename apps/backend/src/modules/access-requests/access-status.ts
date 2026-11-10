@@ -17,6 +17,18 @@ function resolveAccessStatus(user: UserWithAccessRequest): AccessRequestStatus {
   }
 
   const now = new Date();
+
+  if (
+    user.subscriptionStatus === "canceled" ||
+    user.subscriptionStatus === "expired" ||
+    user.subscriptionStatus === "trial_expired" ||
+    (user.subscriptionStatus === "trialing" &&
+      user.trialEndsAt &&
+      new Date(user.trialEndsAt) <= now)
+  ) {
+    return "REJECTED";
+  }
+
   const hasActiveTrial =
     user.subscriptionStatus === "trialing" &&
     user.trialEndsAt &&

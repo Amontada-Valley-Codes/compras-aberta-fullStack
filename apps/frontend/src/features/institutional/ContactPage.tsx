@@ -95,7 +95,10 @@ export function ContactPage() {
       {/* Mesmo assistente da landing. */}
       <Script
         id="noupe-chatbot"
-        src="https://www.noupe.com/embed/01a0c0bf7d1070008c519ce4b0af52a479ec.js"
+        src={
+          process.env.NEXT_PUBLIC_NOUPE_CHATBOT_URL ||
+          "https://www.noupe.com/embed/01a0c0bf7d1070008c519ce4b0af52a479ec.js"
+        }
         strategy="afterInteractive"
       />
     </div>

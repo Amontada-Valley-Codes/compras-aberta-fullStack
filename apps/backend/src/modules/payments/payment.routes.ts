@@ -3,7 +3,7 @@ import { ensureAuthenticated } from "../../middlewares/ensure-authenticated";
 import { paymentController } from "./payment.controller";
 
 export async function paymentRoutes(app: FastifyInstance) {
-  // Adiciona parser para o webhook receber Buffer e demais rotas JSON
+  // Adiciona parser para o webhook receber Buffer e demais rotas JSON (incluindo body vazio)
   app.addContentTypeParser(
     "application/json",
     { parseAs: "buffer" },
@@ -12,7 +12,8 @@ export async function paymentRoutes(app: FastifyInstance) {
         done(null, body);
       } else {
         try {
-          const json = JSON.parse(body.toString("utf8"));
+          const raw = body ? body.toString("utf8").trim() : "";
+          const json = raw ? JSON.parse(raw) : {};
           done(null, json);
         } catch (err: any) {
           done(err, undefined);
@@ -37,6 +38,12 @@ export async function paymentRoutes(app: FastifyInstance) {
     "/payments/status",
     { preHandler: [ensureAuthenticated] },
     paymentController.getStatus
+  );
+
+  app.post(
+    "/payments/cancel",
+    { preHandler: [ensureAuthenticated] },
+    paymentController.cancelSubscription
   );
 
   app.post(
