@@ -22,7 +22,7 @@ const paymentShareDesign = {
   othersMarkerClass: "local-share-tooltip-marker--general-others",
 };
 
-export function PaymentNatureChart({ data, metric }: { data: PaymentNatureChartRow[]; metric: Metric }) {
+export function PaymentNatureChart({ data, metric, height }: { data: PaymentNatureChartRow[]; metric: Metric; height?: number }) {
   const rows = data.filter((row) => row[metric] != null).sort((a, b) => Number(b[metric]) - Number(a[metric]));
   if (!rows.length) return <p className="analysis-data-state">Sem base para calcular o percentual de pagamentos a ME.</p>;
   const isPercent = metric === "percentual_me" || metric === "percentual_local_me";
@@ -33,16 +33,16 @@ export function PaymentNatureChart({ data, metric }: { data: PaymentNatureChartR
     seriesName={isLocalShare ? "Parcela local dos pagamentos a ME" : isPercent ? "Percentual pago a ME" : isLocal ? "Valor pago a ME locais" : isRemaining ? "Valor pago aos demais fornecedores" : metric === "valor_me" ? "Valor de compra para ME" : "Valor total pago"}
     labels={rows.map((row) => natureLabel(row.codigo_natureza, row.nome_natureza))} values={rows.map((row) => Number(row[metric]))}
     axisFormatter={isPercent ? (value) => `${Math.round(value)}%` : (value) => new Intl.NumberFormat("pt-BR", { notation: "compact" }).format(value)}
-    tooltipFormatter={isPercent ? percent : money} />;
+    tooltipFormatter={isPercent ? percent : money} height={height} />;
 }
-export function PaymentShareChart({ percentage }: { percentage: number }) {
-  return <ShareDonutChart {...paymentShareDesign} percentage={percentage} chartId="payments-me-share"
+export function PaymentShareChart({ percentage, size = paymentShareDesign.size }: { percentage: number; size?: number }) {
+  return <ShareDonutChart {...paymentShareDesign} size={size} percentage={percentage} chartId="payments-me-share"
     meLabel="Compras com ME" othersLabel="Demais pagamentos"
     centerLabel="compras com ME" ariaLabel={`${percent(percentage)} do valor pago foi destinado a microempresas`} />;
 }
 
-export function LocalPaymentShareChart({ percentage }: { percentage: number }) {
-  return <ShareDonutChart {...paymentShareDesign} percentage={percentage} chartId="payments-local-me-share"
+export function LocalPaymentShareChart({ percentage, size = paymentShareDesign.size }: { percentage: number; size?: number }) {
+  return <ShareDonutChart {...paymentShareDesign} size={size} percentage={percentage} chartId="payments-local-me-share"
     meLabel="ME locais identificadas" othersLabel="Demais pagamentos, incluindo sede não identificada"
     centerLabel="compras com ME locais" ariaLabel={`${percent(percentage)} do total pago foi destinado a microempresas identificadas no município`} />;
 }

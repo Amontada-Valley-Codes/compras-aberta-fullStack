@@ -43,6 +43,11 @@ export interface MunicipalitySummary {
   collectionId: number;
 }
 
+export interface SupplierPaymentDetail {
+  municipality: Pick<MunicipalitySummary, "id" | "name" | "region" | "collectionId" | "updatedAt">;
+  payment: PaymentSupplier;
+}
+
 export interface SupplierSummary {
   id: string;
   cnpj: string;
@@ -57,6 +62,7 @@ export interface SupplierSummary {
   municipalitiesServed: number;
   nature: string;
   updatedAt: string;
+  paymentDetails?: { year: number; rows: SupplierPaymentDetail[] };
 }
 
 export interface NatureSummary {
@@ -155,11 +161,13 @@ export function getMunicipalitySummaries(year: number): Promise<MunicipalitySumm
 }
 
 const sizeFromCategory = (category: string): SupplierSize => category === "MEI" ? "MEI" : category === "ME" ? "ME" : category === "EPP" ? "EPP" : "Demais empresas";
-function supplierFromPayment(row: PaymentSupplier, summary: MunicipalitySummary, localDocuments: Set<string>): SupplierSummary {
-  return { id: `${summary.id}:${row.documento}:${row.codigo_natureza}`, cnpj: row.documento, name: row.nome_negociante ?? "Fornecedor não identificado", size: sizeFromCategory(row.categoria_porte), classification: row.situacao_classificacao ?? "Classificação não informada", municipality: summary.name, municipalityId: summary.id, state: "CE", origin: localDocuments.has(row.documento.replace(/\D/g, "")) ? "Local" : "Sede não informada", total: Number(row.valor_pago), municipalitiesServed: 1, nature: row.codigo_natureza as NatureCode, updatedAt: "" };
+function supplierFromPayment(row: PaymentSupplier, summary: MunicipalitySummary, localDocuments: Set<string>, year: number): SupplierSummary {
+  if (!row.valor_pago?.trim() || !Number.isFinite(Number(row.valor_pago)) || !Number.isInteger(row.quantidade_pagamentos) || row.quantidade_pagamentos < 0) throw new Error("A API retornou um pagamento inválido.");
+  const { id, name, region, collectionId, updatedAt } = summary;
+  return { id: `${summary.id}:${row.documento}:${row.codigo_natureza}`, cnpj: row.documento, name: row.nome_negociante ?? "Fornecedor não identificado", size: sizeFromCategory(row.categoria_porte), classification: row.situacao_classificacao ?? "Classificação não informada", municipality: summary.name, municipalityId: summary.id, state: summary.region, origin: localDocuments.has(row.documento.replace(/\D/g, "")) ? "Local" : "Sede não informada", total: Number(row.valor_pago), municipalitiesServed: 1, nature: row.codigo_natureza as NatureCode, updatedAt: "", paymentDetails: { year, rows: [{ municipality: { id, name, region, collectionId, updatedAt }, payment: row }] } };
 }
 export function getSupplierSummaries(summaries: MunicipalitySummary[], year: number): Promise<SupplierSummary[]> {
-  const key = `${year}:${summaries.map((summary) => summary.id).sort().join(",")}`;
+  const key = `${year}:${summaries.map((summary) => `${summary.id}:${summary.collectionId}`).sort().join(",")}`;
   const cached = supplierCache.get(key);
   if (cached) return cached;
   const pending = withConcurrency(summaries, 4, async (summary) => {
@@ -180,32 +188,64 @@ export function getSupplierSummaries(summaries: MunicipalitySummary[], year: num
     ]);
     const byDocument = new Map<string, SupplierSummary>();
     for (const row of rows) {
-      const supplier = supplierFromPayment(row, summary, localDocuments);
-      const current = byDocument.get(row.documento) ?? supplier;
+      const supplier = supplierFromPayment(row, summary, localDocuments, year);
+      const document = row.documento.replace(/\D/g, "");
+      const current = byDocument.get(document) ?? supplier;
       current.total += current === supplier ? 0 : supplier.total;
+      if (current !== supplier) current.paymentDetails!.rows.push(...supplier.paymentDetails!.rows);
       if (current.nature !== supplier.nature) current.nature = "varias";
-      byDocument.set(row.documento, current);
+      byDocument.set(document, current);
     }
     return [...byDocument.values()];
   }).then((pages) => {
     const byDocument = new Map<string, SupplierSummary>();
     for (const supplier of pages.flat()) {
-      const current = byDocument.get(supplier.cnpj) ?? supplier;
+      const document = supplier.cnpj.replace(/\D/g, "");
+      const current = byDocument.get(document);
+      if (!current) {
+        // Do not mutate the per-municipality aggregate while combining the selected scope.
+        byDocument.set(document, { ...supplier, paymentDetails: { year, rows: [...supplier.paymentDetails!.rows] } });
+        continue;
+      }
       if (current !== supplier) {
         current.total += supplier.total;
+        current.paymentDetails!.rows.push(...supplier.paymentDetails!.rows);
         current.municipalitiesServed += 1;
         if (current.municipality !== supplier.municipality) current.municipality = "Vários municípios";
         current.municipalityId = "";
         current.origin = current.origin === "Local" && supplier.origin === "Local" ? "Local" : "Sede não informada";
         if (current.nature !== supplier.nature) current.nature = "varias";
       }
-      byDocument.set(supplier.cnpj, current);
+      byDocument.set(document, current);
     }
     return [...byDocument.values()];
   });
   supplierCache.set(key, pending);
   pending.catch(() => supplierCache.delete(key));
   return pending;
+}
+
+export function summarizeSupplierPayments(supplier: SupplierSummary, year: number) {
+  const details = supplier.paymentDetails;
+  if (!details || details.year !== year || !details.rows.length) return null;
+  const natures = new Map<string, { label: string; total: number; payments: number }>();
+  const cities = new Map<string, { municipality: SupplierPaymentDetail["municipality"]; total: number; payments: number }>();
+  let total = 0;
+  let payments = 0;
+  for (const { municipality, payment } of details.rows) {
+    const value = Number(payment.valor_pago);
+    total += value;
+    payments += payment.quantidade_pagamentos;
+    const nature = natures.get(payment.codigo_natureza) ?? { label: payment.nome_natureza || natureName(payment.codigo_natureza), total: 0, payments: 0 };
+    nature.total += value;
+    nature.payments += payment.quantidade_pagamentos;
+    natures.set(payment.codigo_natureza, nature);
+    const city = cities.get(municipality.id) ?? { municipality, total: 0, payments: 0 };
+    city.total += value;
+    city.payments += payment.quantidade_pagamentos;
+    cities.set(municipality.id, city);
+  }
+  return { total, payments, natures: [...natures].sort((a, b) => b[1].total - a[1].total), cities: [...cities.values()].sort((a, b) => b.total - a.total) };
 }
 
 export function getDashboardData(filters: GestorPublicFilters, allMunicipalities: MunicipalitySummary[], allSuppliers: SupplierSummary[] = []): DashboardData {
@@ -222,14 +262,14 @@ export function getDashboardData(filters: GestorPublicFilters, allMunicipalities
     : municipalitiesForNature;
   const rows = selected.length ? selected : municipalitiesForNature;
   const activeCodes = filters.nature ? [filters.nature] : [...new Set(rows.flatMap((row) => Object.keys(row.natures)))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
-  const valueForNature = (row: MunicipalitySummary, code: NatureCode) => row.natures[code];
+  const valueForNature = (row: MunicipalitySummary, code: NatureCode) => row.natures[code] ?? 0;
   const total = rows.reduce((sum, row) => sum + (filters.nature ? valueForNature(row, filters.nature) : row.total), 0);
-  const mpeValue = rows.reduce((sum, row) => sum + (filters.nature ? row.meNatures[filters.nature] : row.mpeValue), 0);
-  const localValue = rows.reduce((sum, row) => sum + (filters.nature ? row.localNatures[filters.nature] : row.localValue), 0);
+  const mpeValue = rows.reduce((sum, row) => sum + (filters.nature ? row.meNatures[filters.nature] ?? 0 : row.mpeValue), 0);
+  const localValue = rows.reduce((sum, row) => sum + (filters.nature ? row.localNatures[filters.nature] ?? 0 : row.localValue), 0);
   const suppliers = rows.reduce((sum, row) => sum + (filters.nature ? row.localSuppliersByNature[filters.nature] ?? 0 : row.suppliers), 0);
   const natures = activeCodes.map((code) => {
-    const value = rows.reduce((sum, row) => sum + row.natures[code], 0);
-    const ratio = rows.reduce((sum, row) => sum + row.meNatures[code], 0);
+    const value = rows.reduce((sum, row) => sum + (row.natures[code] ?? 0), 0);
+    const ratio = rows.reduce((sum, row) => sum + (row.meNatures[code] ?? 0), 0);
     return { code, label: natureLabels.get(code) ?? `Natureza ${code}`, value, mpeValue: ratio, mpePercent: percent(ratio, value) };
   });
   const suppliersRows = allSuppliers.filter((supplier) => rows.some((row) => row.id === supplier.municipalityId) && (!filters.nature || supplier.nature === filters.nature));

@@ -11,11 +11,13 @@ import { Card, PageHeader } from "./GestorPublicoViews";
 import {
   GESTOR_PUBLICO_YEARS,
   getSupplierSummaries,
+  summarizeSupplierPayments,
   natureName,
   type SupplierSize,
   type SupplierSummary,
 } from "./gestor-publico-data";
 import { useMunicipalitySummaries } from "./use-gestor-public-data";
+import "./supplier-detail.css";
 
 
 
@@ -70,8 +72,8 @@ export function GestorPublicoFornecedores() {
   useEffect(() => {
     let active = true;
     const selectedMunicipalities = filters.municipality ? municipalities.filter((item) => item.id === filters.municipality) : municipalities;
-    if (!selectedMunicipalities.length) { setSuppliers([]); return; }
-    setSuppliersLoading(true); setSuppliersError(null);
+    if (!selectedMunicipalities.length) { setSuppliers([]); setSuppliersLoading(false); setSuppliersError(null); return; }
+    setSuppliers([]); setSuppliersLoading(true); setSuppliersError(null);
     getSupplierSummaries(selectedMunicipalities, filters.year).then((rows) => { if (active) setSuppliers(rows); }).catch(() => { if (active) setSuppliersError("Não foi possível carregar os fornecedores pela API."); }).finally(() => { if (active) setSuppliersLoading(false); });
     return () => { active = false; };
   }, [municipalities, filters.year, filters.municipality]);
@@ -92,10 +94,12 @@ export function GestorPublicoFornecedores() {
   const hasFilters = Boolean(query.trim() || filters.municipality || filters.size || filters.year !== EMPTY_FILTERS.year);
 
   const updateFilters = (patch: Partial<SupplierFilters>) => {
+    setSelected(null);
     setFilters((current) => ({ ...current, ...patch }));
     setPage(1);
   };
   const clearFilters = () => {
+    setSelected(null);
     setFilters(EMPTY_FILTERS);
     setQuery("");
     setPage(1);
@@ -187,7 +191,7 @@ export function GestorPublicoFornecedores() {
           onOpenAutoFocus={(event) => { event.preventDefault(); drawerRef.current?.focus(); }}
           onCloseAutoFocus={(event) => { event.preventDefault(); openedFrom.current?.focus(); }}
         >
-          {selected && <SupplierDetail supplier={selected} year={filters.year} />}
+          {selected && <SupplierDetail key={`${filters.year}:${selected.id}`} supplier={selected} year={filters.year} />}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -196,14 +200,22 @@ export function GestorPublicoFornecedores() {
 
 function SupplierDetail({ supplier, year }: { supplier: SupplierSummary; year: number }) {
   const [copied, setCopied] = useState(false);
-  const place = `${supplier.municipality}/${supplier.state}`;
+  const [copyError, setCopyError] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (copyTimer.current) clearTimeout(copyTimer.current); }, []);
+
+  const summary = useMemo(() => summarizeSupplierPayments(supplier, year), [supplier, year]);
+  const place = supplier.municipalityId ? `${supplier.municipality}/${supplier.state}` : "Vários municípios no recorte consultado";
 
   const copyCnpj = async () => {
     try {
       await navigator.clipboard.writeText(supplier.cnpj);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
+      setCopyError(false);
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
+      setCopyError(true);
       // Sem permissão de área de transferência: o CNPJ continua visível para copiar à mão.
     }
   };
@@ -215,11 +227,11 @@ function SupplierDetail({ supplier, year }: { supplier: SupplierSummary; year: n
         <Dialog.Title>{supplier.name}</Dialog.Title>
         <div className="gp-drawer-cnpj">
           <Dialog.Description>CNPJ {supplier.cnpj}</Dialog.Description>
-          <button type="button" className="gp-drawer-copy" onClick={copyCnpj}>
+          <button type="button" className="gp-drawer-copy" onClick={copyCnpj} aria-label={copied ? "CNPJ copiado" : "Copiar CNPJ"} title={copied ? "CNPJ copiado" : "Copiar CNPJ"}>
             {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
-            {copied ? "Copiado" : "Copiar"}
           </button>
         </div>
+        <span className="gp-sr-only" role="status">{copied ? "CNPJ copiado." : copyError ? "Não foi possível copiar o CNPJ. Selecione o documento para copiar." : ""}</span>
       </div>
       <Dialog.Close className="gp-drawer-close" aria-label="Fechar detalhes"><X size={20} aria-hidden="true" /></Dialog.Close>
     </header>
@@ -231,23 +243,47 @@ function SupplierDetail({ supplier, year }: { supplier: SupplierSummary; year: n
 
       <div className="gp-drawer-highlight">
         <small>Valor recebido em {year}</small>
-        <strong>{money(supplier.total)}</strong>
-        <span>Em pagamentos da prefeitura de {place}</span>
+        <strong>{money(summary?.total ?? supplier.total)}</strong>
+        <span>{place} · Exercício {year}</span>
       </div>
+
+      {summary && <dl className="gp-sd-metrics">
+        <div><dt>Pagamentos registrados</dt><dd>{count(summary.payments)}</dd></div>
+        <div><dt>Valor médio por pagamento</dt><dd>{summary.payments > 0 ? money(summary.total / summary.payments) : "Não disponível"}</dd></div>
+        <div><dt>Municípios compradores</dt><dd>{count(summary.cities.length)}</dd></div>
+        <div><dt>Naturezas de despesa</dt><dd>{count(summary.natures.length)}</dd></div>
+      </dl>}
 
       <dl className="gp-drawer-list">
         <div><dt>Porte empresarial</dt><dd>{SIZE_LABEL[supplier.size]}{supplier.size !== "Demais empresas" && <small>{supplier.size}</small>}</dd></div>
+        <div><dt>Situação da classificação</dt><dd>{supplier.classification || "Não informada"}</dd></div>
+        <div><dt>Origem no recorte</dt><dd>{supplier.origin}<small>{supplier.origin === "Local" ? "Identificado na relação de fornecedores locais dos municípios consultados." : "A ausência na relação local não comprova sede em outro município."}</small></dd></div>
         <div><dt>Município comprador</dt><dd>{place}</dd></div>
         <div><dt>Natureza da despesa</dt><dd>{natureName(supplier.nature)}</dd></div>
         <div><dt>Municípios atendidos</dt><dd>{count(supplier.municipalitiesServed)} {supplier.municipalitiesServed === 1 ? "município" : "municípios"}</dd></div>
-        <div><dt>Atualização</dt><dd>{supplier.updatedAt || "—"}</dd></div>
+        <div><dt>Atualização do fornecedor</dt><dd>{supplier.updatedAt || "Não informada pela API"}</dd></div>
       </dl>
+
+      <section className="gp-sd-section" aria-labelledby="gp-sd-payments">
+        <h3 id="gp-sd-payments">Composição dos pagamentos</h3>
+        {!summary ? <p role="status">Detalhamento não disponível no resumo carregado para este exercício. O valor acima corresponde à listagem.</p>
+          : <>
+            <h4>Por natureza da despesa</h4>
+            <div className="gp-sd-table"><table><caption className="gp-sr-only">Pagamentos por natureza em {year}</caption><thead><tr><th scope="col">Natureza</th><th scope="col">Pagamentos</th><th scope="col">Valor recebido</th></tr></thead><tbody>
+              {summary.natures.map(([code, row]) => <tr key={code}><th scope="row"><span className="gp-sd-code">{code}</span> {row.label}</th><td>{count(row.payments)}</td><td>{money(row.total)}</td></tr>)}
+            </tbody></table></div>
+            <h4>Por município comprador</h4>
+            <div className="gp-sd-table"><table><caption className="gp-sr-only">Pagamentos e coletas por município em {year}</caption><thead><tr><th scope="col">Município / coleta</th><th scope="col">Pagamentos</th><th scope="col">Valor recebido</th></tr></thead><tbody>
+              {summary.cities.map(({ municipality, total, payments }) => <tr key={municipality.id}><th scope="row"><Link href={`/gestor/municipios/${municipality.id}?ano=${year}`}>{municipality.name}/{municipality.region} <ArrowRight size={14} aria-hidden="true" /></Link><small>Coleta {municipality.collectionId} · Finalização: {municipality.updatedAt || "Não informada"}</small></th><td>{count(payments)}</td><td>{money(total)}</td></tr>)}
+            </tbody></table></div>
+          </>}
+      </section>
 
       <p className="gp-drawer-note"><Info size={15} aria-hidden="true" /> Valores conforme os pagamentos registrados na coleta consultada pela API.</p>
     </div>
 
     <footer className="gp-drawer-actions">
-      <Link className="gp-primary-button" href={`/gestor/municipios/${supplier.municipalityId}`}>Ver {supplier.municipality} <ArrowRight size={16} aria-hidden="true" /></Link>
+      {supplier.municipalityId && <Link className="gp-primary-button" href={`/gestor/municipios/${supplier.municipalityId}?ano=${year}`}>Ver {supplier.municipality} <ArrowRight size={16} aria-hidden="true" /></Link>}
       <Dialog.Close className="gp-drawer-secondary">Fechar</Dialog.Close>
     </footer>
   </>;

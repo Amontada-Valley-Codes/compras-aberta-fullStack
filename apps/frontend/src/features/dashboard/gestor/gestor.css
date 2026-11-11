@@ -265,6 +265,91 @@
   font-size: 32px;
 }
 
+@media screen {
+  .gs-page.gs-app .gs-heading h1 {
+    font-size: 32px;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .gs-page.gs-app .gs-main {
+    padding-block: 20px 40px;
+    container: gestor-legacy / inline-size;
+  }
+
+  .gs-page.gs-app :is(.gs-main > *, .ov-grid > *, .ov-card-head > div) {
+    min-width: 0;
+  }
+
+  .gs-page.gs-app .gs-heading {
+    flex-wrap: wrap;
+  }
+
+  .gs-page.gs-app :is(.gs-heading h1, .gs-metric > b) {
+    overflow-wrap: anywhere;
+  }
+
+  .gs-page.gs-app .gs-table-scroll {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .gs-page.gs-app :is(.ov-card, .gs-metric) {
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .gs-page.gs-app .ov-card-head h2 {
+    font-size: 17px;
+    line-height: 1.35;
+  }
+
+  .gs-page.gs-app :is(.ov-summary, .ov-card-head p, .gs-metric > p) {
+    font-size: 13px;
+  }
+
+  .gs-page.gs-app :is(.gs-metric > b, .gs-stats b) {
+    font-size: 24px;
+    letter-spacing: 0;
+  }
+
+  .gs-page.gs-app .public-filter-trigger {
+    height: 52px;
+    min-height: 52px;
+    border-radius: 999px;
+  }
+
+  .gs-page.gs-app .public-filter-value {
+    font-size: 14px;
+  }
+
+  .gs-page.gs-app table :is(th, td) {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+@media screen and (max-width: 720px) {
+  .gs-page.gs-app .gs-heading h1 {
+    font-size: 25px;
+  }
+}
+
+@container gestor-legacy (max-width: 620px) {
+  .gs-page.gs-app .gs-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@container gestor-legacy (max-width: 380px) {
+  .gs-page.gs-app .gs-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Cards de indicadores ---------- */
 .gs-metrics {
   display: grid;

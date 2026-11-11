@@ -4,12 +4,12 @@ import { PublicTable, PublicTablePagination, PublicSortHeader } from "@/componen
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, CircleDollarSign, Download, FileBarChart, Info, MapPinned, Printer, RefreshCw, Search, Store, TrendingUp } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, CircleDollarSign, Info, MapPinned, Printer, RefreshCw, Search, Store, TrendingUp } from "lucide-react";
 import { formatDateBr } from "@/features/dashboard/gestor/gestor-domain";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { LocalPaymentShareChart, PaymentNatureChart, PaymentShareChart } from "@/features/analysis/PaymentCharts";
 import {
-  GESTOR_PUBLICO_YEARS, getDashboardData, getNatureOptions, getSupplierSummaries, natureName, type GestorPublicFilters, type SupplierSummary,
+  GESTOR_PUBLICO_YEARS, getDashboardData, getNatureOptions, getSupplierSummaries, natureName, type GestorPublicFilters, type MunicipalitySummary, type SupplierSummary,
 } from "./gestor-publico-data";
 import { useMunicipalitySummaries } from "./use-gestor-public-data";
 
@@ -34,34 +34,6 @@ function EmptyState({ children }: { children: React.ReactNode }) {
 function csvCell(value: string | number): string {
   const text = String(value).replace(/"/g, '""');
   return `"${text}"`;
-}
-
-function DashboardExportMenu({ data, filters }: { data: ReturnType<typeof getDashboardData>; filters: GestorPublicFilters }) {
-  const exportCsv = () => {
-    const rows = [
-      ["Indicador", "Valor", "Detalhe"],
-      ["Total pago", currency(data.totals.total), `Ano ${filters.year}`],
-      ["Valor destinado às ME", currency(data.totals.mpeValue), pct(data.totals.mpePercent)],
-      ["Compras locais", currency(data.totals.localValue), pct(data.totals.localValue / Math.max(1, data.totals.total) * 100)],
-      ["Fornecedores", number(data.totals.suppliers), `${data.totals.municipalities} municípios`],
-      ...data.natures.map((item) => [item.label, currency(item.value), `${pct(item.mpePercent)} para ME`]),
-    ];
-    const csv = `\uFEFF${rows.map((row) => row.map(csvCell).join(";")).join("\n")}`;
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `dashboard-gestor-publico-${filters.year}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return <details className="gp-export-menu">
-    <summary className="gp-primary-button"><Download size={16} /> Exportar dados</summary>
-    <div className="gp-export-options">
-      <button type="button" onClick={exportCsv}><Download size={15} /> Indicadores em CSV</button>
-      <button type="button" onClick={() => window.print()}><FileBarChart size={15} /> Imprimir / salvar em PDF</button>
-    </div>
-  </details>;
 }
 
 function PublicDashboardFilters({ filters, onChange }: { filters: GestorPublicFilters; onChange: (next: GestorPublicFilters) => void }) {
@@ -89,7 +61,7 @@ function DashboardLoadingSkeleton() {
   return <div role="status" aria-label="Carregando dados de pagamentos dos municípios" aria-busy="true">
     <span className="gp-sr-only">Carregando dados de pagamentos dos municípios</span>
     <section className="analysis-skeleton-kpis">{[1, 2, 3].map((item) => <article key={item}><div>{block("analysis-skeleton-icon")}{block("analysis-skeleton-label")}</div>{block("analysis-skeleton-value")}{block("analysis-skeleton-detail")}</article>)}</section>
-    <section className="analysis-skeleton-chart-grid">{[1, 2, 3, 4].map((item) => <article key={item} className={`analysis-skeleton-chart-card ${item === 2 ? "analysis-skeleton-chart-card--share" : ""}`}>
+    <section className="analysis-skeleton-chart-grid">{[1, 2, 3, 4, 5, 6, 7, 8].map((item) => <article key={item} className={`analysis-skeleton-chart-card ${item === 2 ? "analysis-skeleton-chart-card--share" : ""}`}>
       {block("analysis-skeleton-chart-title")}{block("analysis-skeleton-chart-description")}
       {item === 2 ? <div className="analysis-skeleton-share">{[1, 2].map((share) => <div key={share}>{block("analysis-skeleton-share-label")}<div className="analysis-skeleton-controls">{block("")}{block("")}</div>{block(`analysis-skeleton-donut${share === 2 ? " analysis-skeleton-donut--second" : ""}`)}{block("analysis-skeleton-share-value")}</div>)}</div> : <><div className="analysis-skeleton-controls">{block("")}{block("")}</div><div className="analysis-skeleton-chart"><div className="analysis-skeleton-y-labels">{[1, 2, 3, 4, 5].map((bar) => <span key={bar} className="analysis-skeleton-block" aria-hidden="true" />)}</div><div className="analysis-skeleton-bars">{[1, 2, 3, 4, 5].map((bar) => <span key={bar} className={`analysis-skeleton-block analysis-skeleton-bar analysis-skeleton-bar--${bar}`} aria-hidden="true" />)}</div></div></>}
     </article>)}</section>
@@ -111,6 +83,7 @@ function PublicDashboardChartGrid({ data }: { data: ReturnType<typeof getDashboa
     };
   });
   const localPercentage = data.totals.localValue / Math.max(1, data.totals.total) * 100;
+  const chartHeight = Math.max(240, 70 + chartRows.length * 34);
   if (data.natures.length === 1) {
     const nature = data.natures[0];
     if (nature.value <= 0) return <EmptyState>Não há pagamentos registrados para {nature.label.toLocaleLowerCase("pt-BR")} neste recorte.</EmptyState>;
@@ -125,19 +98,45 @@ function PublicDashboardChartGrid({ data }: { data: ReturnType<typeof getDashboa
         </div>
       </AnalysisCard>
       <AnalysisCard title="Quanto das compras foi para ME?" description="Compare o total pago a ME com a parcela identificada como local.">
-        <div className="analysis-share-comparison gp-nature-filtered-shares"><div className="analysis-share-item"><h3>Quanto foi pago a ME em geral?</h3><PaymentShareChart percentage={data.totals.mpePercent} /><p>{currency(data.totals.mpeValue)} pagos a ME</p></div><div className="analysis-share-item"><h3>Quanto foi pago a ME locais?</h3><LocalPaymentShareChart percentage={localPercentage} /><p>{currency(data.totals.localValue)} pagos a ME locais</p></div></div>
+        <div className="analysis-share-comparison gp-nature-filtered-shares"><div className="analysis-share-item"><h3>Quanto foi pago a ME em geral?</h3><PaymentShareChart percentage={data.totals.mpePercent} size={180} /><p>{currency(data.totals.mpeValue)} pagos a ME</p></div><div className="analysis-share-item"><h3>Quanto foi pago a ME locais?</h3><LocalPaymentShareChart percentage={localPercentage} size={180} /><p>{currency(data.totals.localValue)} pagos a ME locais</p></div></div>
       </AnalysisCard>
     </div>;
   }
   return <div className="analysis-chart-grid gp-analysis-chart-grid">
-    <AnalysisCard title="Quanto foi pago a ME em cada natureza?" description="Compare os valores destinados a micro e pequenas empresas por categoria."><PaymentNatureChart data={chartRows} metric="valor_me" /></AnalysisCard>
-    <AnalysisCard title="Qual parte dos pagamentos foi para ME locais?" description="Compare a parcela local identificada com o total pago a ME."><div className="analysis-share-comparison"><div className="analysis-share-item"><h3>Quanto foi pago a ME locais?</h3><LocalPaymentShareChart percentage={localPercentage} /><p>{currency(data.totals.localValue)} pagos a ME locais</p></div><div className="analysis-share-item"><h3>Quanto foi pago a ME em geral?</h3><PaymentShareChart percentage={data.totals.mpePercent} /><p>{currency(data.totals.mpeValue)} pagos a ME</p></div></div></AnalysisCard>
-    <AnalysisCard title="Quanto foi pago no total em cada natureza?" description="Veja o valor pago a fornecedores de todos os portes em cada categoria."><PaymentNatureChart data={chartRows} metric="total_controle" /></AnalysisCard>
-    <AnalysisCard title="Quanto foi pago aos demais fornecedores em cada natureza?" description="Diferença entre o total pago e o valor destinado a ME, no mesmo recorte e período."><PaymentNatureChart data={chartRows} metric="valor_demais" /></AnalysisCard>
-    <AnalysisCard title="Quanto foi pago a ME locais em cada natureza?" description="Valores reconhecidos pela API como pagamentos a fornecedores locais."><PaymentNatureChart data={chartRows} metric="valor_local" /></AnalysisCard>
-    <AnalysisCard title="Qual parte de cada natureza foi paga a ME?" description="Compare a participação das micro e pequenas empresas em cada categoria."><PaymentNatureChart data={chartRows} metric="percentual_me" /></AnalysisCard>
-    <AnalysisCard title="Qual parte dos pagamentos a ME foi identificada como local?" description="Proporção do valor pago a ME que a API reconhece como local em cada categoria."><PaymentNatureChart data={chartRows} metric="percentual_local_me" /></AnalysisCard>
+    <AnalysisCard title="Quanto foi pago a ME em cada natureza?" description="Compare os valores destinados a micro e pequenas empresas por categoria."><PaymentNatureChart data={chartRows} metric="valor_me" height={chartHeight} /></AnalysisCard>
+    <AnalysisCard title="Qual parte dos pagamentos foi para ME locais?" description="Compare a parcela local identificada com o total pago a ME."><div className="analysis-share-comparison"><div className="analysis-share-item"><h3>Quanto foi pago a ME locais?</h3><LocalPaymentShareChart percentage={localPercentage} size={180} /><p>{currency(data.totals.localValue)} pagos a ME locais</p></div><div className="analysis-share-item"><h3>Quanto foi pago a ME em geral?</h3><PaymentShareChart percentage={data.totals.mpePercent} size={180} /><p>{currency(data.totals.mpeValue)} pagos a ME</p></div></div></AnalysisCard>
+    <AnalysisCard title="Quanto foi pago no total em cada natureza?" description="Veja o valor pago a fornecedores de todos os portes em cada categoria."><PaymentNatureChart data={chartRows} metric="total_controle" height={chartHeight} /></AnalysisCard>
+    <AnalysisCard title="Quanto foi pago aos demais fornecedores em cada natureza?" description="Diferença entre o total pago e o valor destinado a ME, no mesmo recorte e período."><PaymentNatureChart data={chartRows} metric="valor_demais" height={chartHeight} /></AnalysisCard>
+    <AnalysisCard title="Quanto foi pago a ME locais em cada natureza?" description="Valores reconhecidos pela API como pagamentos a fornecedores locais."><PaymentNatureChart data={chartRows} metric="valor_local" height={chartHeight} /></AnalysisCard>
+    <AnalysisCard title="Qual parte de cada natureza foi paga a ME?" description="Compare a participação das micro e pequenas empresas em cada categoria."><PaymentNatureChart data={chartRows} metric="percentual_me" height={chartHeight} /></AnalysisCard>
+    <AnalysisCard title="Qual parte dos pagamentos a ME foi identificada como local?" description="Proporção do valor pago a ME que a API reconhece como local em cada categoria."><PaymentNatureChart data={chartRows} metric="percentual_local_me" height={chartHeight} /></AnalysisCard>
+    <AnalysisCard title="Resumo do recorte" description="Valores consolidados para os municípios, o ano e as naturezas selecionados.">
+      <dl className="gp-overview-summary">
+        <div><dt>Total pago a todos os fornecedores</dt><dd>{currency(data.totals.total)}</dd></div>
+        <div><dt>Participação das ME no total pago</dt><dd>{pct(data.totals.mpePercent)}</dd></div>
+        <div><dt>Parcela do total paga a ME locais</dt><dd>{pct(localPercentage)}</dd></div>
+        <div><dt>Municípios com dados no recorte</dt><dd>{number(data.totals.municipalities)}</dd></div>
+      </dl>
+    </AnalysisCard>
   </div>;
+}
+
+function MunicipalityRanking({ municipalities, byValue = false, year }: { municipalities: MunicipalitySummary[]; byValue?: boolean; year: number }) {
+  return <ol className="gp-overview-ranking">
+    {municipalities.map((item, index) => (
+      <li key={item.id}>
+        <Link href={`/gestor/municipios/${item.id}?ano=${year}`}>
+          <span className="gp-overview-rank">{String(index + 1).padStart(2, "0")}</span>
+          <span className="gp-overview-municipality">
+            <span>{item.name}</span>
+            <small>{byValue ? `${pct(item.mpePercent)} dos pagamentos` : `${currency(item.mpeValue)} pagos a ME`}</small>
+          </span>
+          <strong>{byValue ? currency(item.mpeValue) : pct(item.mpePercent)}</strong>
+          <ArrowRight size={14} aria-hidden="true" />
+        </Link>
+      </li>
+    ))}
+  </ol>;
 }
 
 export function GestorPublicoDashboard() {
@@ -145,8 +144,8 @@ export function GestorPublicoDashboard() {
   const { data: summaries, loading, error } = useMunicipalitySummaries(filters.year);
   const data = useMemo(() => getDashboardData(filters, summaries), [filters, summaries]);
   const selectedName = filters.municipalities.length === 1 ? `em ${data.selected[0]?.name ?? "município selecionado"}` : "no Ceará";
-  return <div className="gp-main gp-analysis-main">
-    <section className="analysis-title-row gp-analysis-title-row"><div><h1>Como foram distribuídos os pagamentos {selectedName}?</h1><p>Veja quanto foi pago em cada natureza da despesa e qual parcela chegou às micro e pequenas empresas.</p></div><div className="gp-analysis-actions"><DashboardExportMenu data={data} filters={filters} /><button type="button" className="gp-text-button" onClick={() => setFilters(DEFAULT_GESTOR_FILTERS)}><RefreshCw size={15} /> Limpar filtros</button></div></section>
+  return <div className="gp-main gp-analysis-main gp-overview">
+    <section className="analysis-title-row gp-analysis-title-row"><div><h1>Como foram distribuídos os pagamentos {selectedName}?</h1><p>Veja quanto foi pago em cada natureza da despesa e qual parcela chegou às micro e pequenas empresas.</p></div></section>
     <PublicDashboardFilters filters={filters} onChange={setFilters} />
     <div className="gp-filter-summary"><span>{data.totals.municipalities} municípios analisados</span><span>Ano {filters.year}</span>{filters.nature && <span>{natureName(filters.nature)}</span>}</div>
     {loading ? <DashboardLoadingSkeleton /> : <>
@@ -157,7 +156,16 @@ export function GestorPublicoDashboard() {
     </section>
     {error ? <EmptyState>{error}</EmptyState> : summaries.length ? <PublicDashboardChartGrid data={data} /> : <EmptyState>A API não retornou pagamentos para este exercício.</EmptyState>}
     </>}
-    <div className="gp-grid gp-grid-2 gp-secondary-dashboard-grid"><Card title="Quais municípios têm maior participação de ME?" description="Veja onde as ME receberam a maior parcela dos pagamentos."><div className="gp-ranking">{data.topMunicipalities.map((item, index) => <Link href={`/gestor/municipios/${item.id}`} key={item.id}><b>{String(index + 1).padStart(2, "0")}</b><span>{item.name}<small>{currency(item.mpeValue)} pagos a ME</small></span><strong>{pct(item.mpePercent)}</strong><ArrowRight size={15} /></Link>)}</div></Card><Card title="Onde foi pago o maior valor a ME?" description="Confira os municípios que mais destinaram recursos a micro e pequenas empresas."><div className="gp-ranking">{[...data.allMunicipalities].sort((a, b) => b.mpeValue - a.mpeValue).slice(0, 5).map((item, index) => <Link href={`/gestor/municipios/${item.id}`} key={item.id}><b>{String(index + 1).padStart(2, "0")}</b><span>{item.name}<small>{pct(item.mpePercent)} dos pagamentos</small></span><strong>{currency(item.mpeValue)}</strong><ArrowRight size={15} /></Link>)}</div></Card></div>
+    {!loading && !error && summaries.length > 0 && (
+      <div className="gp-grid gp-grid-2 gp-secondary-dashboard-grid">
+        <Card title="Quais municípios têm maior participação de ME?" description="Municípios onde as ME receberam a maior parcela dos pagamentos.">
+          <MunicipalityRanking municipalities={data.topMunicipalities} year={filters.year} />
+        </Card>
+        <Card title="Onde foi pago o maior valor a ME?" description="Municípios que mais destinaram recursos a micro e pequenas empresas.">
+          <MunicipalityRanking municipalities={[...data.allMunicipalities].sort((a, b) => b.mpeValue - a.mpeValue).slice(0, 5)} byValue year={filters.year} />
+        </Card>
+      </div>
+    )}
   </div>;
 }
 
@@ -213,8 +221,9 @@ export function GestorPublicoNaturezas() {
   const topThreeNatureValue = [...allRows].sort((a, b) => b.value - a.value).slice(0, 3).reduce((sum, row) => sum + row.value, 0);
   const localNatureCount = allRows.filter((row) => row.localValue > 0).length;
   const localPercentage = data.totals.localValue / Math.max(1, data.totals.total) * 100;
+  const chartHeight = Math.max(240, 70 + chartRows.length * 34);
   return <div className="gp-main gp-natures-page">
-    <PageHeader eyebrow="PAGAMENTOS POR CATEGORIA" title="Quais naturezas concentram os pagamentos?" description="Identifique onde estão os maiores gastos, quanto foi para ME e qual parte foi paga a fornecedores locais." actions={<button type="button" className="gp-text-button" onClick={() => { setFilters(DEFAULT_GESTOR_FILTERS); setQuery(""); setSort("value"); setAscending(false); }}><RefreshCw size={15} /> Limpar filtros</button>} />
+    <PageHeader title="Quais naturezas concentram os pagamentos?" description="Identifique onde estão os maiores gastos, quanto foi para ME e qual parte foi paga a fornecedores locais." actions={<button type="button" className="gp-text-button" onClick={() => { setFilters(DEFAULT_GESTOR_FILTERS); setQuery(""); setSort("value"); setAscending(false); }}><RefreshCw size={15} /> Limpar filtros</button>} />
     <section className="analysis-filters gp-analysis-filters gp-nature-filters" aria-label="Filtros de natureza da despesa"><div className="analysis-filter-fields">
       <PublicFilterSelect name="natureza-ano" label="Ano do pagamento" icon="year" variant="analysis" value={String(year)} options={GESTOR_PUBLICO_YEARS.map((item) => ({ value: String(item), label: String(item) }))} onValueChange={(value) => setFilters((current) => ({ ...current, year: Number(value) || GESTOR_PUBLICO_YEARS[0], nature: "" }))} />
       <PublicFilterSelect name="natureza-municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" value={filters.municipalities[0] ?? ""} options={summaries.map((item) => ({ value: item.id, label: item.name }))} onValueChange={(value) => setFilters((current) => ({ ...current, municipalities: value ? [value] : [] }))} />
@@ -231,14 +240,34 @@ export function GestorPublicoNaturezas() {
         ].map((item) => <button type="button" className="gp-nature-insight" key={item.label} disabled={!item.row} onClick={() => item.row && setFocusNature(item.row.code)}><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small><em>{item.row ? "Ver categoria" : "Indisponível"} <ArrowRight size={14} /></em></button>)}</div>
       </Card>
       {filters.nature ? <PublicDashboardChartGrid data={data} /> : <div className="analysis-chart-grid gp-nature-chart-grid">
-        <AnalysisCard title="Quanto foi pago em cada natureza?" description="Categorias ordenadas pelo valor efetivamente pago."><PaymentNatureChart data={chartRows} metric="total_controle" /></AnalysisCard>
-        <AnalysisCard title="Quanto foi pago a ME em cada natureza?" description="Veja quais categorias concentram pagamentos a micro e pequenas empresas."><PaymentNatureChart data={chartRows} metric="valor_me" /></AnalysisCard>
-        <AnalysisCard title="Quanto foi pago a ME locais em cada natureza?" description="Valores reconhecidos pela API como pagamentos a fornecedores locais."><PaymentNatureChart data={chartRows} metric="valor_local" /></AnalysisCard>
-        <AnalysisCard title="Qual parte de cada natureza foi paga a ME?" description="Compare a participação das micro e pequenas empresas em cada categoria."><PaymentNatureChart data={chartRows} metric="percentual_me" /></AnalysisCard>
-        <AnalysisCard title="Qual parte do total foi paga a ME?" description="Compare a participação das ME em geral com a parcela local identificada."><div className="analysis-share-comparison"><div className="analysis-share-item"><h3>Qual parte foi paga a ME em geral?</h3><PaymentShareChart percentage={data.totals.mpePercent} /><p>{currency(data.totals.mpeValue)} pagos a ME</p></div><div className="analysis-share-item"><h3>Qual parte foi paga a ME locais?</h3><LocalPaymentShareChart percentage={localPercentage} /><p>{currency(data.totals.localValue)} pagos a ME locais</p></div></div></AnalysisCard>
+        <AnalysisCard title="Quanto foi pago em cada natureza?" description="Categorias ordenadas pelo valor efetivamente pago."><PaymentNatureChart data={chartRows} metric="total_controle" height={chartHeight} /></AnalysisCard>
+        <AnalysisCard title="Quanto foi pago a ME em cada natureza?" description="Veja quais categorias concentram pagamentos a micro e pequenas empresas."><PaymentNatureChart data={chartRows} metric="valor_me" height={chartHeight} /></AnalysisCard>
+        <AnalysisCard title="Quanto foi pago a ME locais em cada natureza?" description="Valores reconhecidos pela API como pagamentos a fornecedores locais."><PaymentNatureChart data={chartRows} metric="valor_local" height={chartHeight} /></AnalysisCard>
+        <AnalysisCard title="Qual parte de cada natureza foi paga a ME?" description="Compare a participação das micro e pequenas empresas em cada categoria."><PaymentNatureChart data={chartRows} metric="percentual_me" height={chartHeight} /></AnalysisCard>
+        <AnalysisCard title="Qual parte do total foi paga a ME?" description="Compare a participação das ME em geral com a parcela local identificada."><div className="analysis-share-comparison"><div className="analysis-share-item"><h3>Qual parte foi paga a ME em geral?</h3><PaymentShareChart percentage={data.totals.mpePercent} size={180} /><p>{currency(data.totals.mpeValue)} pagos a ME</p></div><div className="analysis-share-item"><h3>Qual parte foi paga a ME locais?</h3><LocalPaymentShareChart percentage={localPercentage} size={180} /><p>{currency(data.totals.localValue)} pagos a ME locais</p></div></div></AnalysisCard>
       </div>}
-      <Card title="Quais foram os valores pagos em cada natureza?" description="Pesquise e ordene os valores para encontrar rapidamente as categorias prioritárias." actions={<label className="gp-nature-search"><Search size={16} /><input aria-label="Buscar natureza da despesa" placeholder="Buscar natureza" value={query} onChange={(event) => setQuery(event.target.value)} /></label>}>
-        <div className="gp-table-wrap"><table className="gp-table gp-nature-table"><thead><tr><th>Natureza da despesa</th><PublicSortHeader active={sort === "value"} ascending={ascending} onClick={() => sortBy("value")}>Total pago</PublicSortHeader><th>Pago a ME</th><PublicSortHeader active={sort === "mpePercent"} ascending={ascending} onClick={() => sortBy("mpePercent")}>% ME</PublicSortHeader><PublicSortHeader active={sort === "localValue"} ascending={ascending} onClick={() => sortBy("localValue")}>Pago a ME locais</PublicSortHeader><th>Fornecedores locais</th><th>Participação no total</th></tr></thead><tbody>{rows.map((row) => <tr key={row.code}><th scope="row"><button type="button" className="gp-nature-row-focus" onClick={() => setFocusNature(row.code)}>{row.label}</button></th><td>{currency(row.value)}</td><td>{currency(row.mpeValue)}</td><td>{pct(row.mpePercent)}</td><td>{currency(row.localValue)}</td><td>{number(row.localSuppliers)}</td><td><div className="gp-nature-share-cell"><span>{pct(row.value / Math.max(1, allData.totals.total) * 100)}</span><i><b style={{ width: `${Math.min(100, row.value / Math.max(1, allData.totals.total) * 100)}%` }} /></i></div></td></tr>)}</tbody><tfoot><tr><th scope="row">Total das categorias exibidas</th><td>{currency(visibleTotals.value)}</td><td>{currency(visibleTotals.mpeValue)}</td><td>{pct(visibleTotals.mpeValue / Math.max(1, visibleTotals.value) * 100)}</td><td>{currency(visibleTotals.localValue)}</td><td>{number(visibleTotals.localSuppliers)}</td><td>{pct(visibleTotals.value / Math.max(1, allData.totals.total) * 100)}</td></tr></tfoot></table>{!rows.length && <EmptyState>Nenhuma natureza corresponde à busca.</EmptyState>}</div>
+      <Card className="gp-nature-values-card" title="Quais foram os valores pagos em cada natureza?" description="Pesquise e ordene os valores para encontrar rapidamente as categorias prioritárias." actions={<label className="gp-nature-search"><Search size={16} /><input type="search" aria-label="Buscar natureza da despesa" placeholder="Buscar natureza" value={query} onChange={(event) => setQuery(event.target.value)} /></label>}>
+        <div className="gp-nature-mobile-sort"><label>Ordenar por <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}><option value="value">Total pago</option><option value="mpePercent">Participação de ME</option><option value="localValue">Pago a ME locais</option></select></label><button type="button" onClick={() => setAscending((current) => !current)} aria-label={ascending ? "Ordenar do maior para o menor" : "Ordenar do menor para o maior"} title={ascending ? "Ordem crescente" : "Ordem decrescente"}>{ascending ? <ArrowUp size={16} /> : <ArrowDown size={16} />}</button></div>
+        <div className="gp-table-wrap"><table className="gp-table gp-nature-table" role="table" aria-label="Valores pagos por natureza da despesa">
+          <thead role="rowgroup"><tr role="row"><th>Natureza da despesa</th><PublicSortHeader active={sort === "value"} ascending={ascending} onClick={() => sortBy("value")}>Total pago</PublicSortHeader><th>Pago a ME</th><PublicSortHeader active={sort === "mpePercent"} ascending={ascending} onClick={() => sortBy("mpePercent")}>% ME</PublicSortHeader><PublicSortHeader active={sort === "localValue"} ascending={ascending} onClick={() => sortBy("localValue")}>Pago a ME locais</PublicSortHeader><th>Fornecedores locais</th><th>Participação no total</th></tr></thead>
+          <tbody role="rowgroup">{rows.map((row) => <tr key={row.code} role="row">
+            <th scope="row" role="rowheader"><button type="button" className="gp-nature-row-focus" onClick={() => setFocusNature(row.code)}>{row.label}</button></th>
+            <td role="cell" data-label="Total pago">{currency(row.value)}</td>
+            <td role="cell" data-label="Pago a ME">{currency(row.mpeValue)}</td>
+            <td role="cell" data-label="% ME">{pct(row.mpePercent)}</td>
+            <td role="cell" data-label="Pago a ME locais">{currency(row.localValue)}</td>
+            <td role="cell" data-label="Fornecedores locais">{number(row.localSuppliers)}</td>
+            <td role="cell" data-label="Participação no total"><div className="gp-nature-share-cell"><span>{pct(row.value / Math.max(1, allData.totals.total) * 100)}</span><i><b style={{ width: `${Math.min(100, row.value / Math.max(1, allData.totals.total) * 100)}%` }} /></i></div></td>
+          </tr>)}</tbody>
+          <tfoot role="rowgroup"><tr role="row"><th scope="row" role="rowheader">Total das categorias exibidas</th>
+            <td role="cell" data-label="Total pago">{currency(visibleTotals.value)}</td>
+            <td role="cell" data-label="Pago a ME">{currency(visibleTotals.mpeValue)}</td>
+            <td role="cell" data-label="% ME">{pct(visibleTotals.mpeValue / Math.max(1, visibleTotals.value) * 100)}</td>
+            <td role="cell" data-label="Pago a ME locais">{currency(visibleTotals.localValue)}</td>
+            <td role="cell" data-label="Fornecedores locais">{number(visibleTotals.localSuppliers)}</td>
+            <td role="cell" data-label="Participação no total">{pct(visibleTotals.value / Math.max(1, allData.totals.total) * 100)}</td>
+          </tr></tfoot>
+        </table>{!rows.length && <EmptyState>Nenhuma natureza corresponde à busca.</EmptyState>}</div>
       </Card>
       <p className="gp-source-note"><Info size={15} /> Fonte: resumo de pagamentos e participação de ME locais da API, consultados pelo backend. O recorte local considera somente fornecedores identificados pela API.</p>
     </> : <EmptyState>A API não retornou pagamentos para este exercício.</EmptyState>}
@@ -301,7 +330,7 @@ export function GestorPublicoMunicipios() {
   };
 
   const openMunicipality = (id: string) => {
-    router.push(`/gestor/municipios/${id}`);
+    router.push(`/gestor/municipios/${id}?ano=${year}`);
   };
 
   return (
@@ -384,7 +413,7 @@ export function GestorPublicoMunicipios() {
                   <td>
                     <Link
                       className="gp-table-link"
-                      href={`/gestor/municipios/${item.id}`}
+                      href={`/gestor/municipios/${item.id}?ano=${year}`}
                     >
                       {item.name}
                     </Link>
@@ -405,7 +434,7 @@ export function GestorPublicoMunicipios() {
                   <td>
                     <Link
                       className="gp-municipality-details-link"
-                      href={`/gestor/municipios/${item.id}`}
+                      href={`/gestor/municipios/${item.id}?ano=${year}`}
                       aria-label={`Ver detalhes de ${item.name}`}
                     >
                       <ArrowRight size={17} />
