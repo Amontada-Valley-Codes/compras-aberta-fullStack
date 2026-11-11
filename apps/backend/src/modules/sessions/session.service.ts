@@ -2,6 +2,7 @@ import { compare } from "bcryptjs";
 import { createHash, randomBytes } from "node:crypto";
 import { sign } from "jsonwebtoken";
 
+import { prisma } from "../../lib/prisma";
 import { authConfig } from "../../configs/auth";
 import { AppError } from "../../utils/AppError";
 import type { AccessRequestStatus } from "../access-requests/access-request.schema";
@@ -14,12 +15,58 @@ interface UserSessionData {
   id: string;
   role: string;
   accessRequest?: { status: AccessRequestStatus } | null;
+  subscriptionStatus?: string | null;
+  trialEndsAt?: Date | null;
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+async function validateAndSyncSubscriptionOnAccess(user: UserSessionData) {
+  if (user.role === "ADMIN") {
+    return;
+  }
+
+  const now = new Date();
+  let status = user.subscriptionStatus ?? "trialing";
+  let trialEndsAt = user.trialEndsAt;
+
+  // Caso o usuário antigo não possua trialEndsAt preenchido, define 7 dias de teste
+  if (status === "trialing" && !trialEndsAt) {
+    trialEndsAt = new Date(now.getTime() + 7 * DAY_IN_MS);
+    user.trialEndsAt = trialEndsAt;
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { trialEndsAt },
+    });
+  }
+
+  // Se o período de teste grátis chegou ao fim, atualiza apenas o status para "expired" (sem excluir dados)
+  if (status === "trialing" && trialEndsAt && new Date(trialEndsAt) <= now) {
+    status = "expired";
+    user.subscriptionStatus = "expired";
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { subscriptionStatus: "expired" },
+    });
+  }
+
+  if (status === "canceled") {
+    throw new AppError(
+      "Acesso bloqueado: sua assinatura foi cancelada. Seus dados permanecem preservados na plataforma.",
+      403,
+    );
+  }
+
+  if (status === "expired" || status === "trial_expired" || status === "unpaid") {
+    throw new AppError(
+      "Acesso bloqueado: seu período de avaliação gratuita de 7 dias expirou.",
+      403,
+    );
+  }
 }
 
 async function issueTokens(user: UserSessionData) {
@@ -64,6 +111,8 @@ const sessionService = {
       throw new AppError("E-mail ou senha incorretos.", 401);
     }
 
+    await validateAndSyncSubscriptionOnAccess(user);
+
     return issueTokens(user);
   },
 
@@ -90,6 +139,13 @@ const sessionService = {
     if (!user || !user.isActive) {
       await refreshTokenRepository.revokeAllByUser(stored.userId);
       throw new AppError("Usuário desativado", 403);
+    }
+
+    try {
+      await validateAndSyncSubscriptionOnAccess(user);
+    } catch (err) {
+      await refreshTokenRepository.revokeAllByUser(stored.userId);
+      throw err;
     }
 
     const rotated = await refreshTokenRepository.revoke(stored.id);

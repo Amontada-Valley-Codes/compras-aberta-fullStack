@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import type { AnalysisFilters } from "@/features/public-data/public-data";
 import { LinkPending } from "./LinkPending";
 
-const PAGE_SIZES = [{ value: 10, label: "10" }, { value: 20, label: "20" }, { value: 30, label: "30" }, { value: 100, label: "Todos" }];
+const PAGE_SIZES = [{ value: 10, label: "10" }, { value: 20, label: "20" }, { value: 30, label: "30" }, { value: 100, label: "100" }];
 
 export function AnalysisPagination({ filters, rowCount, hasNext }: { filters: AnalysisFilters; rowCount: number; hasNext: boolean }) {
   const pageLink = (page: number, pageSize = filters.pageSize) => {
@@ -37,7 +37,7 @@ export function AnalysisPagination({ filters, rowCount, hasNext }: { filters: An
       </div>
     </div>
 
-    <nav className="analysis-pagination-nav" aria-label="Paginação das licitações">
+    <nav className="analysis-pagination-nav" aria-label="Paginação dos fornecedores">
       <ul className="analysis-pagination-content">
         <li>{filters.page > 1
           ? <Link className="analysis-pagination-control" href={pageLink(filters.page - 1)} scroll={false} prefetch={false} aria-label="Página anterior"><ChevronLeft /><span>Anterior</span><LinkPending /></Link>

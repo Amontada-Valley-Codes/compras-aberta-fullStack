@@ -20,6 +20,13 @@ import {
   type TrackedBid,
   type TrackedBidItem,
 } from "./workspace-types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface SelectBidItemsModalProps {
   bid: EnrichedMeBid | MePncpBid | null;
@@ -418,14 +425,19 @@ export function SelectBidItemsModal({
               <div className="ws-items-pagination">
                 <div className="ws-items-pagination__size">
                   <span>Itens por página:</span>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => setPageSize(Number(e.target.value))}
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(v) => setPageSize(Number(v))}
                   >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                  </select>
+                    <SelectTrigger size="sm" aria-label="Itens por página">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <span className="ws-items-pagination__range">

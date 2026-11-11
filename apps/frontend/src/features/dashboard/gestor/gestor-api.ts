@@ -4,7 +4,7 @@
 // backend Fastify, então são lidas direto, como o catálogo de municípios em
 // services/municipalities/list-municipality-codes.service.ts.
 
-const API_BASE_URL = process.env.ANALYTICS_API_BASE_URL ?? "https://compra-aberta-api.onrender.com";
+const API_BASE_URL = process.env.ANALYTICS_API_BASE_URL ?? "https://comprasabertas.amontadavalley.com.br/api-dados";
 
 const PAGE_SIZE = 100;
 const HOUR = 60 * 60;
@@ -66,7 +66,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // O fetch do Next guarda cada página no cache de dados do servidor pelo tempo
 // de "revalidate" (só respostas 200): depois da primeira consulta, as páginas
-// seguintes abrem sem esperar a API, que fica no Render e pode demorar.
+// seguintes abrem sem esperar uma nova consulta à API de dados.
 // A API às vezes responde 502/503 numa página isolada; sem nova tentativa,
 // uma página com falha derrubaria a lista inteira.
 async function getJson<T>(path: string, revalidate: number): Promise<T> {

@@ -21,6 +21,8 @@ export interface ReportColumn {
 }
 
 export type ReportBlock =
+  | { kind: "paragraph"; text: string }
+  | { kind: "list"; items: string[] }
   | { kind: "kpis"; items: ReportKpi[] }
   | { kind: "table"; title?: string; columns: ReportColumn[]; rows: string[][]; total?: string[]; emptyText: string }
   | { kind: "bars"; title?: string; items: Array<{ label: string; value: number; display: string }>; emptyText: string }
@@ -29,6 +31,8 @@ export type ReportBlock =
 export interface ReportSection {
   title: string;
   description?: string;
+  pageBreakBefore?: boolean;
+  hideTitle?: boolean;
   blocks: ReportBlock[];
 }
 

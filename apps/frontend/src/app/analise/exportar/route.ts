@@ -2,8 +2,7 @@ import { analysisPageSchema } from "@/schemas/analytics/analysis-page.schema";
 import { formatCnpj } from "@/features/public-data/format";
 import { natureLabel, officialNatureName } from "@/features/public-data/plain-language";
 import { loadMunicipalityOptions } from "@/features/public-data/public-data";
-import { listDetailedBidsService } from "@/services/analytics/list-detailed-bids.service";
-import type { DetailedBid, DetailedBidsQuery, DetailedBidsResponse } from "@/services/analytics/analytics.types";
+import { getPaymentsSummaryService, listPaymentSuppliersService } from "@/services/analytics/payments.service";
 
 type CsvValue = string | number | null | undefined;
 
@@ -24,32 +23,11 @@ const downloadHeaders = (filename: string) => ({
   "Cache-Control": "no-store",
 });
 
-function bidRow(bid: DetailedBid): CsvValue[] {
-  return [
-    bid.numero_licitacao,
-    bid.ano_licitacao,
-    bid.codigo_municipio,
-    bid.municipio,
-    bid.codigo_natureza,
-    natureLabel(bid.codigo_natureza, bid.nome_natureza),
-    officialNatureName(bid.nome_natureza),
-    bid.empresa,
-    formatCnpj(bid.cnpj),
-    bid.porte_empresa,
-    bid.endereco,
-    numeric(bid.valor_total_licitacao),
-    numeric(bid.valor_total_vencido),
-    bid.quantidade_itens_vencidos,
-  ];
-}
-
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const type = url.searchParams.get("tipo");
-  // Os indicadores/gráficos são exportados em PDF direto no navegador (veja
-  // exportChartsToPdf, em features/analysis), então esta rota só serve a
-  // lista completa de licitações.
-  if (type !== "licitacoes") return new Response("Tipo de exportação inválido.", { status: 400 });
+  // Cada exportação conserva sua métrica e usa a operação correspondente.
+  if (type !== "pagamentos") return new Response("Tipo de exportação inválido.", { status: 400 });
 
   const params = analysisPageSchema.parse(Object.fromEntries(url.searchParams));
   for (const key of ["municipio", "natureza", "ano"] as const) {
@@ -58,6 +36,7 @@ export async function GET(request: Request) {
   const year = params.ano ?? new Date().getUTCFullYear();
   const filenameSuffix = `${year}${params.municipio ? `-${params.municipio}` : ""}${params.natureza ? `-${params.natureza}` : ""}`;
 
+  if (!params.municipio) return new Response("Selecione um município.", { status: 400 });
   let municipalityCode: string | undefined;
   if (params.municipio) {
     const municipalities = await loadMunicipalityOptions();
@@ -66,36 +45,43 @@ export async function GET(request: Request) {
     if (!municipalityCode) return new Response("Município não encontrado.", { status: 400 });
   }
 
-  const query: DetailedBidsQuery = { codigo_municipio: municipalityCode, codigo_natureza: params.natureza, ano: year, limit: 100, offset: 0 };
-  let firstPage: DetailedBidsResponse;
+  const query = { codigo_municipio: municipalityCode!.padStart(3, "0"), codigo_natureza: params.natureza, ano: year, limit: 100 };
+  let collectionId: number;
   try {
-    firstPage = await listDetailedBidsService(query);
+    collectionId = (await getPaymentsSummaryService({ codigo_municipio: query.codigo_municipio, ano: year })).coleta.coleta_id;
   } catch {
-    return new Response("Não foi possível carregar as licitações para exportação.", { status: 502 });
+    return new Response("Não foi possível carregar a coleta de pagamentos.", { status: 502 });
   }
-
+  const headers = ["Código da natureza", "Tipo de compra", "Natureza da despesa (nome oficial)", "Fornecedor", "Documento", "Categoria de porte", "Valor pago (R$)", "Quantidade de pagamentos"];
+  const loadRows = async (offset: number): Promise<CsvValue[][]> => {
+    const page = await listPaymentSuppliersService({ ...query, coleta_id: collectionId, categoria_porte: "ME", offset });
+    if (page.coleta_id !== collectionId) throw new Error("Coleta divergente na exportação");
+    return page.data.map((row) => [row.codigo_natureza, natureLabel(row.codigo_natureza, row.nome_natureza), officialNatureName(row.nome_natureza), row.nome_negociante, formatCnpj(row.documento), row.categoria_porte, numeric(row.valor_pago), row.quantidade_pagamentos]);
+  };
+  let firstRows: CsvValue[][];
+  try {
+    firstRows = await loadRows(0);
+  } catch {
+    return new Response("Não foi possível carregar os dados para exportação.", { status: 502 });
+  }
   const encoder = new TextEncoder();
   let nextOffset = 0;
   let firstPending = true;
   const stream = new ReadableStream<Uint8Array>({
     async pull(controller) {
       try {
-        const page = firstPending ? firstPage : await listDetailedBidsService({ ...query, offset: nextOffset });
+        const rows = firstPending ? firstRows : await loadRows(nextOffset);
         if (firstPending) {
-          controller.enqueue(encoder.encode(`\uFEFF${csvLine(["Licitação", "Ano", "Código do município", "Município", "Código do tipo de compra", "Tipo de compra", "Natureza da despesa (nome oficial)", "Empresa vencedora", "CNPJ", "Porte", "Endereço", "Valor total da licitação (R$)", "Valor homologado (R$)", "Itens ganhos"])}`));
+          controller.enqueue(encoder.encode(`\uFEFF${csvLine(headers)}`));
           firstPending = false;
         }
-        if (page.data.length) controller.enqueue(encoder.encode(page.data.map((bid) => csvLine(bidRow(bid))).join("")));
-        if (page.data.length < 100) {
-          controller.close();
-        } else {
-          nextOffset += 100;
-        }
+        if (rows.length) controller.enqueue(encoder.encode(rows.map(csvLine).join("")));
+        if (rows.length < 100) controller.close();
+        else nextOffset += 100;
       } catch (error) {
         controller.error(error);
       }
     },
   });
-
-  return new Response(stream, { headers: downloadHeaders(`licitacoes-${filenameSuffix}.csv`) });
+  return new Response(stream, { headers: downloadHeaders(`${type}-${filenameSuffix}.csv`) });
 }

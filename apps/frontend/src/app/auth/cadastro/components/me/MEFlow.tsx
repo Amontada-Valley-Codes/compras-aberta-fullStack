@@ -39,9 +39,10 @@ interface MEFlowProps {
   data: MEData
   setData: Dispatch<SetStateAction<MEData>>
   onExit: () => void
+  onSent: (email: string) => void
 }
 
-export const MEFlow = ({ data, setData, onExit }: MEFlowProps) => {
+export const MEFlow = ({ data, setData, onExit, onSent }: MEFlowProps) => {
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const wizard = useWizard<MEField>({
@@ -130,14 +131,12 @@ export const MEFlow = ({ data, setData, onExit }: MEFlowProps) => {
         return
       }
 
-      toast.success('Solicitação cadastral enviada com sucesso!', {
-        description:
-          body?.message ??
-          'Seus dados e comprovantes foram recebidos e estão em análise pelo administrador. Você receberá um aviso assim que for aprovada.',
+      toast.success('Cadastro realizado com sucesso!', {
+        description: 'Você ganhou 7 dias de acesso gratuito completo para testar a plataforma.',
         duration: 8000,
       })
 
-      router.push('/auth/login?status=pending')
+      onSent(data.email)
     } catch {
       wizard.showAlert('Não foi possível conectar ao servidor. Verifique sua conexão.')
       setPending(false)

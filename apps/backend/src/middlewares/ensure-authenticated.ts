@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { verify } from "jsonwebtoken";
 
 import { authConfig } from "../configs/auth";
+import { prisma } from "../lib/prisma";
 import { resolveAccessStatus } from "../modules/access-requests/access-status";
 import { userRepository } from "../modules/users/user.repository";
 import { AppError } from "../utils/AppError";
@@ -48,10 +49,42 @@ async function ensureAuthenticated(request: FastifyRequest, _reply: FastifyReply
     throw new AppError("Invalid JWT token", 401);
   }
 
+  let subscriptionStatus = user.subscriptionStatus;
+  let trialEndsAt = user.trialEndsAt;
+
+  if (user.role !== "ADMIN") {
+    const now = new Date();
+    if (subscriptionStatus === "trialing" && trialEndsAt && new Date(trialEndsAt) <= now) {
+      subscriptionStatus = "expired";
+      user.subscriptionStatus = "expired";
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { subscriptionStatus: "expired" },
+      });
+    }
+
+    const isPaymentRoute = request.url.startsWith("/payments");
+    if (
+      !isPaymentRoute &&
+      (subscriptionStatus === "canceled" ||
+        subscriptionStatus === "expired" ||
+        subscriptionStatus === "trial_expired")
+    ) {
+      throw new AppError(
+        subscriptionStatus === "canceled"
+          ? "Seu acesso está bloqueado porque sua assinatura foi cancelada."
+          : "Seu período de teste gratuito expirou. Ative sua assinatura para continuar.",
+        403,
+      );
+    }
+  }
+
   request.user = {
     id: user.id,
     role: user.role,
     accessStatus: resolveAccessStatus(user),
+    subscriptionStatus,
+    trialEndsAt,
   };
 }
 

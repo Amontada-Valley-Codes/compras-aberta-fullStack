@@ -5,8 +5,11 @@ import { createMemoryCache } from "../../lib/cache/memory-cache";
 import { analyticsApi } from "../../lib/axios/analytics-api";
 import { AppError } from "../../utils/AppError";
 import type {
+  PaymentsSummaryDTO,
+  PaymentSuppliersDTO,
   GetMicroenterpriseIndicatorDTO,
   ListDetailedBidsDTO,
+  MunicipalityCatalogDTO,
   ListExpensesByNatureDTO,
   ListGeneralMicroenterpriseParticipationsDTO,
   ListLocalMicroenterpriseParticipationsDTO,
@@ -14,6 +17,8 @@ import type {
 } from "./analytics.schema";
 
 interface AnalyticsQuery {
+  coleta_id?: number;
+  categoria_porte?: string;
   codigo_municipio?: string;
   codigo_natureza?: string;
   ano?: number;
@@ -79,6 +84,15 @@ async function fetchAnalyticsData(
 }
 
 const analyticsService = {
+  async listMunicipalityCatalog(filters: MunicipalityCatalogDTO) {
+    return getAnalyticsData("/municipios", filters);
+  },
+  async getPaymentsSummary(filters: PaymentsSummaryDTO) {
+    return getAnalyticsData("/analytics/pagamentos/resumo", filters);
+  },
+  async listPaymentSuppliers(filters: PaymentSuppliersDTO) {
+    return getAnalyticsData("/analytics/pagamentos/fornecedores", filters);
+  },
   async listDetailedBids(filters: ListDetailedBidsDTO) {
     return getAnalyticsData(
       "/analytics/licitacoes-detalhadas",

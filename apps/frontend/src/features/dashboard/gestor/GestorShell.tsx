@@ -3,10 +3,11 @@
 import type { ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  Building2, ClipboardList, FileSignature, FileText, Globe, LayoutDashboard, Map as MapIcon, Megaphone, PiggyBank, Wallet, Workflow,
+  Building2, ClipboardList, CreditCard, FileSignature, FileText, Globe, LayoutDashboard, Map as MapIcon, Megaphone, PiggyBank, Wallet, Workflow,
 } from "lucide-react";
 import { SideMenu, SideMenuProvider, type SideMenuItem } from "@/components/navigation/side-menu/SideMenu";
 import { GestorHeader, type FilterOption } from "./GestorHeader";
+import { SubscriptionBanner } from "../SubscriptionBanner";
 
 // Estrutura comum das páginas de /gestor: cabeçalho executivo (com o botão do
 // menu ao lado da logo), menu lateral e o conteúdo da página. O município e o
@@ -48,6 +49,7 @@ export function GestorShell({
     ["fornecedores", "Fornecedores", <Building2 key="fornecedores" />],
     ["mapa", "Mapa", <MapIcon key="mapa" />],
     ["fluxo", "Fluxo das licitações", <Workflow key="fluxo" />],
+    ["assinatura", "Assinatura", <CreditCard key="assinatura" />],
   ];
   const items: SideMenuItem[] = [
     { id: "overview", label: "Visão geral", icon: <LayoutDashboard />, href: `/gestor?${query}` },
@@ -70,6 +72,7 @@ export function GestorShell({
           municipalities={municipalities}
           userName={userName}
         />
+        <SubscriptionBanner />
         <div className="gs-body">
           <SideMenu items={items} footerItems={footerItems} activeId={activeId} label="Menu do painel do gestor" />
           <div className="gs-content">{children}</div>

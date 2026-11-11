@@ -1934,17 +1934,26 @@ export function MeBidWorkspace({
                 onChange={(e) => setNewQualTitle(e.target.value)}
                 placeholder="Adicionar exigência específica deste edital (ex: Alvará Sanitário, Registro CREA)…"
               />
-              <select
+              <Select
                 value={newQualCategory}
-                onChange={(e) => setNewQualCategory(e.target.value)}
+                onValueChange={(v) => setNewQualCategory(v)}
               >
-                <option value="Exigência do Edital">Exigência do Edital</option>
-                <option value="Qualificação Técnica">
-                  Qualificação Técnica
-                </option>
-                <option value="Regularidade Fiscal">Regularidade Fiscal</option>
-                <option value="Declarações">Declarações</option>
-              </select>
+                <SelectTrigger aria-label="Categoria da exigência">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Exigência do Edital">
+                    Exigência do Edital
+                  </SelectItem>
+                  <SelectItem value="Qualificação Técnica">
+                    Qualificação Técnica
+                  </SelectItem>
+                  <SelectItem value="Regularidade Fiscal">
+                    Regularidade Fiscal
+                  </SelectItem>
+                  <SelectItem value="Declarações">Declarações</SelectItem>
+                </SelectContent>
+              </Select>
               <button type="submit" className="ws-btn is-primary is-sm">
                 <Plus size={14} />
                 Adicionar
@@ -2002,28 +2011,33 @@ export function MeBidWorkspace({
             <div className="ws-session-form">
               <div className="ws-field">
                 <label>Colocação da empresa</label>
-                <select
-                  value={tracked.metadata.placement ?? ""}
-                  onChange={(e) =>
+                <Select
+                  value={tracked.metadata.placement || "__none__"}
+                  onValueChange={(v) =>
                     onUpdateTracked(tracked.bidControlId, {
-                      metadata: { placement: e.target.value },
+                      metadata: { placement: v === "__none__" ? "" : v },
                     })
                   }
                 >
-                  <option value="">Aguardando disputa</option>
-                  <option value="1º colocado (Arrematante)">
-                    1º colocado (Arrematante / Vencedor)
-                  </option>
-                  <option value="2º colocado (Cadastro reserva)">
-                    2º colocado (Próximo da fila)
-                  </option>
-                  <option value="3º colocado ou superior">
-                    3º colocado ou superior
-                  </option>
-                  <option value="Inabilitado / Desclassificado">
-                    Inabilitado / Desclassificado
-                  </option>
-                </select>
+                  <SelectTrigger aria-label="Colocação da empresa">
+                    <SelectValue placeholder="Aguardando disputa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Aguardando disputa</SelectItem>
+                    <SelectItem value="1º colocado (Arrematante)">
+                      1º colocado (Arrematante / Vencedor)
+                    </SelectItem>
+                    <SelectItem value="2º colocado (Cadastro reserva)">
+                      2º colocado (Próximo da fila)
+                    </SelectItem>
+                    <SelectItem value="3º colocado ou superior">
+                      3º colocado ou superior
+                    </SelectItem>
+                    <SelectItem value="Inabilitado / Desclassificado">
+                      Inabilitado / Desclassificado
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="ws-field">

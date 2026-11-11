@@ -39,6 +39,12 @@ const offset = z.coerce
   .default(0)
   .describe("Quantos registros pular, para paginação.");
 
+const municipalityCatalogQuerySchema = z.object({
+  uf: z.string().trim().length(2).optional(),
+  limit,
+  offset,
+});
+
 const dataInicio = z
   .string()
   .date()
@@ -110,6 +116,7 @@ const listMicroenterpriseParticipationByNatureQuerySchema = z
   .refine(validPeriod, invalidPeriodError);
 
 type ListDetailedBidsDTO = z.infer<typeof listDetailedBidsQuerySchema>;
+type MunicipalityCatalogDTO = z.infer<typeof municipalityCatalogQuerySchema>;
 type ListLocalMicroenterpriseParticipationsDTO = z.infer<
   typeof listLocalMicroenterpriseParticipationsQuerySchema
 >;
@@ -125,6 +132,7 @@ type ListMicroenterpriseParticipationByNatureDTO = z.infer<
 >;
 
 export {
+  municipalityCatalogQuerySchema,
   getMicroenterpriseIndicatorQuerySchema,
   listDetailedBidsQuerySchema,
   listExpensesByNatureQuerySchema,
@@ -133,6 +141,7 @@ export {
   listMicroenterpriseParticipationByNatureQuerySchema,
 };
 export type {
+  MunicipalityCatalogDTO,
   GetMicroenterpriseIndicatorDTO,
   ListDetailedBidsDTO,
   ListExpensesByNatureDTO,
@@ -140,3 +149,18 @@ export type {
   ListLocalMicroenterpriseParticipationsDTO,
   ListMicroenterpriseParticipationByNatureDTO,
 };
+
+// Pagamentos usam o código TCE com três caracteres (preservar zeros).
+export const paymentsSummaryQuerySchema = z.object({
+  codigo_municipio: z.string().trim().length(3),
+  ano,
+  coleta_id: z.coerce.number().int().min(1).optional(),
+});
+export const paymentSuppliersQuerySchema = paymentsSummaryQuerySchema.extend({
+  codigo_natureza: codigoNatureza.optional(),
+  categoria_porte: z.string().max(40).default("ME"),
+  limit,
+  offset,
+});
+export type PaymentsSummaryDTO = z.infer<typeof paymentsSummaryQuerySchema>;
+export type PaymentSuppliersDTO = z.infer<typeof paymentSuppliersQuerySchema>;

@@ -1,8 +1,8 @@
-import { landingMunicipalities } from "@/features/landing/landing-municipalities";
+import { listMunicipalityCodesService } from "@/services/municipalities/list-municipality-codes.service";
+import { getPaymentsSummaryService, listLocalPaymentsService, listPaymentSuppliersService } from "@/services/analytics/payments.service";
+import type { PaymentSupplier } from "@/services/analytics/payments.types";
 
 export const GESTOR_PUBLICO_YEARS = [2026, 2025, 2024] as const;
-export const ALL_MUNICIPALITIES = "todos";
-
 export const GESTOR_PUBLICO_NATURES = [
   { code: "39", label: "Outros Serviços de Terceiros — Pessoa Jurídica" },
   { code: "30", label: "Material de Consumo" },
@@ -13,17 +13,15 @@ export const GESTOR_PUBLICO_NATURES = [
   { code: "35", label: "Serviços de Consultoria" },
 ] as const;
 
-export type NatureCode = (typeof GESTOR_PUBLICO_NATURES)[number]["code"];
+export type NatureCode = string;
 export type SupplierSize = "MEI" | "ME" | "EPP" | "Demais empresas";
-export type SupplierOrigin = "Local" | "Regional" | "Externa";
-export type ClassificationStatus = "Classificado" | "Classificação pendente";
+export type SupplierOrigin = "Local" | "Sede não informada";
+export type ClassificationStatus = string;
 
 export interface GestorPublicFilters {
   municipalities: string[];
   year: number;
   nature: NatureCode | "";
-  origin: SupplierOrigin | "";
-  size: SupplierSize | "";
 }
 
 export interface MunicipalitySummary {
@@ -39,7 +37,15 @@ export interface MunicipalitySummary {
   suppliers: number;
   updatedAt: string;
   natures: Record<NatureCode, number>;
-  monthly: number[];
+  meNatures: Record<NatureCode, number>;
+  localNatures: Record<NatureCode, number>;
+  localSuppliersByNature: Record<NatureCode, number>;
+  collectionId: number;
+}
+
+export interface SupplierPaymentDetail {
+  municipality: Pick<MunicipalitySummary, "id" | "name" | "region" | "collectionId" | "updatedAt">;
+  payment: PaymentSupplier;
 }
 
 export interface SupplierSummary {
@@ -54,8 +60,9 @@ export interface SupplierSummary {
   origin: SupplierOrigin;
   total: number;
   municipalitiesServed: number;
-  nature: NatureCode;
+  nature: string;
   updatedAt: string;
+  paymentDetails?: { year: number; rows: SupplierPaymentDetail[] };
 }
 
 export interface NatureSummary {
@@ -78,156 +85,211 @@ export interface DashboardData {
     municipalities: number;
   };
   natures: NatureSummary[];
-  monthly: number[];
-  origins: Array<{ label: SupplierOrigin; value: number; percent: number }>;
   topMunicipalities: MunicipalitySummary[];
   suppliers: SupplierSummary[];
-  diagnostics: Array<{ tone: "blue" | "gold" | "teal" | "red"; title: string; value: string; description: string }>;
-}
-
-const regions = ["Litoral", "Sertão", "Cariri", "Centro-Norte"];
-const sizes: SupplierSize[] = ["MEI", "ME", "EPP", "Demais empresas"];
-const origins: SupplierOrigin[] = ["Local", "Regional", "Externa"];
-const natureBases = [64879190, 28000567, 30116010, 3588864, 1610530, 10484, 1083281];
-const supplierNames = ["Norte Serviços e Materiais", "Costa Construções", "Litoral Tecnologia", "Sertão Comercial", "Planalto Consultoria", "Aquarela Distribuidora", "Prime Engenharia", "Ceará Soluções"];
-
-function hash(value: string): number {
-  return [...value].reduce((total, char, index) => (total + char.charCodeAt(0) * (index + 3)) % 100000, 17);
-}
-
-function moneyNumber(value: number): number {
-  return Math.round(value * 100) / 100;
 }
 
 function percent(value: number, total: number): number {
   return total > 0 ? (value / total) * 100 : 0;
 }
-
-function isoDate(year: number, seed: number): string {
-  return `${year}-${String((seed % 9) + 1).padStart(2, "0")}-15`;
+const municipalityCache = new Map<number, Promise<MunicipalitySummary[]>>();
+const supplierCache = new Map<string, Promise<SupplierSummary[]>>();
+const localSupplierDocumentsCache = new Map<string, Set<string>>();
+const natureLabels = new Map<string, string>(GESTOR_PUBLICO_NATURES.map(({ code, label }) => [code, label]));
+const localSupplierDocumentsKey = (year: number, summary: MunicipalitySummary) => `${year}:${summary.id}:${summary.collectionId}`;
+async function withConcurrency<T, R>(rows: T[], concurrency: number, callback: (row: T) => Promise<R>): Promise<R[]> {
+  const output = new Array<R>(rows.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(concurrency, rows.length) }, async () => {
+    while (true) { const index = next++; if (index >= rows.length) return; output[index] = await callback(rows[index]); }
+  }));
+  return output;
 }
 
-function summaryFor(municipality: (typeof landingMunicipalities)[number], year: number): MunicipalitySummary {
-  const seed = hash(`${municipality.ibgeCode}-${year}`);
-  const scale = 0.48 + (seed % 94) / 100;
-  const natureValues = Object.fromEntries(GESTOR_PUBLICO_NATURES.map(({ code }, index) => [code, moneyNumber(natureBases[index] * scale * (0.7 + ((seed + index * 13) % 48) / 100))])) as Record<NatureCode, number>;
-  const total = Object.values(natureValues).reduce((sum, value) => sum + value, 0);
-  const mpePercent = 18 + (seed % 31);
-  const mpeValue = moneyNumber(total * mpePercent / 100);
-  const localPercent = 6 + (seed % 20) / 1.7;
-  const suppliers = 16 + (seed % 74);
-  const monthly = Array.from({ length: 12 }, (_, index) => moneyNumber(total * (0.035 + ((seed + index * 11) % 90) / 1000)));
-  return {
-    id: municipality.ibgeCode,
-    tceCode: municipality.tceCode,
-    name: municipality.name,
-    region: regions[seed % regions.length],
-    total,
-    mpeValue,
-    mpePercent: percent(mpeValue, total),
-    localValue: moneyNumber(total * localPercent / 100),
-    localPercent,
-    suppliers,
-    updatedAt: isoDate(year, seed),
-    natures: natureValues,
-    monthly,
-  };
+async function listAllLocalPayments(query: { codigo_municipio: string; ano: number; coleta_id: number }) {
+  const data: Awaited<ReturnType<typeof listLocalPaymentsService>>["data"] = [];
+  for (let offset = 0; ; offset += 100) {
+    const page = await listLocalPaymentsService({ ...query, limit: 100, offset });
+    if (page.offset !== offset || page.coleta_id !== query.coleta_id) throw new Error("A API retornou uma página de pagamentos locais fora da coleta solicitada.");
+    data.push(...page.data);
+    if (page.data.length < 100) return { ...page, data };
+  }
 }
 
-export function getMunicipalitySummaries(year: number): MunicipalitySummary[] {
-  return landingMunicipalities.map((municipality) => summaryFor(municipality, year));
+export function getMunicipalitySummaries(year: number): Promise<MunicipalitySummary[]> {
+  const cached = municipalityCache.get(year);
+  if (cached) return cached;
+  const pending = (async () => {
+    const catalog = await listMunicipalityCodesService();
+    return (await withConcurrency(catalog, 6, async (municipality) => {
+      try {
+        const codigo_municipio = municipality.codigo_municipio.padStart(3, "0");
+        const payments = await getPaymentsSummaryService({ codigo_municipio, ano: year });
+        const local = await listAllLocalPayments({ codigo_municipio, ano: year, coleta_id: payments.coleta.coleta_id });
+        const natures: Record<string, number> = {};
+        const meNatures: Record<string, number> = {};
+        const localNatures: Record<string, number> = {};
+        const localSupplierDocuments = new Map<string, Set<string>>();
+        const supplierDocuments = new Set<string>();
+        for (const row of payments.data) {
+          natureLabels.set(row.codigo_natureza, row.nome_natureza);
+          natures[row.codigo_natureza] = Number(row.total_controle);
+          meNatures[row.codigo_natureza] = Number(row.valor_me);
+        }
+        for (const row of local.data) {
+          if (row.nome_natureza) natureLabels.set(row.codigo_natureza, row.nome_natureza);
+          localNatures[row.codigo_natureza] = (localNatures[row.codigo_natureza] ?? 0) + Number(row.valor_pago);
+          const document = row.documento.replace(/\D/g, "");
+          supplierDocuments.add(document);
+          const documents = localSupplierDocuments.get(row.codigo_natureza) ?? new Set<string>();
+          documents.add(document);
+          localSupplierDocuments.set(row.codigo_natureza, documents);
+        }
+        const localSuppliersByNature = Object.fromEntries([...localSupplierDocuments].map(([code, documents]) => [code, documents.size]));
+        const total = Number(payments.total_controle);
+        const mpeValue = Number(payments.total_me);
+        const localValue = Number(local.resumo.valor_pago_me_local);
+        const summary: MunicipalitySummary = { id: municipality.codigo_ibge, tceCode: codigo_municipio, name: municipality.nome, region: municipality.uf, total, mpeValue, mpePercent: Number(payments.percentual_me ?? percent(mpeValue, total)), localValue, localPercent: Number(local.resumo.percentual_valor_pago_me_local ?? percent(localValue, total)), suppliers: local.resumo.fornecedores_me_locais, updatedAt: payments.coleta.finalizado_em ?? "", natures, meNatures, localNatures, localSuppliersByNature, collectionId: payments.coleta.coleta_id };
+        localSupplierDocumentsCache.set(localSupplierDocumentsKey(year, summary), supplierDocuments);
+        return summary;
+      } catch { return null; }
+    })).filter((row) => row !== null) as MunicipalitySummary[];
+  })();
+  municipalityCache.set(year, pending);
+  pending.catch(() => municipalityCache.delete(year));
+  return pending;
 }
 
-function supplierRowsFor(summary: MunicipalitySummary, year: number): SupplierSummary[] {
-  const seed = hash(`${summary.id}-suppliers-${year}`);
-  return Array.from({ length: 8 }, (_, index) => {
-    const supplierSeed = seed + index * 31;
-    const size = sizes[supplierSeed % sizes.length];
-    const origin = origins[supplierSeed % origins.length];
-    const nature = GESTOR_PUBLICO_NATURES[supplierSeed % GESTOR_PUBLICO_NATURES.length].code;
-    return {
-      id: `${summary.id}-${index}`,
-      cnpj: `12.${String((supplierSeed % 900) + 100).padStart(3, "0")}.${String((supplierSeed * 7) % 900).padStart(3, "0")}/0001-${String((supplierSeed * 11) % 90).padStart(2, "0")}`,
-      name: `${supplierNames[supplierSeed % supplierNames.length]} ${index + 1}`,
-      size,
-      classification: supplierSeed % 9 === 0 ? "Classificação pendente" : "Classificado",
-      municipality: summary.name,
-      municipalityId: summary.id,
-      state: "CE",
-      origin,
-      total: moneyNumber(summary.total * (0.025 + (supplierSeed % 80) / 1000)),
-      municipalitiesServed: 1 + (supplierSeed % 12),
-      nature,
-      updatedAt: summary.updatedAt,
-    };
+const sizeFromCategory = (category: string): SupplierSize => category === "MEI" ? "MEI" : category === "ME" ? "ME" : category === "EPP" ? "EPP" : "Demais empresas";
+function supplierFromPayment(row: PaymentSupplier, summary: MunicipalitySummary, localDocuments: Set<string>, year: number): SupplierSummary {
+  if (!row.valor_pago?.trim() || !Number.isFinite(Number(row.valor_pago)) || !Number.isInteger(row.quantidade_pagamentos) || row.quantidade_pagamentos < 0) throw new Error("A API retornou um pagamento inválido.");
+  const { id, name, region, collectionId, updatedAt } = summary;
+  return { id: `${summary.id}:${row.documento}:${row.codigo_natureza}`, cnpj: row.documento, name: row.nome_negociante ?? "Fornecedor não identificado", size: sizeFromCategory(row.categoria_porte), classification: row.situacao_classificacao ?? "Classificação não informada", municipality: summary.name, municipalityId: summary.id, state: summary.region, origin: localDocuments.has(row.documento.replace(/\D/g, "")) ? "Local" : "Sede não informada", total: Number(row.valor_pago), municipalitiesServed: 1, nature: row.codigo_natureza as NatureCode, updatedAt: "", paymentDetails: { year, rows: [{ municipality: { id, name, region, collectionId, updatedAt }, payment: row }] } };
+}
+export function getSupplierSummaries(summaries: MunicipalitySummary[], year: number): Promise<SupplierSummary[]> {
+  const key = `${year}:${summaries.map((summary) => `${summary.id}:${summary.collectionId}`).sort().join(",")}`;
+  const cached = supplierCache.get(key);
+  if (cached) return cached;
+  const pending = withConcurrency(summaries, 4, async (summary) => {
+    const cachedLocalDocuments = localSupplierDocumentsCache.get(localSupplierDocumentsKey(year, summary));
+    const [localDocuments, rows] = await Promise.all([
+      cachedLocalDocuments
+        ? Promise.resolve(cachedLocalDocuments)
+        : listAllLocalPayments({ codigo_municipio: summary.tceCode, ano: year, coleta_id: summary.collectionId }).then((local) => new Set(local.data.map((row) => row.documento.replace(/\D/g, "")))),
+      (async () => {
+        const all: PaymentSupplier[] = [];
+        for (let offset = 0; ; offset += 100) {
+          const page = await listPaymentSuppliersService({ codigo_municipio: summary.tceCode, ano: year, coleta_id: summary.collectionId, categoria_porte: "", limit: 100, offset });
+          if (page.offset !== offset || page.coleta_id !== summary.collectionId) throw new Error("A API retornou fornecedores fora da coleta solicitada.");
+          all.push(...page.data);
+          if (page.data.length < 100) return all;
+        }
+      })(),
+    ]);
+    const byDocument = new Map<string, SupplierSummary>();
+    for (const row of rows) {
+      const supplier = supplierFromPayment(row, summary, localDocuments, year);
+      const document = row.documento.replace(/\D/g, "");
+      const current = byDocument.get(document) ?? supplier;
+      current.total += current === supplier ? 0 : supplier.total;
+      if (current !== supplier) current.paymentDetails!.rows.push(...supplier.paymentDetails!.rows);
+      if (current.nature !== supplier.nature) current.nature = "varias";
+      byDocument.set(document, current);
+    }
+    return [...byDocument.values()];
+  }).then((pages) => {
+    const byDocument = new Map<string, SupplierSummary>();
+    for (const supplier of pages.flat()) {
+      const document = supplier.cnpj.replace(/\D/g, "");
+      const current = byDocument.get(document);
+      if (!current) {
+        // Do not mutate the per-municipality aggregate while combining the selected scope.
+        byDocument.set(document, { ...supplier, paymentDetails: { year, rows: [...supplier.paymentDetails!.rows] } });
+        continue;
+      }
+      if (current !== supplier) {
+        current.total += supplier.total;
+        current.paymentDetails!.rows.push(...supplier.paymentDetails!.rows);
+        current.municipalitiesServed += 1;
+        if (current.municipality !== supplier.municipality) current.municipality = "Vários municípios";
+        current.municipalityId = "";
+        current.origin = current.origin === "Local" && supplier.origin === "Local" ? "Local" : "Sede não informada";
+        if (current.nature !== supplier.nature) current.nature = "varias";
+      }
+      byDocument.set(document, current);
+    }
+    return [...byDocument.values()];
   });
+  supplierCache.set(key, pending);
+  pending.catch(() => supplierCache.delete(key));
+  return pending;
 }
 
-export function getSupplierSummaries(summaries: MunicipalitySummary[], year: number): SupplierSummary[] {
-  return summaries.flatMap((summary) => supplierRowsFor(summary, year));
+export function summarizeSupplierPayments(supplier: SupplierSummary, year: number) {
+  const details = supplier.paymentDetails;
+  if (!details || details.year !== year || !details.rows.length) return null;
+  const natures = new Map<string, { label: string; total: number; payments: number }>();
+  const cities = new Map<string, { municipality: SupplierPaymentDetail["municipality"]; total: number; payments: number }>();
+  let total = 0;
+  let payments = 0;
+  for (const { municipality, payment } of details.rows) {
+    const value = Number(payment.valor_pago);
+    total += value;
+    payments += payment.quantidade_pagamentos;
+    const nature = natures.get(payment.codigo_natureza) ?? { label: payment.nome_natureza || natureName(payment.codigo_natureza), total: 0, payments: 0 };
+    nature.total += value;
+    nature.payments += payment.quantidade_pagamentos;
+    natures.set(payment.codigo_natureza, nature);
+    const city = cities.get(municipality.id) ?? { municipality, total: 0, payments: 0 };
+    city.total += value;
+    city.payments += payment.quantidade_pagamentos;
+    cities.set(municipality.id, city);
+  }
+  return { total, payments, natures: [...natures].sort((a, b) => b[1].total - a[1].total), cities: [...cities.values()].sort((a, b) => b.total - a.total) };
 }
 
-export function getDashboardData(filters: GestorPublicFilters): DashboardData {
-  const allMunicipalities = getMunicipalitySummaries(filters.year);
-  const selected = filters.municipalities.length
-    ? allMunicipalities.filter((municipality) => filters.municipalities.includes(municipality.id))
+export function getDashboardData(filters: GestorPublicFilters, allMunicipalities: MunicipalitySummary[], allSuppliers: SupplierSummary[] = []): DashboardData {
+  const municipalitiesForNature = filters.nature
+    ? allMunicipalities.map((municipality) => {
+      const total = municipality.natures[filters.nature] ?? 0;
+      const mpeValue = municipality.meNatures[filters.nature] ?? 0;
+      const localValue = municipality.localNatures[filters.nature] ?? 0;
+      return { ...municipality, total, mpeValue, mpePercent: percent(mpeValue, total), localValue, localPercent: percent(localValue, total) };
+    })
     : allMunicipalities;
-  const rows = selected.length ? selected : allMunicipalities;
-  const activeNatures = filters.nature
-    ? GESTOR_PUBLICO_NATURES.filter(({ code }) => code === filters.nature)
-    : GESTOR_PUBLICO_NATURES;
-  const valueForNature = (row: MunicipalitySummary, code: NatureCode) => row.natures[code];
+  const selected = filters.municipalities.length
+    ? municipalitiesForNature.filter((municipality) => filters.municipalities.includes(municipality.id))
+    : municipalitiesForNature;
+  const rows = selected.length ? selected : municipalitiesForNature;
+  const activeCodes = filters.nature ? [filters.nature] : [...new Set(rows.flatMap((row) => Object.keys(row.natures)))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  const valueForNature = (row: MunicipalitySummary, code: NatureCode) => row.natures[code] ?? 0;
   const total = rows.reduce((sum, row) => sum + (filters.nature ? valueForNature(row, filters.nature) : row.total), 0);
-  const mpeValue = rows.reduce((sum, row) => {
-    if (!filters.nature) return sum + row.mpeValue;
-    return sum + row.mpeValue * (valueForNature(row, filters.nature) / Math.max(1, row.total));
-  }, 0);
-  const localValue = rows.reduce((sum, row) => {
-    if (!filters.nature) return sum + row.localValue;
-    return sum + row.localValue * (valueForNature(row, filters.nature) / Math.max(1, row.total));
-  }, 0);
-  const suppliers = rows.reduce((sum, row) => sum + row.suppliers, 0);
-  const natures = activeNatures.map(({ code, label }) => {
-    const value = rows.reduce((sum, row) => sum + row.natures[code], 0);
-    const ratio = rows.reduce((sum, row) => sum + row.mpeValue * (row.natures[code] / row.total), 0);
-    return { code, label, value, mpeValue: ratio, mpePercent: percent(ratio, value) };
+  const mpeValue = rows.reduce((sum, row) => sum + (filters.nature ? row.meNatures[filters.nature] ?? 0 : row.mpeValue), 0);
+  const localValue = rows.reduce((sum, row) => sum + (filters.nature ? row.localNatures[filters.nature] ?? 0 : row.localValue), 0);
+  const suppliers = rows.reduce((sum, row) => sum + (filters.nature ? row.localSuppliersByNature[filters.nature] ?? 0 : row.suppliers), 0);
+  const natures = activeCodes.map((code) => {
+    const value = rows.reduce((sum, row) => sum + (row.natures[code] ?? 0), 0);
+    const ratio = rows.reduce((sum, row) => sum + (row.meNatures[code] ?? 0), 0);
+    return { code, label: natureLabels.get(code) ?? `Natureza ${code}`, value, mpeValue: ratio, mpePercent: percent(ratio, value) };
   });
-  const monthly = Array.from({ length: 12 }, (_, index) => rows.reduce((sum, row) => {
-    if (!filters.nature) return sum + row.monthly[index];
-    return sum + row.monthly[index] * (valueForNature(row, filters.nature) / Math.max(1, row.total));
-  }, 0));
-  const originValues = [localValue, Math.max(0, total * 0.24), Math.max(0, total - localValue - total * 0.24)];
-  const suppliersRows = getSupplierSummaries(rows, filters.year).filter((supplier) => (
-    (!filters.origin || supplier.origin === filters.origin) &&
-    (!filters.size || supplier.size === filters.size) &&
-    (!filters.nature || supplier.nature === filters.nature)
-  ));
-  const topMunicipalities = [...allMunicipalities].sort((a, b) => b.mpePercent - a.mpePercent).slice(0, 5);
-  const lowMpe = [...allMunicipalities].sort((a, b) => a.mpePercent - b.mpePercent)[0];
-  const mostExternal = [...allMunicipalities].sort((a, b) => (b.total - b.localValue) - (a.total - a.localValue))[0];
-  const concentrated = [...allMunicipalities].sort((a, b) => b.total / b.suppliers - a.total / a.suppliers)[0];
+  const suppliersRows = allSuppliers.filter((supplier) => rows.some((row) => row.id === supplier.municipalityId) && (!filters.nature || supplier.nature === filters.nature));
+  const topMunicipalities = [...municipalitiesForNature].sort((a, b) => b.mpePercent - a.mpePercent).slice(0, 5);
   return {
     selected: rows,
-    allMunicipalities,
+    allMunicipalities: municipalitiesForNature,
     totals: { total, mpeValue, mpePercent: percent(mpeValue, total), localValue, suppliers, municipalities: rows.length },
     natures,
-    monthly,
-    origins: originValues.map((value, index) => ({ label: origins[index], value, percent: percent(value, total) })),
     topMunicipalities,
     suppliers: suppliersRows.sort((a, b) => b.total - a.total),
-    diagnostics: [
-      { tone: "gold", title: "Baixa participação de ME", value: lowMpe.name, description: `${lowMpe.mpePercent.toFixed(1).replace(".", ",")}% do valor comprado fica com ME.` },
-      { tone: "red", title: "Compras fora do município", value: mostExternal.name, description: `${percent(mostExternal.total - mostExternal.localValue, mostExternal.total).toFixed(1).replace(".", ",")}% do valor sai da economia local.` },
-      { tone: "blue", title: "Maior concentração", value: concentrated.name, description: `R$ ${(concentrated.total / concentrated.suppliers).toLocaleString("pt-BR", { maximumFractionDigits: 0 })} por fornecedor, em média.` },
-    ],
   };
-}
-
-export function findMunicipality(id: string, year: number): MunicipalitySummary | null {
-  const municipality = landingMunicipalities.find((item) => item.ibgeCode === id);
-  return municipality ? summaryFor(municipality, year) : null;
 }
 
 export function natureName(code: string): string {
-  return GESTOR_PUBLICO_NATURES.find((nature) => nature.code === code)?.label ?? "Natureza não identificada";
+  if (code === "varias") return "Várias naturezas";
+  return natureLabels.get(code) ?? `Natureza ${code}`;
+}
+
+export function getNatureOptions(summaries: MunicipalitySummary[]) {
+  const codes = new Set(summaries.flatMap((row) => Object.keys(row.natures)));
+  return [...codes].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true })).map((code) => ({ code, label: natureLabels.get(code) ?? `Natureza ${code}` }));
 }

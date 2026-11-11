@@ -4,13 +4,18 @@ import { z } from "zod";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL é obrigatória"),
+  DIRECT_URL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
   JWT_SECRET: z
     .string()
     .min(32, "JWT_SECRET deve ter pelo menos 32 caracteres"),
   API_DADOS: z
     .string()
     .url("API_DADOS deve ser uma URL válida")
-    .default("https://compra-aberta-api.onrender.com"),
+    .default("https://comprasabertas.amontadavalley.com.br/api-dados"),
   // Dados cadastrais de CNPJ (base aberta da Receita Federal), usados para
   // preencher a solicitação de acesso.
   OPEN_CNPJ_API: z
@@ -44,6 +49,32 @@ const envSchema = z.object({
 
   PORT: z.coerce.number().int().min(1).default(3333),
 
+  SUPABASE_URL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SUPABASE_SERVICE_ROLE_KEY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  SUPABASE_STORAGE_BUCKET: z
+    .string()
+    .trim()
+    .default("documentos-empresas"),
+
+  ADMIN_EMAIL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  ADMIN_PASSWORD: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+
   FRONTEND_URL: z
     .string()
     .trim()
@@ -74,7 +105,24 @@ const envSchema = z.object({
     .trim()
     .optional()
     .transform((v) => v || undefined),
+
+  STRIPE_SECRET_KEY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  STRIPE_PRICE_ID_MONTHLY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
+  STRIPE_WEBHOOK_SECRET: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined),
 });
+
 
 const parsedEnv = envSchema.safeParse(process.env);
 

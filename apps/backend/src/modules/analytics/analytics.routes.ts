@@ -2,6 +2,8 @@ import type { FastifyInstance } from "fastify";
 
 import { analyticsController } from "./analytics.controller";
 import {
+  paymentsSummaryDocs,
+  paymentSuppliersDocs,
   getMicroenterpriseIndicatorDocs,
   listDetailedBidsDocs,
   listExpensesByNatureDocs,
@@ -11,6 +13,9 @@ import {
 } from "./analytics.docs";
 
 async function analyticsRoutes(app: FastifyInstance) {
+  app.get("/analytics/municipios", analyticsController.listMunicipalityCatalog);
+  app.get("/analytics/pagamentos/resumo", { schema: paymentsSummaryDocs }, analyticsController.getPaymentsSummary);
+  app.get("/analytics/pagamentos/fornecedores", { schema: paymentSuppliersDocs }, analyticsController.listPaymentSuppliers);
   app.get(
     "/analytics/licitacoes-detalhadas",
     { schema: listDetailedBidsDocs },

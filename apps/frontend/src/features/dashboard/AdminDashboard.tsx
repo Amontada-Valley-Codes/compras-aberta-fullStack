@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Database, FileCheck2, LayoutDashboard, Settings, Store, Users, X } from "lucide-react";
+import { Check, CreditCard, Database, FileCheck2, LayoutDashboard, Settings, Store, Users, X } from "lucide-react";
 import { AppShell, type NavItem } from "./AppShell";
 import { AdminOverview } from "./AdminOverview";
 import { AdminUsers } from "./AdminUsers";
+import { AdminPlans } from "./AdminPlans";
 import { PageHeading } from "./MeDashboard";
 import { initials, readMessage, useAccessRequests } from "./useAccessRequests";
 import { toast } from "@/components/ui/sonner";
@@ -30,11 +31,12 @@ export function AdminDashboard() {
   const state = useAccessRequests();
   const pendingCount = state.requests.filter((request) => request.status === "PENDING").length;
   const items: NavItem[] = [
-    { id: "overview", label: "Visao geral", icon: <LayoutDashboard size={19} /> },
-    { id: "requests", label: "Solicitacoes", icon: <FileCheck2 size={19} />, badge: pendingCount ? String(pendingCount) : undefined },
+    { id: "overview", label: "Visão geral", icon: <LayoutDashboard size={19} /> },
+    { id: "requests", label: "Solicitações", icon: <FileCheck2 size={19} />, badge: pendingCount ? String(pendingCount) : undefined },
     { id: "companies", label: "Empresas", icon: <Store size={19} /> },
-    { id: "users", label: "Usuarios e acessos", icon: <Users size={19} /> },
-    { id: "settings", label: "Configuracoes", icon: <Settings size={19} /> },
+    { id: "users", label: "Usuários e acessos", icon: <Users size={19} /> },
+    { id: "plans", label: "Planos e preços", icon: <CreditCard size={19} /> },
+    { id: "settings", label: "Configurações", icon: <Settings size={19} /> },
   ];
   const navigate = (id: string) => { setOpenRequestId(null); setActive(id); };
   const openRequest = (id: string) => { setOpenRequestId(id); setActive("requests"); };
@@ -46,7 +48,8 @@ export function AdminDashboard() {
         {active === "requests" && <Requests state={state} initialSelectedId={openRequestId} />}
         {active === "companies" && <Requests state={state} approvedOnly />}
         {active === "users" && <AdminUsers />}
-        {active === "settings" && <Placeholder title="Configuracoes" />}
+        {active === "plans" && <AdminPlans />}
+        {active === "settings" && <Placeholder title="Configurações" />}
       </div>
     </AppShell>
   );

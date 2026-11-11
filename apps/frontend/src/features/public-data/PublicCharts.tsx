@@ -57,6 +57,7 @@ interface NatureBarChartProps {
   axisFormatter: (value: number) => string;
   tooltipFormatter: (value: number) => string;
   compactView?: boolean;
+  height?: number;
 }
 
 function ChartViewControls({ table, onTableChange }: { table: boolean; onTableChange: (value: boolean) => void }) {
@@ -70,7 +71,7 @@ function ChartTable({ labels, values, valueFormatter }: { labels: string[]; valu
   return <div className="analysis-chart-table-wrap"><table className="analysis-chart-table"><thead><tr><th>Natureza da despesa</th><th>Valor</th></tr></thead><tbody>{labels.map((label, index) => <tr key={`${label}-${index}`}><td>{label}</td><td>{valueFormatter(values[index] ?? 0)}</td></tr>)}</tbody></table></div>;
 }
 
-function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, tooltipFormatter, compactView = false }: NatureBarChartProps) {
+export function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, tooltipFormatter, compactView = false, height: requestedHeight }: NatureBarChartProps) {
   const [table, setTable] = useState(false);
   const sorted = useMemo(() => labels.map((label, index) => ({ label, value: Number(values[index] ?? 0) })), [labels, values]);
   const sortedLabels = sorted.map((item) => item.label);
@@ -93,7 +94,7 @@ function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, 
       y: { formatter: tooltipFormatter },
     },
   };
-  const height = compactView ? 130 : Math.max(230, 60 + labels.length * 46);
+  const height = requestedHeight ?? (compactView ? 130 : Math.max(300, 120 + labels.length * 52));
   return <>
     <ChartViewControls table={table} onTableChange={setTable} />
     {table ? <ChartTable labels={sortedLabels} values={sortedValues} valueFormatter={tooltipFormatter} /> : <Chart type="bar" height={height} options={options} series={[{ name: seriesName, data: sortedValues }]} />}
@@ -161,7 +162,7 @@ interface ShareDonutChartProps {
   ariaLabel: string;
 }
 
-function ShareDonutChart({
+export function ShareDonutChart({
   percentage, size, chartId, meLabel, othersLabel, meColor, othersColor,
   meMarkerClass, othersMarkerClass, centerLabel, ariaLabel,
 }: ShareDonutChartProps) {
@@ -172,6 +173,7 @@ function ShareDonutChart({
   const options: ApexOptions = {
     ...base,
     chart: { ...base.chart, id: chartId, type: "donut" },
+    states: { hover: { filter: { type: "none" } } },
     labels: [meLabel, othersLabel],
     colors: [meColor, othersColor],
     stroke: { colors: [colors.white], width: 2 },
@@ -226,7 +228,7 @@ export function LocalShareChart({ percentage, size = 210 }: { percentage: number
       meMarkerClass="local-share-tooltip-marker--me"
       othersMarkerClass="local-share-tooltip-marker--others"
       centerLabel="compras com ME locais"
-      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras homologadas ficaram com microempresas locais`}
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras ficaram com microempresas locais`}
     />
   );
 }
@@ -246,7 +248,7 @@ export function GeneralShareChart({ percentage, size = 210 }: { percentage: numb
       meMarkerClass="local-share-tooltip-marker--general-me"
       othersMarkerClass="local-share-tooltip-marker--general-others"
       centerLabel="compras com ME"
-      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras homologadas ficaram com microempresas, de qualquer cidade`}
+      ariaLabel={`${percentage.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}% das compras ficaram com microempresas, de qualquer cidade`}
     />
   );
 }

@@ -2,6 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "scripts": {
+    "test:analytics": "tsx --test tests/payments.test.ts",
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/server.js",
@@ -33,6 +34,7 @@
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^10.0.13",
     "pg": "^8.23.0",
+    "stripe": "^23.1.0",
     "zod": "^4.5.4"
   },
   "devDependencies": {

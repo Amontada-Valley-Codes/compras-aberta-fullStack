@@ -1,7 +1,6 @@
 "use client";
 
-import { RefObject, useRef } from "react";
-import Script from "next/script";
+import { useRef } from "react";
 import { ClosingCtaSection } from "./sections/closing-cta";
 import { DataExplorerSection } from "./sections/data-explorer";
 import { AudiencesSection } from "./sections/audiences";
@@ -16,7 +15,7 @@ export function LandingPage() {
   // useScrollReveal(rootRef);
   
   return (
-    <div className="public-site" ref={rootRef}>
+    <div className="public-site landing-page" ref={rootRef}>
       <LandingHeader />
       <main>
         <DataExplorerSection />
@@ -27,11 +26,6 @@ export function LandingPage() {
         <ClosingCtaSection />
       </main>
       <LandingFooter />
-      <Script
-        id="noupe-chatbot"
-        src="https://www.noupe.com/embed/01a0c0bf7d1070008c519ce4b0af52a479ec.js"
-        strategy="afterInteractive"
-      />
     </div>
   );
 }

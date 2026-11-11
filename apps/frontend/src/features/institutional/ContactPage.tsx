@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Script from "next/script";
 import { ArrowRight, Building2, KeyRound, Landmark, Mail, MessageCircle } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa6";
 import { CONTACT_CHANNELS } from "./contact-channels";
@@ -14,8 +13,7 @@ export function ContactPage() {
         <span className="inst-eyebrow">Contato</span>
         <h1>Fale com a equipe do Compras Abertas</h1>
         <p>
-          Escolha o assunto abaixo. Para dúvidas sobre a plataforma, os dados públicos ou os planos, o assistente do site
-          responde na hora.
+          Escolha o assunto abaixo. As perguntas frequentes ajudam com dúvidas sobre a plataforma, os dados públicos e os planos.
         </p>
       </header>
 
@@ -24,8 +22,8 @@ export function ContactPage() {
           <MessageCircle aria-hidden="true" />
           <h2>Dúvidas sobre a plataforma</h2>
           <p>
-            Use o assistente virtual, no botão do canto inferior direito da tela. Ele explica como consultar os dados, o que
-            significa cada indicador e como funcionam os acessos.
+            Consulte as perguntas frequentes para entender como pesquisar os dados, interpretar os indicadores e acessar
+            a plataforma.
           </p>
           <Link href="/#faq" className="inst-link">
             Ver perguntas frequentes <ArrowRight aria-hidden="true" />
@@ -61,7 +59,7 @@ export function ContactPage() {
           <h2>Problemas de acesso</h2>
           <p>
             Esqueceu a senha ou o cadastro ainda não foi aprovado? A recuperação automática de senha ainda não está
-            disponível: peça ajuda pelo assistente informando o e-mail da conta. Nunca envie a sua senha.
+            disponível. Consulte a situação do cadastro. Nunca envie a sua senha.
           </p>
           <Link href="/acesso/status" className="inst-link">
             Ver situação do cadastro <ArrowRight aria-hidden="true" />
@@ -92,12 +90,6 @@ export function ContactPage() {
         <Link href="/termos#privacidade">termos e a política de privacidade</Link>.
       </p>
 
-      {/* Mesmo assistente da landing. */}
-      <Script
-        id="noupe-chatbot"
-        src="https://www.noupe.com/embed/01a0c0bf7d1070008c519ce4b0af52a479ec.js"
-        strategy="afterInteractive"
-      />
     </div>
   );
 }

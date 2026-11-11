@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import * as Select from "@radix-ui/react-select";
 import {
   ArrowUpDown,
@@ -35,6 +35,7 @@ interface PublicFilterSelectProps {
 }
 
 const allValue = "__all__";
+const MAX_VISIBLE_OPTIONS = 60;
 
 export function PublicFilterSelect({
   name,
@@ -51,6 +52,7 @@ export function PublicFilterSelect({
   const [internalValue, setInternalValue] = useState(defaultValue || allValue);
   const value = controlledValue === undefined ? internalValue : controlledValue || allValue;
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const showSearch = options.length > 5;
   const Icon =
     icon === "municipality"
@@ -64,14 +66,21 @@ export function PublicFilterSelect({
             : variant === "landing"
               ? ReceiptText
               : ChartNoAxesColumnIncreasing;
-  const visibleOptions = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase("pt-BR");
-    return term
-      ? options.filter((item) =>
-          item.label.toLocaleLowerCase("pt-BR").includes(term),
-        )
-      : options;
-  }, [options, search]);
+  const normalizedOptions = useMemo(
+    () => options.map((item) => ({ item, normalizedLabel: item.label.toLocaleLowerCase("pt-BR") })),
+    [options],
+  );
+  const { visibleOptions, hasMoreOptions } = useMemo(() => {
+    const term = deferredSearch.trim().toLocaleLowerCase("pt-BR");
+    const matches = (term
+      ? normalizedOptions.filter(({ normalizedLabel }) => normalizedLabel.includes(term))
+      : [...normalizedOptions]);
+    matches.sort((a, b) => Number(b.normalizedLabel.startsWith(term)) - Number(a.normalizedLabel.startsWith(term)));
+    return {
+      visibleOptions: matches.slice(0, MAX_VISIBLE_OPTIONS).map(({ item }) => item),
+      hasMoreOptions: matches.length > MAX_VISIBLE_OPTIONS,
+    };
+  }, [deferredSearch, normalizedOptions]);
   const selectedLabel =
     value === allValue
       ? allLabel
@@ -119,9 +128,15 @@ export function PublicFilterSelect({
                 className="public-filter-search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                onKeyDownCapture={(event) => event.stopPropagation()}
+                onKeyDownCapture={(event) => {
+                  event.stopPropagation();
+                  event.nativeEvent.stopImmediatePropagation();
+                }}
                 onKeyDown={(event) => event.stopPropagation()}
-                onKeyUp={(event) => event.stopPropagation()}
+                onKeyUp={(event) => {
+                  event.stopPropagation();
+                  event.nativeEvent.stopImmediatePropagation();
+                }}
                 onPointerDown={(event) => event.stopPropagation()}
                 autoComplete="off"
                 placeholder="Buscar"
@@ -145,6 +160,7 @@ export function PublicFilterSelect({
                   Nenhum resultado encontrado.
                 </p>
               )}
+              {hasMoreOptions && <p className="public-filter-empty">Mostrando os primeiros {MAX_VISIBLE_OPTIONS} resultados. Digite mais letras para refinar.</p>}
             </Select.Viewport>
             {showSearch && <Select.ScrollDownButton className="public-filter-scroll">
               <ChevronDown size={16} />

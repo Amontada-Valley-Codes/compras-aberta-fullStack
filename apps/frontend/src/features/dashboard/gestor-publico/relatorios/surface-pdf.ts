@@ -11,7 +11,8 @@ const clean = (text: string) => text.replace(/[\u00A0\u202F]/g, " ");
 
 export function createPdfSurface(doc: jsPDF): Surface {
   const applyFont = (style: TextStyle) => {
-    doc.setFont("helvetica", style.bold ? "bold" : "normal");
+    const family = style.fontFamily === "serif" ? "times" : "helvetica";
+    doc.setFont(family, style.bold ? "bold" : "normal");
     doc.setFontSize(style.size);
   };
 

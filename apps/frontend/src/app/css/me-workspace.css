@@ -5,8 +5,8 @@
 /* ---------- Estado "Gerenciar" e Tarja Salva no Card do Feed ---------- */
 
 .me-bid-btn.is-manage {
-  background: var(--brand-navy, #11169b);
-  border-color: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
   color: #ffffff;
 }
 
@@ -89,8 +89,8 @@
 }
 
 .ws-btn.is-primary {
-  background: var(--brand-navy, #11169b);
-  border-color: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
   color: #ffffff;
 }
 
@@ -100,8 +100,8 @@
 }
 
 .ws-btn.is-navy {
-  background: var(--brand-navy, #11169b);
-  border-color: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
   color: #ffffff;
 }
 
@@ -111,8 +111,8 @@
 }
 
 .ws-btn.is-accent-orange {
-  background: var(--brand-navy, #11169b);
-  border-color: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
   color: #ffffff;
 }
 
@@ -122,8 +122,8 @@
 }
 
 .ws-btn.is-teal {
-  background: var(--brand-navy, #11169b);
-  border-color: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
   color: #ffffff;
 }
 
@@ -141,7 +141,7 @@
 .ws-btn.is-ghost:hover:not(:disabled) {
   background: #f8fafc;
   border-color: #cbd5e1;
-  color: var(--brand-navy, #11169b);
+  color: var(--brand-blue, #11169b);
 }
 
 .ws-icon-btn {
@@ -180,9 +180,9 @@
 .ws-select,
 .ws-field textarea {
   border: 1px solid #cbd5e1;
-  border-radius: 9px;
+  border-radius: 10px;
   background: #ffffff;
-  color: #0f172a;
+  color: #1e293b;
   font-size: 0.875rem;
   padding: 8px 12px;
   outline: none;
@@ -199,13 +199,20 @@
 .ws-select {
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px 16px;
   padding-right: 38px;
+  font-weight: 600;
   cursor: pointer;
   line-height: 1.4;
+}
+
+.ws-field select:hover,
+.ws-select:hover {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
 }
 
 .ws-field input:focus,
@@ -222,7 +229,7 @@
   gap: 8px;
   height: 40px;
   padding: 0 12px;
-  border-radius: 9px;
+  border-radius: 10px;
   border: 1px solid #cbd5e1;
   background: #ffffff;
   color: #64748b;
@@ -272,8 +279,8 @@
 }
 
 .ws-checkbox.is-checked {
-  background: var(--brand-navy, #11169b);
-  border-color: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
 }
 
 .ws-toggle-switch {
@@ -299,7 +306,7 @@
 }
 
 .ws-toggle-switch.is-on .ws-toggle-switch__track {
-  background: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
 }
 
 .ws-toggle-switch__thumb {
@@ -559,13 +566,27 @@
   gap: 8px;
 }
 
-.ws-items-pagination__size select {
-  height: 30px;
-  border-radius: 6px;
+.ws-items-pagination__size select,
+.ws-items-pagination__size .ui-select-trigger {
+  height: 32px;
+  min-width: 72px;
+  border-radius: 8px;
   border: 1px solid #cbd5e1;
-  background: #ffffff;
-  padding: 0 8px;
+  background-color: #ffffff;
+  padding: 0 10px;
   font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ws-items-pagination__size select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px 14px;
+  cursor: pointer;
 }
 
 .ws-items-pagination__nav {
@@ -666,7 +687,7 @@
 }
 
 .mybids-stage-tab.is-active {
-  color: var(--brand-navy, #11169b);
+  color: var(--brand-blue, #11169b);
   font-weight: 700;
   border-bottom-color: var(--brand-blue, #11169b);
 }
@@ -724,21 +745,32 @@
 
 .mybids-filter-select {
   height: 40px;
-  padding: 0 36px 0 12px;
-  border-radius: 9px;
+  min-width: 170px;
+  width: auto;
+  padding: 0 12px;
+  border-radius: 10px;
   border: 1px solid #cbd5e1;
   background-color: #ffffff;
   color: #1e293b;
-  font-size: 0.825rem;
+  font-size: 0.84rem;
   font-weight: 600;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 15px 15px;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+select.mybids-filter-select {
+  padding-right: 36px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px 16px;
+}
+
+.mybids-filter-select:hover {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
 }
 
 .mybids-filter-select:focus {
@@ -756,7 +788,7 @@
   border-radius: 999px;
   border: 1px solid #dce6ec;
   background: #f1f5f9;
-  color: var(--brand-navy, #11169b);
+  color: var(--brand-blue, #11169b);
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
@@ -1020,7 +1052,7 @@
 }
 
 .mybids-minical__day.is-selected {
-  background: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
   color: #ffffff;
 }
 
@@ -1078,7 +1110,7 @@
   border-radius: 8px;
   border: 1px solid #dce6ec;
   background: #f8fafc;
-  color: var(--brand-navy, #11169b);
+  color: var(--brand-blue, #11169b);
   font-size: 0.8rem;
   font-weight: 700;
   display: inline-flex;
@@ -1108,12 +1140,21 @@
 }
 
 .mybids-side-filter select {
-  height: 38px;
-  border-radius: 8px;
+  height: 40px;
+  border-radius: 10px;
   border: 1px solid #cbd5e1;
-  background: #ffffff;
-  padding: 0 10px;
-  font-size: 0.82rem;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0 36px 0 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
 }
 
 /* ---------- Painel "Gerenciar Licitação" (MeBidWorkspace) ---------- */
@@ -1328,15 +1369,15 @@
 .ws-stage-bar__label {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--brand-navy, #11169b);
+  color: var(--brand-blue, #11169b);
 }
 
 .ws-stage-select,
 .ws-status-select {
-  height: 34px;
-  padding: 0 30px 0 12px;
+  height: 36px;
+  padding: 0 32px 0 12px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   border: 1px solid #cbd5e1;
@@ -1344,10 +1385,10 @@
   color: #1e293b;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
-  background-size: 13px 13px;
+  background-size: 14px 14px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -1397,8 +1438,10 @@
 
 .ws-radix-stage-trigger,
 .ws-radix-status-trigger {
-  height: 34px;
-  padding: 0 12px;
+  height: 36px;
+  width: auto;
+  min-width: 175px;
+  padding: 0 14px;
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 700;
@@ -1408,6 +1451,7 @@
   color: #1e293b;
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   transition: all 0.15s ease;
@@ -1424,32 +1468,6 @@
   border-color: var(--brand-blue, #11169b);
   box-shadow: 0 0 0 3px rgba(17, 22, 155, 0.12);
   outline: none;
-}
-
-/* Garantia de fundo 100% opaco e sombra para dropdowns do Select */
-[data-slot="select-content"] {
-  background-color: #ffffff !important;
-  color: #1e293b !important;
-  border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.08) !important;
-  border-radius: 12px !important;
-  opacity: 1 !important;
-  z-index: 9999 !important;
-}
-
-[data-slot="select-item"] {
-  color: #1e293b !important;
-  background-color: transparent;
-  border-radius: 8px !important;
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-}
-
-[data-slot="select-item"]:hover,
-[data-slot="select-item"][data-highlighted] {
-  background-color: #eff6ff !important;
-  color: var(--brand-blue, #11169b) !important;
 }
 
 .ws-stage-bar__divider {
@@ -1829,18 +1847,38 @@
 }
 
 .ws-inline-reminder-form input,
-.ws-inline-reminder-form select {
+.ws-inline-reminder-form select,
+.ws-inline-reminder-form .ui-select-trigger {
   height: 36px;
-  padding: 0 10px;
-  border-radius: 7px;
+  padding: 0 12px;
+  border-radius: 8px;
   border: 1px solid #cbd5e1;
-  background: #ffffff;
+  background-color: #ffffff;
   font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ws-inline-reminder-form .ui-select-trigger {
+  width: auto;
+  min-width: 195px;
+}
+
+.ws-inline-reminder-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%2311169b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 15px 15px;
+  cursor: pointer;
 }
 
 .ws-inline-reminder-form input[type="text"]:first-child {
   flex: 1;
   min-width: 220px;
+  font-weight: 500;
 }
 
 .ws-custom-reminders {
@@ -2204,7 +2242,7 @@
 
 .ws-progress-bar > div {
   height: 100%;
-  background: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
   transition: width 0.25s ease;
 }
 
@@ -2433,8 +2471,8 @@
 }
 
 .agenda-pill.is-active {
-  background: var(--brand-navy, #11169b);
-  border-color: var(--brand-navy, #11169b);
+  background: var(--brand-blue, #11169b);
+  border-color: var(--brand-blue, #11169b);
   color: #ffffff;
   box-shadow: 0 2px 8px rgba(17, 22, 155, 0.18);
 }

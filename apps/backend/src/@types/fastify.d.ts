@@ -6,6 +6,8 @@ declare module "fastify" {
       id: string;
       role: string;
       accessStatus: "PENDING" | "APPROVED" | "REJECTED";
+      subscriptionStatus?: string;
+      trialEndsAt?: Date | null;
     };
   }
 }
