@@ -2,21 +2,20 @@
 
 import { PublicTable, PublicTablePagination, PublicSortHeader } from "@/components/filters/PublicTable";
 import Link from "next/link";
-import { useMemo, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowRight, Check, ChevronRight, Copy, Info, RefreshCw, Search, X } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
-import { formatDateBr } from "@/features/dashboard/gestor/gestor-domain";
 import { count, money } from "@/features/public-data/format";
 import { Card, PageHeader } from "./GestorPublicoViews";
 import {
   GESTOR_PUBLICO_YEARS,
-  getMunicipalitySummaries,
   getSupplierSummaries,
   natureName,
   type SupplierSize,
   type SupplierSummary,
 } from "./gestor-publico-data";
+import { useMunicipalitySummaries } from "./use-gestor-public-data";
 
 
 
@@ -64,8 +63,18 @@ export function GestorPublicoFornecedores() {
   const openedFrom = useRef<HTMLButtonElement | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  const municipalities = useMemo(() => getMunicipalitySummaries(filters.year), [filters.year]);
-  const suppliers = useMemo(() => getSupplierSummaries(municipalities, filters.year), [municipalities, filters.year]);
+  const { data: municipalities, loading: municipalitiesLoading, error: municipalitiesError } = useMunicipalitySummaries(filters.year);
+  const [suppliers, setSuppliers] = useState<SupplierSummary[]>([]);
+  const [suppliersLoading, setSuppliersLoading] = useState(false);
+  const [suppliersError, setSuppliersError] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    const selectedMunicipalities = filters.municipality ? municipalities.filter((item) => item.id === filters.municipality) : municipalities;
+    if (!selectedMunicipalities.length) { setSuppliers([]); return; }
+    setSuppliersLoading(true); setSuppliersError(null);
+    getSupplierSummaries(selectedMunicipalities, filters.year).then((rows) => { if (active) setSuppliers(rows); }).catch(() => { if (active) setSuppliersError("Não foi possível carregar os fornecedores pela API."); }).finally(() => { if (active) setSuppliersLoading(false); });
+    return () => { active = false; };
+  }, [municipalities, filters.year, filters.municipality]);
   const rows = useMemo(() => suppliers
     .filter((supplier) => (!filters.municipality || supplier.municipalityId === filters.municipality)
       && (!filters.size || supplier.size === filters.size)
@@ -109,7 +118,7 @@ export function GestorPublicoFornecedores() {
   return <div className="gp-main gp-suppliers-main">
     <PageHeader
       title="Fornecedores"
-      description="Substitua buscas manuais por uma visão organizada dos fornecedores e portes empresariais."
+      description="Consulte quem recebeu pagamentos, filtre pelo porte empresarial e abra os dados de cada fornecedor."
       actions={hasFilters ? clearButton : undefined}
     />
 
@@ -123,7 +132,7 @@ export function GestorPublicoFornecedores() {
 
     <Card
       className="gp-suppliers-card gp-list-card"
-      title={`${count(rows.length)} ${rows.length === 1 ? "fornecedor encontrado" : "fornecedores encontrados"}`}
+      title={municipalitiesLoading || suppliersLoading ? "Carregando fornecedores..." : `${count(rows.length)} ${rows.length === 1 ? "fornecedor encontrado" : "fornecedores encontrados"}`}
       description={rows.length ? `Juntos, receberam ${money(totalValue)} em ${filters.year}. Clique em um fornecedor para ver os detalhes.` : undefined}
       actions={<label className="gp-search-field gp-suppliers-search">
         <Search size={18} aria-hidden="true" />
@@ -132,7 +141,7 @@ export function GestorPublicoFornecedores() {
       </label>}
     >
       <div className="gp-suppliers-list" ref={listRef}>
-        {pageRows.length ? <PublicTable>
+        {municipalitiesLoading || suppliersLoading ? <div role="status" className="gp-empty">Carregando fornecedores da API...</div> : suppliersError || municipalitiesError ? <div role="status" className="gp-empty">{suppliersError ?? municipalitiesError}</div> : pageRows.length ? <PublicTable>
           <caption className="gp-sr-only">Fornecedores do recorte selecionado</caption>
           <thead>
             <tr>
@@ -223,7 +232,7 @@ function SupplierDetail({ supplier, year }: { supplier: SupplierSummary; year: n
       <div className="gp-drawer-highlight">
         <small>Valor recebido em {year}</small>
         <strong>{money(supplier.total)}</strong>
-        <span>Em compras da prefeitura de {place}</span>
+        <span>Em pagamentos da prefeitura de {place}</span>
       </div>
 
       <dl className="gp-drawer-list">
@@ -231,10 +240,10 @@ function SupplierDetail({ supplier, year }: { supplier: SupplierSummary; year: n
         <div><dt>Município comprador</dt><dd>{place}</dd></div>
         <div><dt>Natureza da despesa</dt><dd>{natureName(supplier.nature)}</dd></div>
         <div><dt>Municípios atendidos</dt><dd>{count(supplier.municipalitiesServed)} {supplier.municipalitiesServed === 1 ? "município" : "municípios"}</dd></div>
-        <div><dt>Atualização</dt><dd>{formatDateBr(supplier.updatedAt)}</dd></div>
+        <div><dt>Atualização</dt><dd>{supplier.updatedAt || "—"}</dd></div>
       </dl>
 
-      <p className="gp-drawer-note"><Info size={15} aria-hidden="true" /> Dados demonstrativos. Confira na fonte oficial antes de decisões administrativas.</p>
+      <p className="gp-drawer-note"><Info size={15} aria-hidden="true" /> Valores conforme os pagamentos registrados na coleta consultada pela API.</p>
     </div>
 
     <footer className="gp-drawer-actions">

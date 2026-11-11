@@ -27,6 +27,7 @@ import type {
 import type { MunicipalityOption } from "@/services/municipalities/municipalities.types";
 import { reportModel, type ReportModelId } from "./report-catalog";
 import type { ReportBlock, ReportDocument, ReportKpi, ReportSection } from "./report-document";
+import { buildReferenceReport } from "./report-reference-data";
 
 export interface ReportRequest {
   model: Exclude<ReportModelId, "receitas">;
@@ -209,7 +210,9 @@ const NOTE_MULTI_NATURE =
 const NOTE_ME_ONLY =
   "A fonte identifica empresa por empresa apenas as microempresas vencedoras. As demais empresas entram somente nos totais do período.";
 
-function natureParticipationTable(rows: NatureParticipationRow[]): ReportBlock {
+function natureParticipationTable(rows: NatureParticipationRow[]): Extract<ReportBlock, { kind: "table" }> {
+  const totalValue = sumBy(rows, (row) => toNumber(row.valor_vencido));
+  const totalMe = sumBy(rows, (row) => toNumber(row.valor_vencido_me));
   return {
     kind: "table",
     columns: [
@@ -230,6 +233,14 @@ function natureParticipationTable(rows: NatureParticipationRow[]): ReportBlock {
         money(toNumber(row.valor_vencido_me)),
         pct(row.percentual_valor_vencido_me),
       ]),
+    total: rows.length ? [
+      "Total das categorias",
+      count(sumBy(rows, (row) => row.quantidade_licitacoes)),
+      count(sumBy(rows, (row) => row.licitacoes_com_me)),
+      money(totalValue),
+      money(totalMe),
+      pct(shareOf(totalMe, totalValue)),
+    ] : undefined,
     emptyText: "Nenhuma licitação com natureza da despesa no período.",
   };
 }
@@ -329,55 +340,6 @@ function natureNote(request: ReportRequest): ReportBlock[] {
 }
 
 // ---------- Modelos ----------
-async function generalReport(request: ReportRequest, sources: Sources): Promise<ReportSection[]> {
-  const [me, local, expenses, byNature, bids] = await Promise.all([
-    sources.meParticipations(),
-    sources.localSummary(),
-    sources.expenses(),
-    sources.byNature(),
-    sources.bids(),
-  ]);
-  const suppliers = groupSuppliers(me.rows, request.municipality.name);
-  const meTotal = sumBy(suppliers, (supplier) => supplier.total);
-  const bidsTotal = sumBy(bids, (bid) => toNumber(bid.valor_total_licitacao));
-
-  const kpis: ReportKpi[] = [
-    { label: "Licitações no período", value: count(bids.length), detail: `Valor total de ${money(bidsTotal)}` },
-    { label: "Valor vencido", value: money(toNumber(me.summary.valor_total_vencido)), detail: "Homologado às empresas vencedoras" },
-    { label: "Valor com microempresas", value: money(toNumber(me.summary.valor_vencido_me)), detail: `${pct(me.summary.percentual_valor_vencido_me)} do valor vencido` },
-    {
-      label: "Microempresas vencedoras",
-      value: count(suppliers.length),
-      detail: `${plural(me.summary.participacoes_me, "vitória", "vitórias")} em ${plural(me.summary.licitacoes_com_me, "licitação", "licitações")}`,
-    },
-    {
-      label: "Valor com microempresas locais",
-      value: money(toNumber(local.valor_vencido_me_local)),
-      detail: `${pct(local.percentual_valor_vencido_me_local)} do valor vencido`,
-    },
-    {
-      label: "Dotação associada",
-      value: money(sumBy(expenses, (row) => toNumber(row.valor_total_dotacao))),
-      detail: plural(sumBy(expenses, (row) => row.quantidade_dotacoes), "dotação", "dotações"),
-    },
-  ];
-
-  return [
-    { title: "Indicadores principais", description: "Resumo das compras públicas do município no período.", blocks: [{ kind: "kpis", items: kpis }, ...natureNote(request)] },
-    {
-      title: "Natureza da despesa",
-      description: "Valor vencido e participação das microempresas em cada natureza da despesa.",
-      blocks: [natureParticipationTable(byNature), { kind: "note", text: NOTE_MULTI_NATURE }],
-    },
-    { title: "Evolução mensal", description: "Valor das licitações por mês de realização.", blocks: [monthlyBars(bids)] },
-    {
-      title: "Principais microempresas vencedoras",
-      description: "As 10 microempresas com maior valor vencido no período.",
-      blocks: [supplierRankTable(suppliers, meTotal, 10), { kind: "note", text: NOTE_ME_ONLY }],
-    },
-  ];
-}
-
 async function natureReport(request: ReportRequest, sources: Sources): Promise<ReportSection[]> {
   const [summary, expenses, byNature] = await Promise.all([sources.meSummary(), sources.expenses(), sources.byNature()]);
   const kpis: ReportKpi[] = [
@@ -566,7 +528,7 @@ async function expenseReport(request: ReportRequest, sources: Sources): Promise<
 }
 
 const BUILDERS: Record<ReportRequest["model"], (request: ReportRequest, sources: Sources) => Promise<ReportSection[]>> = {
-  geral: generalReport,
+  geral: (request) => buildReferenceReport(request),
   natureza: natureReport,
   fornecedores: supplierReport,
   despesas: expenseReport,

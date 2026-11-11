@@ -1,9 +1,7 @@
-import type { CSSProperties } from "react";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { landingData } from "../../landing-mock";
-import { RevealWords } from "../../RevealWords";
 
 export function DataExplorerSection() {
   const data = landingData;
@@ -31,7 +29,11 @@ export function DataExplorerSection() {
         </div>
         <form className="opportunity-search" action="/analise" method="get">
           <PublicFilterSelect name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="landing" options={data.municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []} />
-          <PublicFilterSelect name="natureza" label="Tipo de compra" allLabel="Todas as naturezas" icon="nature" variant="landing" options={[]} disabled />
+          <PublicFilterSelect name="ano" label="Ano" icon="year" variant="landing" defaultValue="2026" options={[
+            { value: "2026", label: "2026" },
+            { value: "2025", label: "2025" },
+            { value: "2024", label: "2024" },
+          ]} />
           <button className="opportunity-search-button" type="submit" aria-label="Consultar dados"><Search size={24} /><span>Consultar dados</span></button>
         </form>
         {data.municipalities.error && <p className="public-data-state" role="status">Lista de municípios: {data.municipalities.error}</p>}

@@ -11,6 +11,7 @@ export interface TextStyle {
   size: number;
   bold?: boolean;
   color: string;
+  fontFamily?: "serif";
 }
 
 export interface BoxStyle {
@@ -78,6 +79,9 @@ export const REPORT_COLORS = {
   white: "#FFFFFF",
 } as const;
 const C = REPORT_COLORS;
+const REFERENCE_BLUE = "#3049C5";
+const REFERENCE_ROW = "#DDE6F3";
+const REFERENCE_PURPLE = "#35215F";
 
 const lineHeight = (style: TextStyle) => style.size * PT * 1.32;
 const baseline = (top: number, style: TextStyle, index = 0) => top + index * lineHeight(style) + style.size * PT * 0.95;
@@ -91,6 +95,7 @@ export function formatGeneratedAt(iso: string): string {
 export function layoutReport(report: ReportDocument, surface: Surface, options: LayoutOptions = {}): { height: number } {
   let y = MARGIN;
   const generatedAt = formatGeneratedAt(report.generatedAt);
+  const referenceStyle = report.model === "geral";
 
   // ---------- Texto ----------
   const fits = (text: string, width: number, style: TextStyle) => surface.measure(text, style) <= width;
@@ -152,6 +157,13 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
 
   // ---------- Capa ----------
   function drawCover() {
+    if (referenceStyle) {
+      const title = { size: 16, bold: true, color: "#151515", fontFamily: "serif" as const };
+      const text = `Relatório de Compras Públicas de ${report.municipality.toLocaleUpperCase("pt-BR")}`;
+      drawLines(wrap(text, CONTENT_WIDTH, title), MARGIN, 19, title, "center", CONTENT_WIDTH);
+      y = 31;
+      return;
+    }
     const logoHeight = 11;
     if (options.logo) {
       surface.image(options.logo, MARGIN, y, (logoHeight * options.logo.width) / options.logo.height, logoHeight);
@@ -201,16 +213,26 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
 
   // ---------- Seções e blocos ----------
   function drawSection(section: ReportSection) {
-    const title = { size: 13, bold: true, color: C.institutional };
-    const description = { size: 8.6, color: C.muted };
-    const descriptionLines = section.description ? wrap(section.description, CONTENT_WIDTH - 4, description) : [];
-    const headHeight = lineHeight(title) + (descriptionLines.length ? 0.8 + descriptionLines.length * lineHeight(description) : 0) + 4;
-    // O título nunca fica sozinho no pé da página.
-    ensure(headHeight + 28);
-    surface.box(MARGIN, y + 0.9, 1.3, lineHeight(title) - 1.8, { fill: C.gold });
-    drawLines([section.title], MARGIN + 4, y, title);
-    if (descriptionLines.length) drawLines(descriptionLines, MARGIN + 4, y + lineHeight(title) + 0.8, description);
-    y += headHeight;
+    if (referenceStyle && section.pageBreakBefore && surface.paginated) {
+      surface.addPage();
+      y = NEXT_PAGE_TOP;
+    }
+    if (!section.hideTitle) {
+      const title = referenceStyle
+        ? { size: 12, bold: true, color: REFERENCE_PURPLE, fontFamily: "serif" as const }
+        : { size: 13, bold: true, color: C.institutional };
+      const description = referenceStyle
+        ? { size: 9.8, color: "#171717", fontFamily: "serif" as const }
+        : { size: 8.6, color: C.muted };
+      const descriptionLines = section.description ? wrap(section.description, CONTENT_WIDTH - 4, description) : [];
+      const headHeight = lineHeight(title) + (descriptionLines.length ? 0.8 + descriptionLines.length * lineHeight(description) : 0) + 4;
+      // O título nunca fica sozinho no pé da página.
+      ensure(headHeight + 28);
+      if (!referenceStyle) surface.box(MARGIN, y + 0.9, 1.3, lineHeight(title) - 1.8, { fill: C.gold });
+      drawLines([section.title], referenceStyle ? MARGIN : MARGIN + 4, y, title);
+      if (descriptionLines.length) drawLines(descriptionLines, referenceStyle ? MARGIN : MARGIN + 4, y + lineHeight(title) + 0.8, description);
+      y += headHeight;
+    }
     section.blocks.forEach((block, index) => {
       // A nota explica o bloco de cima: o fim do bloco desce junto com ela
       // para a nota não abrir a página seguinte sozinha.
@@ -219,18 +241,47 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
       drawBlock(block, keepWithNext);
       if (next) y += BLOCK_GAP;
     });
-    y += 10;
+    y += referenceStyle ? 5 : 10;
   }
 
   function drawBlock(block: ReportBlock, keepWithNext: number) {
-    if (block.kind === "kpis") drawKpis(block.items, keepWithNext);
+    if (block.kind === "paragraph") drawParagraph(block.text, keepWithNext);
+    else if (block.kind === "list") drawList(block.items, keepWithNext);
+    else if (block.kind === "kpis") drawKpis(block.items, keepWithNext);
     else if (block.kind === "table") drawTable(block, keepWithNext);
     else if (block.kind === "bars") drawBars(block, keepWithNext);
     else drawNote(block.text);
   }
 
+  function drawParagraph(text: string, keepWithNext: number) {
+    const style = referenceStyle
+      ? { size: 10.2, color: "#171717", fontFamily: "serif" as const }
+      : { size: 8.2, color: C.graphite };
+    const lines = wrap(text, CONTENT_WIDTH, style);
+    const height = lines.length * lineHeight(style) + (referenceStyle ? 3.2 : 2.5);
+    ensure(height + keepWithNext);
+    drawLines(lines, MARGIN, y, style);
+    y += height;
+  }
+
+  function drawList(items: string[], keepWithNext: number) {
+    const style = referenceStyle
+      ? { size: 9.7, color: "#171717", fontFamily: "serif" as const }
+      : { size: 8, color: C.graphite };
+    const rows = items.map((item) => wrap(item, CONTENT_WIDTH - 8, style));
+    const height = rows.reduce((sum, lines) => sum + lines.length * lineHeight(style) + 2.5, 0);
+    ensure(height + keepWithNext);
+    rows.forEach((lines) => {
+      surface.text("•", MARGIN + 2, baseline(y, style), style);
+      drawLines(lines, MARGIN + 7, y, style);
+      y += lines.length * lineHeight(style) + 2.5;
+    });
+  }
+
   function drawBlockTitle(text: string, nextHeight: number) {
-    const style = { size: 9.4, bold: true, color: C.graphite };
+    const style = referenceStyle
+      ? { size: 8.2, bold: true, color: "#151515", fontFamily: "serif" as const }
+      : { size: 9.4, bold: true, color: C.graphite };
     ensure(lineHeight(style) + 2 + nextHeight);
     drawLines([text], MARGIN, y, style);
     y += lineHeight(style) + 2;
@@ -296,11 +347,17 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
   }
 
   function drawTable(block: Extract<ReportBlock, { kind: "table" }>, keepWithNext: number) {
-    const header = { size: 7.2, bold: true, color: C.white };
-    const body = { size: 7.8, color: C.graphite };
-    const totalStyle = { size: 7.8, bold: true, color: C.graphite };
-    const padX = 1.8;
-    const padY = 1.7;
+    const header = referenceStyle
+      ? { size: 6.1, bold: true, color: C.white, fontFamily: "serif" as const }
+      : { size: 7.2, bold: true, color: C.white };
+    const body = referenceStyle
+      ? { size: 6.8, color: "#111111", fontFamily: "serif" as const }
+      : { size: 7.8, color: C.graphite };
+    const totalStyle = referenceStyle
+      ? { size: 6.8, bold: true, color: C.white, fontFamily: "serif" as const }
+      : { size: 7.8, bold: true, color: C.graphite };
+    const padX = referenceStyle ? 1 : 1.8;
+    const padY = referenceStyle ? 1.1 : 1.7;
     const sum = block.columns.reduce((total, column) => total + column.width, 0);
     const widths = block.columns.map((column) => (column.width / sum) * CONTENT_WIDTH);
     const lefts = widths.map((_, index) => MARGIN + widths.slice(0, index).reduce((total, width) => total + width, 0));
@@ -317,8 +374,15 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
 
     const head = measureRow(block.columns.map((column) => column.label), header);
     const drawHead = () => {
-      surface.box(MARGIN, y, CONTENT_WIDTH, head.height, { fill: C.institutional });
+      surface.box(MARGIN, y, CONTENT_WIDTH, head.height, { fill: referenceStyle ? REFERENCE_BLUE : C.institutional, stroke: referenceStyle ? "#151515" : undefined, lineWidth: 0.2 });
       drawRow(head, header);
+      if (referenceStyle) {
+        let x = MARGIN;
+        widths.slice(0, -1).forEach((width) => {
+          x += width;
+          surface.line(x, y, x, y + head.height, "#151515", 0.2);
+        });
+      }
       y += head.height;
     };
 
@@ -346,16 +410,31 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
         y = NEXT_PAGE_TOP;
         drawHead();
       }
-      if (index % 2 === 1) surface.box(MARGIN, y, CONTENT_WIDTH, row.height, { fill: C.zebra });
+      if (referenceStyle) {
+        surface.box(MARGIN, y, CONTENT_WIDTH, row.height, { fill: REFERENCE_ROW, stroke: "#151515", lineWidth: 0.18 });
+        let x = MARGIN;
+        widths.slice(0, -1).forEach((width) => {
+          x += width;
+          surface.line(x, y, x, y + row.height, "#151515", 0.18);
+        });
+      } else if (index % 2 === 1) surface.box(MARGIN, y, CONTENT_WIDTH, row.height, { fill: C.zebra });
       drawRow(row, body);
-      surface.line(MARGIN, y + row.height, RIGHT, y + row.height, C.line, 0.15);
+      surface.line(MARGIN, y + row.height, RIGHT, y + row.height, referenceStyle ? "#151515" : C.line, referenceStyle ? 0.18 : 0.15);
       y += row.height;
     });
 
     if (total) {
-      surface.box(MARGIN, y, CONTENT_WIDTH, total.height, { fill: C.soft });
-      surface.line(MARGIN, y, RIGHT, y, C.primary, 0.35);
+      surface.box(MARGIN, y, CONTENT_WIDTH, total.height, { fill: referenceStyle ? REFERENCE_BLUE : C.soft, stroke: referenceStyle ? "#151515" : undefined, lineWidth: 0.2 });
+      surface.line(MARGIN, y, RIGHT, y, referenceStyle ? "#151515" : C.primary, 0.35);
       drawRow(total, totalStyle);
+      if (referenceStyle) {
+        let x = MARGIN;
+        widths.slice(0, -1).forEach((width) => {
+          x += width;
+          surface.line(x, y, x, y + total.height, "#151515", 0.18);
+        });
+        surface.line(MARGIN, y + total.height, RIGHT, y + total.height, "#151515", 0.18);
+      }
       y += total.height;
     }
 
@@ -402,7 +481,9 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
     });
   }
 
-  const noteStyle = { size: 7.6, color: C.muted };
+  const noteStyle = referenceStyle
+    ? { size: 7, color: "#222222", fontFamily: "serif" as const }
+    : { size: 7.6, color: C.muted };
   const noteLines = (text: string) => wrap(text, CONTENT_WIDTH - 9, noteStyle);
   const noteHeight = (text: string) => noteLines(text).length * lineHeight(noteStyle) + 5;
 
@@ -411,9 +492,11 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
     const lines = noteLines(text);
     const height = noteHeight(text);
     ensure(height);
-    surface.box(MARGIN, y, CONTENT_WIDTH, height, { fill: C.note, radius: 1.5 });
-    surface.box(MARGIN, y, 1.1, height, { fill: C.gold });
-    drawLines(lines, MARGIN + 5, y + 2.5, style);
+    if (!referenceStyle) {
+      surface.box(MARGIN, y, CONTENT_WIDTH, height, { fill: C.note, radius: 1.5 });
+      surface.box(MARGIN, y, 1.1, height, { fill: C.gold });
+    }
+    drawLines(lines, referenceStyle ? MARGIN : MARGIN + 5, y + (referenceStyle ? 0 : 2.5), style);
     y += height;
   }
 
@@ -443,13 +526,16 @@ export function layoutReport(report: ReportDocument, surface: Surface, options: 
     const total = surface.pageCount();
     for (let page = 1; page <= total; page += 1) {
       surface.goToPage(page);
-      if (page > 1) drawPageHeader();
-      drawFooter(PAGE_HEIGHT - 15, { number: page, total });
+      if (!referenceStyle) {
+        if (page > 1) drawPageHeader();
+        drawFooter(PAGE_HEIGHT - 15, { number: page, total });
+      }
     }
     return { height: PAGE_HEIGHT };
   }
 
   // Imagem: o rodapé fecha o conteúdo, sem paginação.
+  if (referenceStyle) return { height: y + MARGIN };
   y += 2;
   drawFooter(y);
   return { height: y + 2.2 + footerLines.length * lineHeight(footerStyle) + MARGIN - 4 };

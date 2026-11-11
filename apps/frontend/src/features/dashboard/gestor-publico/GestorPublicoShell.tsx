@@ -6,6 +6,7 @@ import {
   CreditCard,
   FileBarChart,
   LayoutDashboard,
+  Shapes,
   Scale,
   Users,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import { AppShell, type NavItem } from "@/features/dashboard/AppShell";
 const items: NavItem[] = [
   { id: "overview", label: "Visão geral", icon: <LayoutDashboard size={19} /> },
   { id: "municipios", label: "Municípios", icon: <Building2 size={19} /> },
+  { id: "naturezas", label: "Naturezas da despesa", icon: <Shapes size={19} /> },
   { id: "fornecedores", label: "Fornecedores", icon: <Users size={19} /> },
   { id: "comparativos", label: "Comparativos", icon: <Scale size={19} /> },
   { id: "relatorios", label: "Relatórios", icon: <FileBarChart size={19} /> },

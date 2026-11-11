@@ -63,3 +63,35 @@ export interface PaymentSuppliersResponse {
   coleta_id: number;
   data: (PaymentSupplier)[];
 }
+
+export interface LocalPaymentResponse {
+  limit: number;
+  offset: number;
+  coleta_id: number;
+  ano: number;
+  data: Array<{
+    codigo_municipio: string;
+    municipio_consultado: string;
+    codigo_natureza: string;
+    nome_natureza: string | null;
+    documento: string;
+    empresa: string | null;
+    categoria_porte: string;
+    porte_codigo: string | null;
+    municipio_empresa: string;
+    uf_empresa: string | null;
+    quantidade_pagamentos: number;
+    valor_pago: string;
+  }>;
+  resumo: {
+    total_fornecedores: number;
+    fornecedores_me_locais: number;
+    percentual_fornecedores_me_locais: number | null;
+    total_pagamentos: number;
+    pagamentos_me_locais: number;
+    percentual_pagamentos_me_locais: number | null;
+    total_controle: string;
+    valor_pago_me_local: string;
+    percentual_valor_pago_me_local: number | null;
+  };
+}

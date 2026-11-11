@@ -14,10 +14,11 @@ const MAX_AREA_PX = 16_700_000;
 const MAX_TABLE_ROWS = 40;
 const PT = 0.3528;
 const FONT_FAMILY = "Helvetica, Arial, sans-serif";
+const SERIF_FONT_FAMILY = "Georgia, 'Times New Roman', serif";
 
 type Draw = (ctx: CanvasRenderingContext2D, scale: number) => void;
 
-const font = (style: TextStyle, scale: number) => `${style.bold ? 700 : 400} ${style.size * PT * scale}px ${FONT_FAMILY}`;
+const font = (style: TextStyle, scale: number) => `${style.bold ? 700 : 400} ${style.size * PT * scale}px ${style.fontFamily === "serif" ? SERIF_FONT_FAMILY : FONT_FAMILY}`;
 
 function roundedPath(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
   ctx.beginPath();

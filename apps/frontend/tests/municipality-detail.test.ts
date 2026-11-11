@@ -1,21 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { api, catalogApi } from "../src/api/client";
+import { api } from "../src/api/client";
 import { loadMunicipalityDetailData } from "../src/features/dashboard/gestor-publico/municipality-detail-data";
 import { buildDetailNatureRows, buildDetailHistory, buildDetailSuppliers } from "../src/features/dashboard/gestor-publico/municipality-detail-model";
 
-test("detalhe municipal: pagamentos de todos os portes, histórico, coleta fixa e falha sem totais parciais", async (t) => {
-  const previousFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response(JSON.stringify({ data: [{ cnpj: "12345678000190", municipio_empresa: "AMONTADÁ", uf_empresa: "CE" }] }), { status: 200, headers: { "Content-Type": "application/json" } });
-  t.after(() => { globalThis.fetch = previousFetch; });
-
+test("detalhe municipal: pagamentos de todos os portes, histórico, coleta fixa e falha sem totais parciais", async () => {
   const calls: Array<{ url?: string; params: Record<string, unknown> }> = [];
   let failPage = false;
   let invalid = false;
-  catalogApi.defaults.adapter = async config => ({ config, status: 200, statusText: "OK", headers: {}, data: { data: invalid ? [] : [{ codigo_municipio: "010", codigo_ibge: "2300754", nome: "Amontada", uf: "CE" }] } });
   api.defaults.adapter = async config => {
     const params = config.params;
     if (config.url === "/municipios") return { config, status: 200, statusText: "OK", headers: {}, data: [{ id: 2300754, nome: "Amontada" }] };
+    if (config.url === "/analytics/municipios") return { config, status: 200, statusText: "OK", headers: {}, data: { data: invalid ? [] : [{ codigo_municipio: "010", codigo_ibge: "2300754", nome: "Amontada", uf: "CE" }] } };
     calls.push({ url: config.url, params });
     let data;
     if (config.url === "/analytics/pagamentos/resumo") {
@@ -25,12 +21,14 @@ test("detalhe municipal: pagamentos de todos os portes, histórico, coleta fixa 
       if (failPage && params.offset > 0) throw new Error("Página indisponível");
       const total = params.categoria_porte === "ME" ? 20 : 101;
       data = { coleta_id: params.coleta_id, limit: params.limit, offset: params.offset, data: Array.from({ length: Math.max(0, Math.min(params.limit, total - params.offset)) }, (_, i) => ({ codigo_natureza: i % 2 ? "30" : "39", nome_natureza: "Natureza", documento: params.offset + i < 20 ? "12345678000190" : "98765432000109", tipo_documento: "CNPJ", nome_negociante: "Fornecedor", categoria_porte: params.offset + i < 20 ? "ME" : "EPP", quantidade_pagamentos: 1, valor_pago: "10.00" })) };
+    } else if (config.url === "/analytics/participacoes-me-locais") {
+      data = { limit: 100, offset: 0, coleta_id: params.coleta_id, ano: params.ano, data: [{ codigo_municipio: "010", codigo_natureza: "30", categoria_porte: "ME" }], resumo: { total_fornecedores: 20, fornecedores_me_locais: 1, percentual_fornecedores_me_locais: 5, total_pagamentos: 101, pagamentos_me_locais: 1, percentual_pagamentos_me_locais: 1, total_controle: "1010.00", valor_pago_me_local: "200.00", percentual_valor_pago_me_local: 19.8 } };
     } else throw new Error(`Endpoint antigo acionado: ${config.url}`);
     return { config, status: 200, statusText: "OK", headers: {}, data };
   };
   const data = await loadMunicipalityDetailData("2300754", 2025);
   assert.equal(data.suppliers.data?.length, 101);
-  assert.ok(calls.every(call => call.url === "/analytics/pagamentos/resumo" || call.url === "/analytics/pagamentos/fornecedores"), "nenhum endpoint financeiro legado pode alimentar o detalhe");
+  assert.ok(calls.every(call => ["/analytics/pagamentos/resumo", "/analytics/pagamentos/fornecedores", "/analytics/participacoes-me-locais"].includes(call.url ?? "")), "nenhum endpoint financeiro legado pode alimentar o detalhe");
   assert.equal(calls.filter(call => call.url?.endsWith("resumo") && call.params.ano === 2025).length, 1, "reutilizar a coleta selecionada no histórico");
   assert.ok(calls.some(call => call.params.offset === 100 && call.params.limit === 100));
   for (const call of calls.filter(call => call.url?.endsWith("fornecedores"))) {

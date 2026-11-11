@@ -1,25 +1,24 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as Select from "@radix-ui/react-select";
 import type { ApexOptions } from "apexcharts";
 import { ArrowLeftRight, BarChart3, Check, ChevronDown, ChevronUp, Info, MapPinned, RefreshCw, Table2, X } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { brandTokens } from "@/design-system/tokens";
 import {
-  GESTOR_PUBLICO_NATURES, GESTOR_PUBLICO_YEARS, getMunicipalitySummaries, type MunicipalitySummary, type NatureCode,
+  GESTOR_PUBLICO_YEARS, getNatureOptions, natureName, type MunicipalitySummary, type NatureCode,
 } from "./gestor-publico-data";
 import "./comparativos.css";
+import { useMunicipalitySummaries } from "./use-gestor-public-data";
 
-// Comparativo entre municípios (dados demonstrativos de gestor-publico-data).
+// Comparativo entre municípios com valores consultados na API de pagamentos.
 
 const ChartSkeleton = () => <div className="gp-cmp-chart-skeleton" role="status" aria-label="Carregando gráfico" />;
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false, loading: ChartSkeleton });
 
 const MAX_SELECTED = 5;
-// Altura comum dos gráficos lado a lado (mensal e por natureza): os dois
-// cards da linha ficam do mesmo tamanho.
 const SIDE_CHART_HEIGHT = 420;
 // Uma cor por município, sempre a mesma enquanto ele estiver selecionado
 // (paleta validada para daltonismo em todos os pares; o dourado tem contraste
@@ -27,21 +26,9 @@ const SIDE_CHART_HEIGHT = 420;
 const SERIES_COLORS = ["#2563a6", "#0b9aa6", "#d39a2c", "#a35bd6", "#d1495b"];
 const EXAMPLE_NAMES = ["Amontada", "Itapipoca", "Trairi"];
 
-const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, index) => from + index);
-const PERIODS = [
-  { value: "ano", label: "Ano inteiro", months: range(0, 11) },
-  { value: "s1", label: "1º semestre", months: range(0, 5) },
-  { value: "s2", label: "2º semestre", months: range(6, 11) },
-  { value: "t1", label: "1º trimestre", months: range(0, 2) },
-  { value: "t2", label: "2º trimestre", months: range(3, 5) },
-  { value: "t3", label: "3º trimestre", months: range(6, 8) },
-  { value: "t4", label: "4º trimestre", months: range(9, 11) },
-] as const;
-type PeriodValue = (typeof PERIODS)[number]["value"];
 
 // Nomes curtos para caber no eixo dos gráficos.
-const NATURE_SHORT: Record<NatureCode, string> = {
+const NATURE_SHORT: Record<string, string> = {
   "39": "Serviços de terceiros",
   "30": "Material de consumo",
   "51": "Obras e instalações",
@@ -54,11 +41,11 @@ const NATURE_SHORT: Record<NatureCode, string> = {
 type IndicatorKey = "mpePercent" | "localPercent" | "total" | "mpeValue" | "suppliers";
 type IndicatorKind = "percent" | "money" | "count";
 const INDICATORS: Array<{ key: IndicatorKey; label: string; phrase: string; kind: IndicatorKind; hint: string }> = [
-  { key: "mpePercent", label: "Participação das ME", phrase: "participação das ME", kind: "percent", hint: "Parte do valor comprado que ficou com micro e pequenas empresas." },
-  { key: "localPercent", label: "Compras locais", phrase: "compras locais", kind: "percent", hint: "Parte do valor comprado de empresas da própria cidade." },
-  { key: "total", label: "Valor total das compras", phrase: "valor total das compras", kind: "money", hint: "Soma dos valores homologados no recorte escolhido." },
-  { key: "mpeValue", label: "Valor para ME", phrase: "valor para ME", kind: "money", hint: "Quanto do valor comprado foi para micro e pequenas empresas." },
-  { key: "suppliers", label: "Fornecedores", phrase: "número de fornecedores", kind: "count", hint: "Empresas diferentes que venderam para a prefeitura no ano." },
+  { key: "mpePercent", label: "Participação das ME", phrase: "participação das ME", kind: "percent", hint: "Percentual dos pagamentos destinado a micro e pequenas empresas." },
+  { key: "localPercent", label: "Pagamentos a ME locais", phrase: "pagamentos a ME locais", kind: "percent", hint: "Percentual pago a micro e pequenas empresas da própria cidade." },
+  { key: "total", label: "Valor total pago", phrase: "valor total pago", kind: "money", hint: "Soma dos pagamentos registrados no recorte escolhido." },
+  { key: "mpeValue", label: "Valor pago a ME", phrase: "valor pago a ME", kind: "money", hint: "Total pago a micro e pequenas empresas." },
+  { key: "suppliers", label: "ME locais identificadas", phrase: "número de ME locais identificadas", kind: "count", hint: "Empresas locais identificadas na coleta de pagamentos." },
 ];
 
 const currency = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -77,28 +64,24 @@ interface ComparisonRow {
   localPercent: number;
   suppliers: number;
   natures: Record<NatureCode, number>;
-  monthly: number[];
+  localValue: number;
 }
 
-// Recorta o resumo do município pelo período e pela natureza. Os valores
-// mensais são reescalados para somar o total do ano, assim o período e o
-// gráfico mês a mês batem com os demais números.
-function toRow(summary: MunicipalitySummary, months: readonly number[], nature: NatureCode | ""): ComparisonRow {
-  const monthlySum = summary.monthly.reduce((sum, value) => sum + value, 0) || 1;
-  const monthly = summary.monthly.map((value) => (value / monthlySum) * summary.total);
-  const periodShare = months.reduce((sum, index) => sum + monthly[index], 0) / Math.max(1, summary.total);
-  const natureShare = nature ? summary.natures[nature] / Math.max(1, summary.total) : 1;
-  const factor = periodShare * natureShare;
+// Recorta os valores anuais do município pela natureza selecionada.
+function toRow(summary: MunicipalitySummary, nature: NatureCode | ""): ComparisonRow {
+  const total = nature ? summary.natures[nature] : summary.total;
+  const mpeValue = nature ? summary.meNatures[nature] : summary.mpeValue;
+  const localValue = nature ? summary.localNatures[nature] : summary.localValue;
   return {
     id: summary.id,
     name: summary.name,
-    total: summary.total * factor,
-    mpeValue: summary.mpeValue * factor,
-    mpePercent: summary.mpePercent,
-    localPercent: summary.localPercent,
+    total,
+    mpeValue,
+    mpePercent: total ? mpeValue / total * 100 : 0,
+    localPercent: total ? localValue / total * 100 : 0,
+    localValue,
     suppliers: summary.suppliers,
-    natures: Object.fromEntries(GESTOR_PUBLICO_NATURES.map(({ code }) => [code, summary.natures[code] * periodShare])) as Record<NatureCode, number>,
-    monthly: months.map((index) => monthly[index] * natureShare),
+    natures: summary.natures,
   };
 }
 
@@ -112,9 +95,9 @@ function stateReference(rows: ComparisonRow[]): Record<IndicatorKey, number> & {
     total: total / count,
     mpeValue: sum((row) => row.mpeValue) / count,
     mpePercent: (sum((row) => row.mpeValue) / Math.max(1, total)) * 100,
-    localPercent: (sum((row) => (row.total * row.localPercent) / 100) / Math.max(1, total)) * 100,
+    localPercent: (sum((row) => row.localValue) / Math.max(1, total)) * 100,
     suppliers: sum((row) => row.suppliers) / count,
-    natures: Object.fromEntries(GESTOR_PUBLICO_NATURES.map(({ code }) => [code, sum((row) => row.natures[code]) / count])) as Record<NatureCode, number>,
+    natures: Object.fromEntries([...new Set(rows.flatMap((row) => Object.keys(row.natures)))].map((code) => [code, sum((row) => row.natures[code] ?? 0) / count])) as Record<NatureCode, number>,
   };
 }
 
@@ -236,21 +219,6 @@ function IndicatorChart({ rows, colors, indicator, reference }: { rows: Comparis
   return <Chart type="bar" height={90 + rows.length * 58} options={options} series={[{ name: indicator.label, data: values }]} />;
 }
 
-function MonthlyChart({ rows, colors, months }: { rows: ComparisonRow[]; colors: string[]; months: readonly number[] }) {
-  const options: ApexOptions = {
-    ...chartBase,
-    chart: { ...chartBase.chart, id: "comparativo-mensal", type: "line" },
-    colors,
-    stroke: { width: 2, curve: "smooth" },
-    markers: { size: 4, strokeColors: "#fff", strokeWidth: 2, hover: { size: 6 } },
-    dataLabels: { enabled: false },
-    xaxis: { categories: months.map((index) => MONTHS[index]), tooltip: { enabled: false } },
-    yaxis: { labels: { formatter: compactCurrency } },
-    tooltip: { ...chartBase.tooltip, shared: true, intersect: false, y: { formatter: currency } },
-  };
-  return <Chart type="line" height={SIDE_CHART_HEIGHT} options={options} series={rows.map((row) => ({ name: row.name, data: row.monthly }))} />;
-}
-
 // "Tecnologia da informação" → ["Tecnologia da", "informação"]: o eixo mostra
 // as duas linhas em vez de cortar o nome com "…".
 function twoLines(label: string): string[] {
@@ -261,6 +229,7 @@ function twoLines(label: string): string[] {
 }
 
 function NatureChart({ rows, colors }: { rows: ComparisonRow[]; colors: string[] }) {
+  const natures = [...new Set(rows.flatMap((row) => Object.keys(row.natures)))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
   const options: ApexOptions = {
     ...chartBase,
     chart: { ...chartBase.chart, id: "comparativo-natureza", type: "bar" },
@@ -268,12 +237,12 @@ function NatureChart({ rows, colors }: { rows: ComparisonRow[]; colors: string[]
     plotOptions: { bar: { horizontal: true, borderRadius: 4, borderRadiusApplication: "end", barHeight: "78%" } },
     stroke: { show: true, width: 2, colors: ["#fff"] },
     dataLabels: { enabled: false },
-    xaxis: { categories: GESTOR_PUBLICO_NATURES.map((item) => twoLines(NATURE_SHORT[item.code])), tickAmount: 4, labels: { formatter: (value: string) => compactCurrency(Number(value)) } },
+    xaxis: { categories: natures.map((code) => twoLines(NATURE_SHORT[code] ?? natureName(code))), tickAmount: 4, labels: { formatter: (value: string) => compactCurrency(Number(value)) } },
     yaxis: { labels: { maxWidth: 150 } },
     tooltip: { ...chartBase.tooltip, shared: true, intersect: false, y: { formatter: currency } },
     responsive: [{ breakpoint: 640, options: { xaxis: { tickAmount: 2 }, yaxis: { labels: { maxWidth: 100, style: { fontSize: "11px" } } } } }],
   };
-  const series = rows.map((row) => ({ name: row.name, data: GESTOR_PUBLICO_NATURES.map((item) => row.natures[item.code]) }));
+  const series = rows.map((row) => ({ name: row.name, data: natures.map((code) => row.natures[code] ?? 0) }));
   return <Chart type="bar" height={SIDE_CHART_HEIGHT} options={options} series={series} />;
 }
 
@@ -337,8 +306,9 @@ function NumbersTable({ rows, colors, reference, showNatures }: { rows: Comparis
   const indicatorColumns: NumberColumn[] = INDICATORS.map((indicator) => ({
     key: indicator.key, label: indicator.label, kind: indicator.kind, value: (row) => row[indicator.key], reference: reference[indicator.key],
   }));
-  const natureColumns: NumberColumn[] = GESTOR_PUBLICO_NATURES.map((nature) => ({
-    key: nature.code, label: NATURE_SHORT[nature.code], kind: "money", value: (row) => row.natures[nature.code], reference: reference.natures[nature.code],
+  const natureCodes = [...new Set(rows.flatMap((row) => Object.keys(row.natures)))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  const natureColumns: NumberColumn[] = natureCodes.map((code) => ({
+    key: code, label: NATURE_SHORT[code] ?? natureName(code), kind: "money", value: (row) => row.natures[code] ?? 0, reference: reference.natures[code] ?? 0,
   }));
   return (
     <>
@@ -358,23 +328,22 @@ function NumbersTable({ rows, colors, reference, showNatures }: { rows: Comparis
 
 export function GestorPublicoComparativos({ initialMunicipalities = [] }: { initialMunicipalities?: string[] }) {
   const [year, setYear] = useState<number>(GESTOR_PUBLICO_YEARS[0]);
-  const [period, setPeriod] = useState<PeriodValue>("ano");
   const [nature, setNature] = useState<NatureCode | "">("");
   const [indicatorKey, setIndicatorKey] = useState<IndicatorKey>("mpePercent");
   const [view, setView] = useState<"charts" | "numbers">("charts");
 
-  const summaries = useMemo(() => getMunicipalitySummaries(year), [year]);
+  const { data: summaries, loading, error } = useMunicipalitySummaries(year);
   const options = useMemo(() => summaries.map((item) => ({ value: item.id, label: item.name })).sort((a, b) => a.label.localeCompare(b.label, "pt-BR")), [summaries]);
   // Cada município guarda a cor que recebeu ao ser escolhido: remover um não
   // muda a cor dos outros.
-  const [picks, setPicks] = useState<Array<{ id: string; color: number }>>(() =>
-    initialMunicipalities
-      .filter((id, index, list) => list.indexOf(id) === index && summaries.some((item) => item.id === id))
-      .slice(0, MAX_SELECTED)
-      .map((id, color) => ({ id, color })));
+  const [picks, setPicks] = useState<Array<{ id: string; color: number }>>([]);
 
-  const months = PERIODS.find((item) => item.value === period)!.months;
-  const allRows = useMemo(() => summaries.map((summary) => toRow(summary, months, nature)), [summaries, months, nature]);
+  useEffect(() => {
+    if (!summaries.length || picks.length || !initialMunicipalities.length) return;
+    const ids = initialMunicipalities.filter((id) => summaries.some((summary) => summary.id === id)).slice(0, MAX_SELECTED);
+    setPicks(ids.map((id, color) => ({ id, color })));
+  }, [initialMunicipalities, picks.length, summaries]);
+  const allRows = useMemo(() => summaries.map((summary) => toRow(summary, nature)), [summaries, nature]);
   const reference = useMemo(() => stateReference(allRows), [allRows]);
   const picked = picks.flatMap((pick) => {
     const row = allRows.find((item) => item.id === pick.id);
@@ -404,15 +373,15 @@ export function GestorPublicoComparativos({ initialMunicipalities = [] }: { init
     const value = leader[indicator.key];
     const ref = reference[indicator.key];
     const delta = indicator.kind === "percent" ? `${Math.abs(value - ref).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} p.p.` : pct(Math.abs((value / Math.max(1, ref) - 1) * 100));
-    return <><b>{leader.name}</b> lidera em {indicator.phrase}: <b>{formatBy(indicator.kind, value)}</b>, {delta} {value >= ref ? "acima" : "abaixo"} da média do Ceará.</>;
+    return <><b>{leader.name}</b> tem o maior resultado em {indicator.phrase}: <b>{formatBy(indicator.kind, value)}</b>, {delta} {value >= ref ? "acima" : "abaixo"} da média do Ceará.</>;
   })();
 
   return (
     <div className="gp-main gp-analysis-main gp-cmp">
       <section className="analysis-title-row gp-analysis-title-row">
         <div>
-          <h1>Como o seu município se compara aos demais?</h1>
-          <p>Escolha até 5 municípios e veja, lado a lado, quanto cada um compra, quanto fica com as micro e pequenas empresas e quanto fica na própria cidade.</p>
+          <h1>Compare municípios</h1>
+          <p>Compare pagamentos, participação de ME e pagamentos locais em até cinco municípios.</p>
         </div>
         {rows.length > 0 && <button type="button" className="gp-text-button" onClick={clear}><RefreshCw size={15} /> Limpar seleção</button>}
       </section>
@@ -440,24 +409,23 @@ export function GestorPublicoComparativos({ initialMunicipalities = [] }: { init
       <div className="analysis-filters gp-analysis-filters gp-cmp-filters" role="group" aria-label="Filtros do comparativo">
         <div className="analysis-filter-fields">
           <PublicFilterSelect name="comparativo-ano" label="Ano" icon="year" variant="analysis" value={String(year)} options={GESTOR_PUBLICO_YEARS.map((item) => ({ value: String(item), label: String(item) }))} onValueChange={(value) => setYear(Number(value) || GESTOR_PUBLICO_YEARS[0])} />
-          <PublicFilterSelect name="comparativo-periodo" label="Período" icon="year" variant="analysis" value={period} options={PERIODS.map((item) => ({ value: item.value, label: item.label }))} onValueChange={(value) => setPeriod((value || "ano") as PeriodValue)} />
-          <PublicFilterSelect name="comparativo-natureza" label="Natureza da despesa" allLabel="Todas as naturezas" icon="nature" variant="analysis" value={nature} options={GESTOR_PUBLICO_NATURES.map((item) => ({ value: item.code, label: NATURE_SHORT[item.code] }))} onValueChange={(value) => setNature(value as NatureCode | "")} />
+          <PublicFilterSelect name="comparativo-natureza" label="Natureza da despesa" allLabel="Todas as naturezas" icon="nature" variant="analysis" value={nature} options={getNatureOptions(summaries).map((item) => ({ value: item.code, label: NATURE_SHORT[item.code] ?? item.label }))} onValueChange={(value) => setNature(value as NatureCode | "")} />
           <PublicFilterSelect name="comparativo-indicador" label="Indicador" icon="sort" variant="analysis" value={indicatorKey} options={INDICATORS.map((item) => ({ value: item.key, label: item.label }))} onValueChange={(value) => setIndicatorKey((value || "mpePercent") as IndicatorKey)} />
         </div>
       </div>
 
-      {rows.length < 2 ? (
+      {error ? <section className="gp-cmp-empty" role="status"><Info />{error}</section> : loading ? <section className="gp-cmp-empty" role="status"><Info />Carregando pagamentos dos municípios pela API...</section> : rows.length < 2 ? (
         <section className="gp-cmp-empty" role="status">
           <BarChart3 aria-hidden="true" />
           <strong>{rows.length === 0 ? "Escolha os municípios para começar" : "Falta só mais um município"}</strong>
           <p>Selecione pelo menos dois municípios nos campos acima para ver a comparação.</p>
-          {rows.length === 0 && <button type="button" className="gp-primary-button" onClick={useExample}>Ver um exemplo</button>}
+          {rows.length === 0 && <button type="button" className="gp-primary-button" onClick={useExample}>Comparar Amontada, Itapipoca e Trairi</button>}
         </section>
       ) : (
         <>
           <div className="gp-cmp-toolbar">
             {/* A chave refaz a animação de entrada quando a frase muda. */}
-            <p className="gp-cmp-leader" key={`${leader?.id}-${indicatorKey}-${year}-${period}-${nature}`}>{leaderText}</p>
+            <p className="gp-cmp-leader" key={`${leader?.id}-${indicatorKey}-${year}-${nature}`}>{leaderText}</p>
             <div className="analysis-chart-controls gp-cmp-view" role="group" aria-label="Forma de comparar">
               <button type="button" className={view === "charts" ? "is-active" : ""} aria-pressed={view === "charts"} onClick={() => setView("charts")}><BarChart3 size={15} /> <span>Gráficos</span></button>
               <button type="button" className={view === "numbers" ? "is-active" : ""} aria-pressed={view === "numbers"} onClick={() => setView("numbers")}><Table2 size={15} /> <span>Números</span></button>
@@ -468,9 +436,6 @@ export function GestorPublicoComparativos({ initialMunicipalities = [] }: { init
             <div className="gp-cmp-grid gp-cmp-results" key="charts">
               <ChartCard title={indicator.label} description={`${indicator.hint} A linha tracejada é a média do Ceará (${formatBy(indicator.kind, reference[indicator.key])}).`}>
                 <IndicatorChart rows={rows} colors={colors} indicator={indicator} reference={reference[indicator.key]} />
-              </ChartCard>
-              <ChartCard title="Compras mês a mês" description="Valor das compras em cada mês do período escolhido.">
-                <MonthlyChart rows={rows} colors={colors} months={months} />
               </ChartCard>
               {!nature && (
                 <ChartCard title="Compras por natureza da despesa" description="Em que tipo de compra cada município gasta mais.">
@@ -487,7 +452,7 @@ export function GestorPublicoComparativos({ initialMunicipalities = [] }: { init
         </>
       )}
 
-      <p className="gp-source-note"><Info size={15} /> Dados demonstrativos do protótipo do Gestor Público. A média do Ceará considera todos os municípios no mesmo recorte.</p>
+      <p className="gp-source-note"><Info size={15} /> Fonte: pagamentos consultados pela API via backend. A média do Ceará considera os municípios disponíveis no mesmo recorte.</p>
     </div>
   );
 }

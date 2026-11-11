@@ -92,7 +92,7 @@ export async function loadAnalysisData(filters: AnalysisFilters, supplierCategor
   const [suppliers, local] = await Promise.all([
     payments.data ? result(loadSupplierPage(filters.pageSize, (filters.page - 1) * filters.pageSize)) : Promise.resolve({ data: null, error: payments.error }),
     payments.data && totalAmount != null && meAmount != null
-      ? result(loadLocalPayments({ ...query, coleta_id: payments.data.coleta.coleta_id, codigo_natureza: filters.natureCode }, selectedMunicipality.name, totalAmount, meAmount))
+      ? result(loadLocalPayments({ ...query, coleta_id: payments.data.coleta.coleta_id, codigo_natureza: filters.natureCode }))
       : Promise.resolve({ data: null, error: payments.error }),
   ]);
   const next = suppliers.data?.data.length === filters.pageSize && payments.data

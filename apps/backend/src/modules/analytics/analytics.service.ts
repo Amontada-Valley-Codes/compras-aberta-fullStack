@@ -9,6 +9,7 @@ import type {
   PaymentSuppliersDTO,
   GetMicroenterpriseIndicatorDTO,
   ListDetailedBidsDTO,
+  MunicipalityCatalogDTO,
   ListExpensesByNatureDTO,
   ListGeneralMicroenterpriseParticipationsDTO,
   ListLocalMicroenterpriseParticipationsDTO,
@@ -83,6 +84,9 @@ async function fetchAnalyticsData(
 }
 
 const analyticsService = {
+  async listMunicipalityCatalog(filters: MunicipalityCatalogDTO) {
+    return getAnalyticsData("/municipios", filters);
+  },
   async getPaymentsSummary(filters: PaymentsSummaryDTO) {
     return getAnalyticsData("/analytics/pagamentos/resumo", filters);
   },
