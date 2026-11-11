@@ -57,6 +57,7 @@ interface NatureBarChartProps {
   axisFormatter: (value: number) => string;
   tooltipFormatter: (value: number) => string;
   compactView?: boolean;
+  height?: number;
 }
 
 function ChartViewControls({ table, onTableChange }: { table: boolean; onTableChange: (value: boolean) => void }) {
@@ -70,7 +71,7 @@ function ChartTable({ labels, values, valueFormatter }: { labels: string[]; valu
   return <div className="analysis-chart-table-wrap"><table className="analysis-chart-table"><thead><tr><th>Natureza da despesa</th><th>Valor</th></tr></thead><tbody>{labels.map((label, index) => <tr key={`${label}-${index}`}><td>{label}</td><td>{valueFormatter(values[index] ?? 0)}</td></tr>)}</tbody></table></div>;
 }
 
-export function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, tooltipFormatter, compactView = false }: NatureBarChartProps) {
+export function NatureBarChart({ id, color, seriesName, labels, values, axisFormatter, tooltipFormatter, compactView = false, height: requestedHeight }: NatureBarChartProps) {
   const [table, setTable] = useState(false);
   const sorted = useMemo(() => labels.map((label, index) => ({ label, value: Number(values[index] ?? 0) })), [labels, values]);
   const sortedLabels = sorted.map((item) => item.label);
@@ -93,7 +94,7 @@ export function NatureBarChart({ id, color, seriesName, labels, values, axisForm
       y: { formatter: tooltipFormatter },
     },
   };
-  const height = compactView ? 130 : Math.max(300, 120 + labels.length * 52);
+  const height = requestedHeight ?? (compactView ? 130 : Math.max(300, 120 + labels.length * 52));
   return <>
     <ChartViewControls table={table} onTableChange={setTable} />
     {table ? <ChartTable labels={sortedLabels} values={sortedValues} valueFormatter={tooltipFormatter} /> : <Chart type="bar" height={height} options={options} series={[{ name: seriesName, data: sortedValues }]} />}

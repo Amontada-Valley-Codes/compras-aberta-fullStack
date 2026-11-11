@@ -1,0 +1,152 @@
+.gp-drawer.gp-supplier-modal {
+  border-radius: 8px;
+}
+
+.gp-supplier-modal :is(h2, h3, h4, strong, dd) {
+  letter-spacing: 0;
+}
+
+.gp-supplier-modal .gp-drawer-head h2 {
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.gp-supplier-modal :is(.gp-drawer-close, .gp-drawer-secondary, .gp-primary-button, .gp-drawer-highlight) {
+  border-radius: 6px;
+}
+
+.gp-supplier-modal .gp-drawer-copy {
+  width: 34px;
+  height: 34px;
+  justify-content: center;
+  padding: 0;
+  border-radius: 6px;
+}
+
+.gp-supplier-modal .gp-drawer-highlight strong {
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.gp-supplier-modal .gp-sd-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e8ed;
+}
+
+.gp-supplier-modal .gp-sd-metrics dt {
+  color: #526573;
+  font-size: 13px;
+}
+
+.gp-supplier-modal .gp-sd-metrics dd {
+  margin: 6px 0 0;
+  color: #11169b;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.gp-supplier-modal .gp-sd-section {
+  min-width: 0;
+  border-top: 1px solid #e0e8ed;
+  padding-top: 20px;
+}
+
+.gp-supplier-modal .gp-sd-section h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.gp-supplier-modal .gp-sd-section h4 {
+  margin: 20px 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.gp-supplier-modal .gp-sd-section p {
+  color: #526573;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.gp-supplier-modal .gp-sd-table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.gp-supplier-modal .gp-sd-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.gp-supplier-modal .gp-sd-table :is(th, td) {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e0e8ed;
+  text-align: right;
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+
+.gp-supplier-modal .gp-sd-table th:first-child {
+  width: 60%;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.gp-supplier-modal .gp-sd-table thead th {
+  background: #f2f3f7;
+  color: #526573;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gp-supplier-modal .gp-sd-table tbody th {
+  font-weight: 500;
+}
+
+.gp-supplier-modal .gp-sd-table td {
+  white-space: nowrap;
+}
+
+.gp-supplier-modal .gp-sd-table a {
+  color: #11169b;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.gp-supplier-modal .gp-sd-table a svg {
+  display: inline;
+}
+
+.gp-supplier-modal .gp-sd-table small {
+  display: block;
+  margin-top: 5px;
+  color: #526573;
+  font-size: 12px;
+}
+
+.gp-supplier-modal .gp-sd-code {
+  color: #526573;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+  .gp-supplier-modal .gp-sd-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gp-supplier-modal .gp-sd-table table {
+    min-width: 480px;
+  }
+
+  .gp-supplier-modal .gp-drawer-head h2 {
+    font-size: 19px;
+  }
+}

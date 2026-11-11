@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { ME_PLAN_MONTHLY_PRICE } from "@/lib/plans";
-import { AudienceIcon, type AudienceIconName } from "../audiences";
 
 type PlanPrice = {
   value: string;
@@ -13,7 +12,6 @@ type PlanPrice = {
 type Plan = {
   id: "portal" | "me" | "gestor";
   title: string;
-  icon: AudienceIconName;
   price: PlanPrice;
   description: string;
   benefits: string[];
@@ -35,8 +33,7 @@ const plans: Plan[] = [
   {
     id: "portal",
     title: "Portal Público",
-    icon: "citizen",
-    price: { value: "Gratuito" },
+    price: { value: "R$ 00,00" },
     description:
       "Para cidadãos que desejam acompanhar como os recursos públicos são utilizados.",
     benefits: [
@@ -52,7 +49,6 @@ const plans: Plan[] = [
   {
     id: "me",
     title: "Empresas em Geral",
-    icon: "business",
     price: mePlanPrice,
     description:
       "Para empresas e fornecedores que desejam encontrar oportunidades de licitação e vender ao setor público.",
@@ -71,7 +67,6 @@ const plans: Plan[] = [
   {
     id: "gestor",
     title: "Gestor Público",
-    icon: "manager",
     price: { value: "7 dias grátis", note: "Demonstração para o município" },
     description:
       "Para municípios e servidores públicos que precisam acompanhar recursos, compras, contratos e fornecedores.",
@@ -101,9 +96,6 @@ function PlanCard({ plan, index }: { plan: Plan; index: number }) {
       data-aos-delay={String(index * 100)}
     >
       <div className="plans-card-header">
-        <span className="plans-card-icon">
-          <AudienceIcon name={plan.icon} />
-        </span>
         <h3 id={titleId}>{plan.title}</h3>
       </div>
 
