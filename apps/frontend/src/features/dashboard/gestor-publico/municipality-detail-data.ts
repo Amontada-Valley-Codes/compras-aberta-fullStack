@@ -1,47 +1,40 @@
 import { loadAnalysisData, type AnalysisData, type DataResult } from "@/features/public-data/public-data";
-import { listExpensesByNatureService } from "@/services/analytics/list-expenses-by-nature.service";
-import { listGeneralParticipationsService } from "@/services/analytics/list-general-participations.service";
-import { getPaymentsSummaryService } from "@/services/analytics/payments.service";
-import type { ExpensesByNatureResponse, LocalParticipation } from "@/services/analytics/analytics.types";
-import type { PaymentsSummaryResponse } from "@/services/analytics/payments.types";
+import { getPaymentsSummaryService, listPaymentSuppliersService } from "@/services/analytics/payments.service";
+import type { PaymentSupplier, PaymentsSummaryResponse } from "@/services/analytics/payments.types";
 
 export const DETAIL_YEARS = [2026, 2025, 2024];
 export interface MunicipalityDetailData {
   analysis: AnalysisData;
-  winners: DataResult<LocalParticipation[]>;
-  history: Array<{ year: number; expenses: DataResult<ExpensesByNatureResponse>; payments: DataResult<PaymentsSummaryResponse> }>;
+  suppliers: DataResult<PaymentSupplier[]>;
+  history: Array<{ year: number; payments: DataResult<PaymentsSummaryResponse> }>;
 }
 async function result<T>(load: Promise<T>): Promise<DataResult<T>> {
   try { return { data: await load, error: null }; }
-  catch { return { data: null, error: "Não foi possível consultar esta informação na API de dados." }; }
+  catch { return { data: null, error: "Não foi possível consultar esta informação na API de pagamentos." }; }
 }
-async function allWinners(analysis: AnalysisData): Promise<LocalParticipation[]> {
-  if (!analysis.bids.data || !analysis.selectedMunicipality) throw new Error("Listagem indisponível");
-  const first = analysis.bids.data;
-  const rows = [...first.data];
-  const expected = first.resumo.participacoes_me;
-  while (rows.length < expected) {
-    const page = await listGeneralParticipationsService({ codigo_municipio: analysis.selectedMunicipality.tceCode.padStart(3, "0"), ano: analysis.filters.year, limit: 100, offset: rows.length });
-    if (!page.data.length) throw new Error("Listagem incompleta");
+async function allSuppliers(analysis: AnalysisData): Promise<PaymentSupplier[]> {
+  if (!analysis.suppliers.data || !analysis.payments.data || !analysis.selectedMunicipality) throw new Error("Listagem indisponível");
+  const collectionId = analysis.payments.data.coleta.coleta_id;
+  if (analysis.suppliers.data.coleta_id !== collectionId) throw new Error("Coletas diferentes");
+  const rows = [...analysis.suppliers.data.data];
+  let length = rows.length;
+  while (length === 100) {
+    const page = await listPaymentSuppliersService({ codigo_municipio: analysis.selectedMunicipality.tceCode.padStart(3, "0"), ano: analysis.filters.year, coleta_id: collectionId, categoria_porte: "", limit: 100, offset: rows.length });
+    if (page.coleta_id !== collectionId || page.offset !== rows.length) throw new Error("Página ou coleta divergente durante a consulta");
     rows.push(...page.data);
+    length = page.data.length;
   }
-  if (rows.length !== expected) throw new Error("Listagem mudou durante a consulta");
   return rows;
 }
 export async function loadMunicipalityDetailData(id: string, year: number): Promise<MunicipalityDetailData> {
-  const analysis = await loadAnalysisData({ municipalityIbge: id, year, page: 1, pageSize: 100 });
+  // Categoria vazia é a regra documentada para consultar todos os portes.
+  const analysis = await loadAnalysisData({ municipalityIbge: id, year, page: 1, pageSize: 100 }, "");
   const municipality = analysis.selectedMunicipality;
-  if (!municipality) return { analysis, winners: { data: null, error: "Município não disponível no catálogo da API." }, history: [] };
+  if (!municipality) return { analysis, suppliers: { data: null, error: "Município não disponível no catálogo da API." }, history: [] };
   const codigo_municipio = municipality.tceCode.padStart(3, "0");
-  const [winners, history] = await Promise.all([
-    result(allWinners(analysis)),
-    Promise.all(DETAIL_YEARS.map(async (historyYear) => {
-      const [expenses, payments] = await Promise.all([
-        historyYear === year ? Promise.resolve(analysis.expenses) : result(listExpensesByNatureService({ codigo_municipio, data_inicio: `${historyYear}-01-01`, data_fim: `${historyYear}-12-31` })),
-        result(getPaymentsSummaryService({ codigo_municipio, ano: historyYear })),
-      ]);
-      return { year: historyYear, expenses, payments };
-    })),
+  const [suppliers, history] = await Promise.all([
+    result(allSuppliers(analysis)),
+    Promise.all(DETAIL_YEARS.map(async (historyYear) => ({ year: historyYear, payments: historyYear === year ? analysis.payments : await result(getPaymentsSummaryService({ codigo_municipio, ano: historyYear })) }))),
   ]);
-  return { analysis, winners, history };
+  return { analysis, suppliers, history };
 }

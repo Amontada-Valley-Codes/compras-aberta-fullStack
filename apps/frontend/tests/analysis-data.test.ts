@@ -1,87 +1,102 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { api, catalogApi } from "../src/api/client";
+import { api } from "../src/api/client";
 import { loadAnalysisData } from "../src/features/public-data/public-data";
-import { selectAnalysisExpenses, selectAnalysisParticipation, selectAnalysisPercentages } from "../src/features/analysis/analysis-selectors";
+import { selectPaymentNatures, selectPaymentTotals } from "../src/features/analysis/payment-selectors";
 import { GET } from "../src/app/analise/exportar/route";
+import { getDashboardData, type MunicipalitySummary } from "../src/features/dashboard/gestor-publico/gestor-publico-data";
 
-test("/analise usa a operação correspondente a cada métrica, com filtros e falhas independentes", async () => {
+test("Gestor Público: filtrar natureza recalcula mapa, participação e ME locais", () => {
+  const city: MunicipalitySummary = {
+    id: "2300754", tceCode: "010", name: "Amontada", region: "CE", total: 1200, mpeValue: 300, mpePercent: 25,
+    localValue: 120, localPercent: 10, suppliers: 4, updatedAt: "2026-11-01", collectionId: 27,
+    natures: { "30": 1000, "39": 200 }, meNatures: { "30": 200, "39": 100 }, localNatures: { "30": 80, "39": 40 },
+    localSuppliersByNature: { "30": 2, "39": 1 },
+  };
+  const result = getDashboardData({ municipalities: [], year: 2026, nature: "30" }, [city]);
+  assert.equal(result.totals.total, 1000);
+  assert.equal(result.totals.mpeValue, 200);
+  assert.equal(result.totals.localValue, 80);
+  assert.equal(result.totals.suppliers, 2);
+  assert.equal(result.allMunicipalities[0].mpePercent, 20);
+  assert.equal(result.allMunicipalities[0].localPercent, 8);
+  assert.equal(result.natures.length, 1);
+});
+
+test("/analise: somente pagamentos, mesma coleta, filtro de natureza, paginação e CSV", async () => {
   const calls: Array<{ url?: string; params: Record<string, unknown> }> = [];
-  let failExpenses = false;
-  let failMicro = false;
-  const row = { codigo_municipio: "010", municipio_consultado: "AMONTADA", numero_licitacao: "PE 01/2025", data_realizacao_licitacao: "2025-03-15", cnpj: "12345678000190", empresa: "=Fornecedor", porte_empresa: "Microempresa (ME)", municipio_empresa: "AMONTADA", uf_empresa: "CE", valor_total_vencido: "123.45", quantidade_itens_vencidos: 2 };
-  const expense = { codigo_natureza: "30", nome_natureza: "Material de consumo", valor_total_dotacao: "1000.00", quantidade_dotacoes: 2, quantidade_licitacoes: 1 };
-  const nature = { codigo_natureza: "30", nome_natureza: "Material de consumo", quantidade_licitacoes: 4, licitacoes_com_me: 1, percentual_licitacoes_com_me: 25, quantidade_participacoes: 10, participacoes_me: 2, percentual_participacoes_me: 20, valor_vencido: "500.00", valor_vencido_me: "123.45", percentual_valor_vencido_me: 24.69 };
-  catalogApi.defaults.adapter = async config => ({ config, status: 200, statusText: "OK", headers: {}, data: { data: [{ codigo_municipio: "010", codigo_ibge: "2300754", nome: "Amontada", uf: "CE" }] } });
+  let municipalityCatalogParams: Record<string, unknown> = {};
+  let failSummary = false;
+  let wrongCollection = false;
+  const row = { codigo_natureza: "30", nome_natureza: "Material de consumo", documento: "12345678000190", tipo_documento: "CNPJ", nome_negociante: "=Fornecedor", categoria_porte: "ME", valor_pago: "10.00", quantidade_pagamentos: 1 };
   api.defaults.adapter = async config => {
     if (config.url === "/municipios") return { config, status: 200, statusText: "OK", headers: {}, data: [{ id: 2300754, nome: "Amontada" }] };
+    if (config.url === "/analytics/municipios") { municipalityCatalogParams = config.params ?? {}; return { config, status: 200, statusText: "OK", headers: {}, data: { data: [{ codigo_municipio: "010", codigo_ibge: "2300754", nome: "Amontada", uf: "CE" }] } }; }
     calls.push({ url: config.url, params: config.params });
-    let data: unknown;
-    switch (config.url) {
-      case "/analytics/gastos-por-natureza":
-        if (failExpenses) throw new Error("Sem conexão");
-        data = { data: [expense, { ...expense, codigo_natureza: "39", valor_total_dotacao: "2000.00" }], metrica: "dotacao", observacao: "Não representa pagamento efetivo." }; break;
-      case "/analytics/participacao-me-por-natureza":
-        data = { data: [nature], associacao: "licitacao", observacao: "Valores podem aparecer em mais de uma natureza." }; break;
-      case "/analytics/microempresas":
-        if (failMicro) throw new Error("Indisponível");
-        data = { data: { quantidade_microempresas: 1, quantidade_licitacoes: 1, quantidade_participacoes: 2, valor_total_vencido: "123.45", quantidade_itens_vencidos: 2 }, porte_considerado: ["ME"] }; break;
-      case "/analytics/participacoes-me-locais":
-        data = { limit: config.params.limit, offset: 0, data: [row], resumo: { valor_vencido_me_local: "50.00", percentual_valor_vencido_me_local: 10 } }; break;
-      case "/analytics/participacoes-me-gerais":
-        data = { limit: config.params.limit, offset: config.params.offset, data: Array.from({ length: Math.max(0, Math.min(config.params.limit, 101 - config.params.offset)) }, () => row), resumo: { participacoes_me: 101, valor_vencido_me: "123.45", percentual_valor_vencido_me: 24.69 } }; break;
-      default: throw new Error(`Endpoint indevido na análise: ${config.url}`);
-    }
+    let data;
+    if (config.url === "/analytics/pagamentos/resumo") {
+      if (failSummary) throw new Error("Indisponível");
+      data = { coleta: { coleta_id: 26 }, data: [{ codigo_natureza: "30", nome_natureza: "Material de consumo", total_controle: "2000.00", valor_me: "1010.00", percentual_me: 50.5, quantidade_pagamentos: 200 }], total_controle: "3000.00", total_me: "1010.00", percentual_me: 33.67, pendencias: [] };
+    } else if (config.url === "/analytics/pagamentos/fornecedores") {
+      data = { limit: config.params.limit, offset: config.params.offset, coleta_id: wrongCollection ? 99 : 26, data: Array.from({ length: Math.max(0, Math.min(config.params.limit, 101 - config.params.offset)) }, () => row) };
+    } else if (config.url === "/analytics/participacoes-me-locais") {
+      data = { limit: 100, offset: 0, coleta_id: 26, ano: 2025, data: [{ codigo_municipio: "010", codigo_natureza: "30", categoria_porte: "ME" }], resumo: { total_fornecedores: 1, fornecedores_me_locais: 1, percentual_fornecedores_me_locais: 100, total_pagamentos: 200, pagamentos_me_locais: 101, percentual_pagamentos_me_locais: 50.5, total_controle: "2000.00", valor_pago_me_local: "1010.00", percentual_valor_pago_me_local: 50.5 } };
+    } else throw new Error(`Endpoint antigo acionado: ${config.url}`);
     return { config, status: 200, statusText: "OK", headers: {}, data };
   };
   const filters = { municipalityIbge: "2300754", natureCode: "30", year: 2025, page: 1, pageSize: 100 };
   const data = await loadAnalysisData(filters);
   assert.equal(data.hasNext, true);
-  assert.equal(data.bids.data?.data.length, 100);
-  assert.equal(data.micro.data?.data.valor_total_vencido, "123.45");
-  assert.equal(data.local.data?.resumo.valor_vencido_me_local, "50.00");
-  assert.equal(data.general.data?.resumo.percentual_valor_vencido_me, 24.69);
-  assert.equal(calls.length, 5);
-  const period = { codigo_municipio: "010", data_inicio: "2025-01-01", data_fim: "2025-12-31" };
-  for (const url of ["/analytics/gastos-por-natureza", "/analytics/participacao-me-por-natureza"]) assert.deepEqual(calls.find(c => c.url === url)?.params, period);
-  assert.deepEqual(calls.find(c => c.url === "/analytics/microempresas")?.params, { ...period, codigo_natureza: "30" });
-  for (const c of calls.filter(c => c.url?.includes("participacoes-me-"))) {
-    assert.equal(c.params.ano, 2025);
-    assert.equal(c.params.codigo_municipio, "010");
-    assert.equal(c.params.codigo_natureza, "30");
+  assert.equal(data.suppliers.data?.data.length, 100);
+  assert.ok(calls.length >= 3);
+  assert.deepEqual(municipalityCatalogParams, { uf: "CE", limit: 100, offset: 0 });
+  assert.ok(calls.every(call => ["/analytics/pagamentos/resumo", "/analytics/pagamentos/fornecedores", "/analytics/participacoes-me-locais"].includes(call.url ?? "")));
+  assert.equal(data.local.data?.localAmount, "1010.00");
+  assert.equal(data.local.data?.percentage, 50.5);
+  assert.equal(data.local.data?.localSuppliers, 1);
+  assert.equal(data.local.data?.mePayments, 101);
+  assert.ok(calls.some(call => call.url === "/analytics/participacoes-me-locais"));
+  assert.deepEqual(calls[0].params, { codigo_municipio: "010", ano: 2025 });
+  for (const call of calls.slice(1)) {
+    if (call.url === "/analytics/participacoes-me-locais") {
+      assert.equal(call.params.coleta_id, 26);
+      assert.equal(call.params.codigo_natureza, "30");
+      continue;
+    }
+    assert.equal(call.params.coleta_id, 26);
+    assert.equal(call.params.codigo_natureza, "30");
+    assert.equal(call.params.categoria_porte, "ME");
+    assert.equal(call.params.codigo_municipio, "010");
   }
-  // Gráficos usam o campo da sua métrica, sem preencher naturezas ou percentuais ausentes.
-  assert.equal(selectAnalysisExpenses(data.expenses.data!.data, "30")[0].valor_total_dotacao, "1000.00");
-  assert.equal(selectAnalysisParticipation(data.participation.data!.data, "30")[0].valor_vencido_me, "123.45");
-  assert.deepEqual(selectAnalysisExpenses([], "30"), []);
-  assert.deepEqual(selectAnalysisParticipation([nature], "39"), []);
-  assert.equal(selectAnalysisPercentages([{ ...nature, percentual_participacoes_me: null }, { ...nature, codigo_natureza: "39", percentual_participacoes_me: 0 }]).length, 1);
+  const filtered = selectPaymentTotals(data.payments.data, "30");
+  assert.equal(filtered.total, "2000.00");
+  assert.equal(filtered.percentage, 50.5);
+  assert.equal(filtered.payments, 200);
+  assert.equal(selectPaymentTotals(data.payments.data).total, "3000.00");
+  assert.equal(selectPaymentTotals(data.payments.data, "39").total, undefined);
+  assert.deepEqual(selectPaymentNatures(null), []);
   assert.equal((await loadAnalysisData({ ...filters, page: 2 })).hasNext, false);
   const before = calls.length;
-  assert.ok((await loadAnalysisData({ ...filters, municipalityIbge: "9999999" })).micro.error);
-  assert.equal(calls.length, before, "município inválido não amplia a consulta");
-  calls.length = 0;
-  await loadAnalysisData({ ...filters, municipalityIbge: undefined });
-  assert.equal(calls.length, 3, "sem município somente operações que suportam consulta geral");
-  assert.ok(calls.every(c => !c.url?.includes("participacoes-me-")));
-  const response = await GET(new Request("http://localhost/analise/exportar?tipo=licitacoes&municipio=2300754&ano=2025&natureza=30"));
+  for (const municipalityIbge of [undefined, "9999999"]) assert.equal((await loadAnalysisData({ ...filters, municipalityIbge })).payments.data, null);
+  assert.equal(calls.length, before, "não ampliar consulta sem município válido");
+  const response = await GET(new Request("http://localhost/analise/exportar?tipo=pagamentos&municipio=2300754&ano=2025&natureza=30"));
   assert.equal(response.status, 200);
   const csv = await response.text();
-  assert.match(csv, /Valor vencido/);
-  assert.doesNotMatch(csv, /Valor pago/);
-  assert.match(csv, /123,45/);
+  assert.match(csv, /Valor pago/);
+  assert.doesNotMatch(csv, /Valor vencido/);
   assert.match(csv, /'=Fornecedor/);
   assert.equal(csv.trim().split("\r\n").length, 102);
   assert.equal((await GET(new Request("http://localhost/analise/exportar?tipo=licitacoes"))).status, 400);
-  failExpenses = true;
-  const partial = await loadAnalysisData(filters);
-  assert.ok(partial.expenses.error);
-  assert.equal(partial.expenses.data, null);
-  assert.equal(partial.micro.data?.data.valor_total_vencido, "123.45");
-  assert.ok(partial.local.data);
-  failMicro = true;
-  const failedMicro = await loadAnalysisData(filters);
-  assert.equal(failedMicro.micro.data, null);
-  assert.ok(failedMicro.micro.error);
-  assert.ok(failedMicro.bids.data, "falha do indicador não esconde tabela de vencedoras");
+  wrongCollection = true;
+  const mismatched = await loadAnalysisData(filters);
+  assert.equal(mismatched.suppliers.data, null, "não comparar fornecedores de outra coleta");
+  assert.ok(mismatched.suppliers.error);
+  assert.equal(mismatched.local.data, null);
+  assert.ok(mismatched.local.error);
+  wrongCollection = false;
+  failSummary = true;
+  const failed = await loadAnalysisData(filters);
+  assert.ok(failed.payments.error);
+  assert.equal(failed.suppliers.data, null);
+  assert.ok(failed.suppliers.error);
 });

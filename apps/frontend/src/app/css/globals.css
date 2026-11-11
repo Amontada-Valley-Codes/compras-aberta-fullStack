@@ -158,8 +158,17 @@ img {
   opacity: 0.96;
 }
 .public-container {
-  width: min(1660px, calc(100% - 64px));
+  width: min(1200px, calc(100% - 64px));
   margin-inline: auto;
+}
+.landing-page {
+  --landing-action-radius: 12px;
+}
+@media (min-width: 681px) {
+  .landing-page .public-container {
+    /* Reclaim two thirds of the original side gutters. */
+    width: calc((200% + min(1200px, 100% - 64px)) / 3);
+  }
 }
 .button,
 .ds-button {

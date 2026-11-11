@@ -15,8 +15,8 @@ export interface ReportModel {
 export const REPORT_MODELS: ReportModel[] = [
   {
     id: "geral",
-    title: "Relatório geral",
-    description: "Visão consolidada: licitações, valores, participação das microempresas e principais fornecedores.",
+    title: "Relatório de compras públicas",
+    description: "Apresentação, metodologia e tabelas por natureza, porte e localização dos fornecedores identificados.",
   },
   {
     id: "natureza",

@@ -3,37 +3,29 @@ import type { ReactNode } from "react";
 import { ArrowLeft, CircleDollarSign, Search, SearchX, Store, MapPinned } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
-import { GeneralShareChart, LocalShareChart } from "@/features/public-data/PublicCharts";
-import { AnalysisExpensesChart, AnalysisParticipationChart, AnalysisMicroValueChart } from "./AnalysisNatureCharts";
-import { selectAnalysisExpenses, selectAnalysisParticipation } from "./analysis-selectors";
-import { count, money } from "@/features/public-data/format";
-import { natureLabel } from "@/features/public-data/plain-language";
+import { PaymentNatureChart, PaymentShareChart, LocalPaymentShareChart } from "./PaymentCharts";
+import { selectPaymentNatures, selectPaymentTotals } from "./payment-selectors";
+import { count, money, percent } from "@/features/public-data/format";
 import type { AnalysisData } from "@/features/public-data/public-data";
 import { AnalysisPagination } from "./AnalysisPagination";
-import { AnalysisWinnersTable } from "./AnalysisWinnersTable";
-
-const NATURE_EMPTY = "A API não retornou dados associados a naturezas da despesa para estes filtros. Isso não significa ausência de licitações ou de valores vencidos.";
-const MUNICIPALITY_REQUIRED = "Selecione um município para consultar esta informação.";
+import { AnalysisPaymentsTable } from "./AnalysisPaymentsTable";
 
 export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
-  const { filters, selectedMunicipality, municipalities, expenses, participation, micro, local, general, bids } = data;
-  const municipalityName = selectedMunicipality?.name ?? "Ceará";
-  const expenseRows = selectAnalysisExpenses(expenses.data?.data ?? [], filters.natureCode);
-  const participationRows = selectAnalysisParticipation(participation.data?.data ?? [], filters.natureCode);
-  const highestNature = expenseRows[0];
-  const rows = bids.data?.data ?? [];
-  const exportParams = new URLSearchParams({ tipo: "licitacoes", municipio: filters.municipalityIbge ?? "", ano: String(filters.year) });
-  if (filters.natureCode) exportParams.set("natureza", filters.natureCode);
+  const { filters, selectedMunicipality, municipalities, payments, suppliers, local } = data;
+  const municipalityName = selectedMunicipality?.name ?? "";
+  const natures = selectPaymentNatures(payments.data, filters.natureCode);
+  const totals = selectPaymentTotals(payments.data, filters.natureCode);
+  const rows = suppliers.data?.data ?? [];
   return <div className="analysis-page">
     <header className="analysis-header"><div className="analysis-container"><BrandLogo /><nav><Link href="/empresa">Área da empresa</Link></nav></div></header>
     <main className="analysis-container analysis-main">
       <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a página inicial</Link>
-      <section className="analysis-title-row"><div><h1>Licitações e microempresas em {municipalityName}</h1><p>Veja as dotações por natureza da despesa, os valores vencidos e a participação das microempresas nas licitações.</p></div></section>
+      <section className="analysis-title-row"><div><h1>Compras e microempresas{municipalityName ? ` em ${municipalityName}` : ""}</h1><p>Valores efetivamente pagos, por natureza da despesa e participação de microempresas.</p></div></section>
         <form className="analysis-filters" action="/analise" method="get">
           <div className="analysis-filter-fields">
             <input type="hidden" name="limite" value={filters.pageSize} />
             {filters.natureCode && <input type="hidden" name="natureza" value={filters.natureCode} />}
-            <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
+            <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Selecione um município" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
               ...(municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []),
               ...(filters.municipalityIbge && !municipalities.data?.some((item) => item.ibgeCode === filters.municipalityIbge) ? [{ value: filters.municipalityIbge, label: `Município ${filters.municipalityIbge}` }] : []),
             ]} />
@@ -47,44 +39,36 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         </form>
         {municipalities.error && <DataState error={`Lista de municípios: ${municipalities.error}`} />}
         {filters.municipalityIbge && !selectedMunicipality && <DataState error="Não foi possível identificar o município selecionado. Selecione outro município para refazer a consulta." />}
-      <section className="analysis-results">
-        {micro.error && <DataState error={micro.error} />}
+
+      {!selectedMunicipality ? <DataState error={payments.error} fallback="Selecione um município para consultar os pagamentos." /> : <section className="analysis-results">
+        {payments.error && <DataState error={payments.error} />}
         <div className="analysis-kpis">
-          <AnalysisKpi icon={<CircleDollarSign />} label="Valor de compra para ME" value={money(micro.data?.data.valor_total_vencido)} detail="Soma dos valores vencidos por microempresas nas licitações do período." />
-          <AnalysisKpi icon={<Store />} label="Participações de ME" value={count(micro.data?.data.quantidade_participacoes)} detail="Registros de microempresas vencedoras; uma empresa pode vencer várias licitações." accent />
-          <AnalysisKpi icon={<MapPinned />} label="Compras com ME locais" value={money(local.data?.resumo.valor_vencido_me_local)} detail={selectedMunicipality ? "Valor vencido por microempresas sediadas no município." : MUNICIPALITY_REQUIRED} />
+          <AnalysisKpi icon={<CircleDollarSign />} label="Total de compras" value={money(totals.total)} detail={`${count(totals.payments)} pagamentos realizados no recorte selecionado.`} />
+          <AnalysisKpi icon={<Store />} label="Compras com ME" value={money(totals.me)} detail={`${percent(totals.percentage)} do total · ${count(local.data?.mePayments)} pagamentos a ME.`} accent />
+          <AnalysisKpi icon={<MapPinned />} label="Compras com ME locais" value={local.data?.percentage != null ? money(local.data.localAmount) : "—"} detail={local.error ?? `${percent(local.data?.percentage)} do total.`} />
         </div>
-        {local.error && <DataState error={`Microempresas locais: ${local.error}`} />}
-        {highestNature && <section className="analysis-insight"><p>Em {municipalityName}, a maior dotação associada às licitações de {filters.year} é <strong>{natureLabel(highestNature.codigo_natureza, highestNature.nome_natureza)}</strong>: <strong>{money(highestNature.valor_total_dotacao)}</strong>.</p></section>}
+        {local.error && <DataState error={`Recorte de ME locais: ${local.error}`} />}
         <div className="analysis-chart-grid">
-          <AnalysisChartCard title="Valor de compra para ME por natureza da despesa" description="Valores vencidos por microempresas nas licitações associadas a cada natureza." tone="navy">
-            {participationRows.length ? <AnalysisMicroValueChart data={participationRows} /> : <DataState error={participation.error} fallback={NATURE_EMPTY} />}
-            {participation.data?.observacao && <p className="analysis-footnote">{participation.data.observacao}</p>}
+          <AnalysisChartCard title="Quanto foi pago a ME em cada natureza" description="Valor pago a microempresas, separado por natureza da despesa." tone="navy">
+            {natures.length ? <PaymentNatureChart data={natures} metric="valor_me" /> : <DataState error={payments.error} />}
           </AnalysisChartCard>
-          <AnalysisChartCard title="Participação das microempresas nas compras" description="Parcela do valor vencido nas licitações destinada a ME locais e a ME de qualquer origem." tone="teal">
-            <div className="analysis-share-comparison">
-              <div className="analysis-share-item"><h3>Compras com ME locais</h3>
-                {local.data?.resumo.percentual_valor_vencido_me_local != null ? <><LocalShareChart percentage={local.data.resumo.percentual_valor_vencido_me_local} size={230} /><p>{money(local.data.resumo.valor_vencido_me_local)} vencidos por ME locais</p></> : <DataState error={local.error} fallback={selectedMunicipality ? "Sem base para calcular o percentual local." : MUNICIPALITY_REQUIRED} />}
-              </div>
-              <div className="analysis-share-item"><h3>Compras com ME em geral</h3>
-                {general.data?.resumo.percentual_valor_vencido_me != null ? <><GeneralShareChart percentage={general.data.resumo.percentual_valor_vencido_me} size={230} /><p>{money(general.data.resumo.valor_vencido_me)} vencidos por ME</p></> : <DataState error={general.error} fallback={selectedMunicipality ? "Sem base para calcular o percentual de ME." : MUNICIPALITY_REQUIRED} />}
-              </div>
-            </div>
+          <AnalysisChartCard title="Participação das microempresas nas compras" description="Parcela dos pagamentos destinada a ME, sobre o total de controle da mesma coleta." tone="teal">
+            <div className="analysis-share-comparison"><div className="analysis-share-item"><h3>Compras com ME locais</h3>{local.data?.percentage != null ? <><LocalPaymentShareChart percentage={local.data.percentage} /><p>{money(local.data.localAmount)} pagos a ME locais identificadas</p></> : <DataState error={local.error} fallback="Sem base para identificar a sede das ME ou calcular o percentual local." />}</div><div className="analysis-share-item"><h3>Compras com ME em geral</h3>{totals.percentage != null ? <><PaymentShareChart percentage={totals.percentage} /><p>{money(totals.me)} pagos a ME</p></> : <DataState error={payments.error} fallback="Sem base para calcular o percentual de pagamentos." />}</div></div>
           </AnalysisChartCard>
-          <AnalysisChartCard title="Compras por natureza da despesa" description="Valor das dotações associadas às licitações em cada natureza da despesa." tone="blue">
-            {expenseRows.length ? <AnalysisExpensesChart data={expenseRows} /> : <DataState error={expenses.error} fallback={NATURE_EMPTY} />}
-            {expenses.data?.observacao && <p className="analysis-footnote">{expenses.data.observacao}</p>}
+          <AnalysisChartCard title="Quanto foi pago no total em cada natureza" description="Valor pago a fornecedores de todos os portes, separado por natureza da despesa." tone="blue">
+            {natures.length ? <PaymentNatureChart data={natures} metric="total_controle" /> : <DataState error={payments.error} />}
           </AnalysisChartCard>
-          <AnalysisChartCard title="Participações de ME por natureza da despesa" description="Percentual dos registros de vencedores que são de microempresas em cada natureza." tone="gold">
-            {participationRows.length ? <AnalysisParticipationChart data={participationRows} /> : <DataState error={participation.error} fallback={NATURE_EMPTY} />}
+          <AnalysisChartCard title="Qual parte do total foi paga a ME em cada natureza" description="Percentual do valor total de cada natureza que foi pago a microempresas." tone="gold">
+            {natures.length ? <PaymentNatureChart data={natures} metric="percentual_me" /> : <DataState error={payments.error} />}
           </AnalysisChartCard>
         </div>
-        <section className="analysis-table-card" id="licitacoes">
-          <header><div><h2>Licitações com microempresas</h2><p>Cada linha mostra uma microempresa vencedora, a licitação e o valor vencido. A natureza selecionada é aplicada à consulta.</p></div>{bids.data && <a className="ds-button secondary" href={`/analise/exportar?${exportParams}`}>Exportar licitações (CSV)</a>}</header>
-          {rows.length ? <AnalysisWinnersTable rows={rows} /> : <DataState error={bids.error} fallback={selectedMunicipality ? "Nenhuma microempresa vencedora encontrada para estes filtros." : MUNICIPALITY_REQUIRED} />}
-          {selectedMunicipality && <AnalysisPagination filters={filters} rowCount={rows.length} hasNext={data.hasNext} />}
+        <section className="analysis-table-card" id="fornecedores">
+          <header><div><h2>Pagamentos a microempresas</h2><p>Total pago por microempresa em cada natureza da despesa, na mesma coleta dos gráficos.</p></div></header>
+          {rows.length ? <AnalysisPaymentsTable rows={rows} /> : <DataState error={suppliers.error} fallback="Nenhum pagamento a ME encontrado para estes filtros." />}
+          {data.paginationError && <DataState error={data.paginationError} fallback="Não foi possível verificar a próxima página." />}
+          <AnalysisPagination filters={filters} rowCount={rows.length} hasNext={data.hasNext} />
         </section>
-      </section>
+      </section>}
     </main>
   </div>;
 }
@@ -103,11 +87,11 @@ function AnalysisChartCard({ title, description, tone, children }: { title: stri
   </article>;
 }
 
-function DataState({ error, fallback = "Sem dados para os filtros selecionados." }: { error: string | null; fallback?: string }) {
+function DataState({ error, fallback = "Sem dados para os filtros selecionados.", title = "Nenhum dado encontrado" }: { error: string | null; fallback?: string; title?: string }) {
   const message = error ?? fallback;
   return <div className="analysis-data-state" role="status">
     <SearchX aria-hidden="true" />
-    <strong>{error ? "Não foi possível carregar estes dados" : "Nenhum dado encontrado"}</strong>
+    <strong>{error ? "Não foi possível carregar estes dados" : title}</strong>
     <span>{message}</span>
   </div>;
 }

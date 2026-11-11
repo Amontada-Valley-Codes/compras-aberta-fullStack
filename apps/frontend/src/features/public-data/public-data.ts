@@ -1,8 +1,6 @@
-import { listLocalParticipationsService } from "@/services/analytics/list-local-participations.service";
-import { listGeneralParticipationsService } from "@/services/analytics/list-general-participations.service";
-import { listExpensesByNatureService } from "@/services/analytics/list-expenses-by-nature.service";
-import { getMicroenterpriseIndicatorService } from "@/services/analytics/get-microenterprise-indicator.service";
-import { listParticipationByNatureService } from "@/services/analytics/list-participation-by-nature.service";
+import { loadLocalPayments, type LocalPaymentSummary } from "@/services/analytics/local-payments";
+import type { PaymentsSummaryResponse, PaymentSuppliersResponse } from "@/services/analytics/payments.types";
+import { getPaymentsSummaryService, listPaymentSuppliersService } from "@/services/analytics/payments.service";
 import type {
   DetailedBidsResponse, ExpensesByNatureResponse, GeneralParticipationsResponse, LocalParticipationsResponse,
   MicroenterpriseResponse, ParticipationByNatureResponse,
@@ -61,35 +59,44 @@ export interface AnalysisFilters {
   pageSize: number;
 }
 
-export interface AnalysisData extends Omit<PublicData, "bids"> {
+export interface AnalysisData {
+  municipalities: DataResult<MunicipalityOption[]>;
   selectedMunicipality: MunicipalityOption | null;
   filters: AnalysisFilters;
-  // Esta operação restringe os registros a ME; licitações-detalhadas não filtra porte.
-  bids: DataResult<GeneralParticipationsResponse>;
+  payments: DataResult<PaymentsSummaryResponse>;
+  suppliers: DataResult<PaymentSuppliersResponse>;
+  local: DataResult<LocalPaymentSummary>;
+  supplierCategory: string;
   hasNext: boolean;
+  paginationError: string | null;
 }
 
-export async function loadAnalysisData(filters: AnalysisFilters): Promise<AnalysisData> {
+export async function loadAnalysisData(filters: AnalysisFilters, supplierCategory = "ME"): Promise<AnalysisData> {
   const municipalities = await loadMunicipalityOptions();
   const selectedMunicipality = municipalities.data?.find((item) => item.ibgeCode === filters.municipalityIbge) ?? null;
-  if (filters.municipalityIbge && !selectedMunicipality) {
-    const unavailable = { data: null, error: "Não foi possível aplicar o filtro de município." };
-    return { municipalities, selectedMunicipality, filters, bids: unavailable, expenses: unavailable, participation: unavailable, micro: unavailable, local: unavailable, general: unavailable, hasNext: false };
+  if (!selectedMunicipality) {
+    const unavailable = { data: null, error: filters.municipalityIbge ? "Não foi possível aplicar o filtro de município." : null };
+    return { municipalities, selectedMunicipality, filters, payments: unavailable, suppliers: unavailable, local: unavailable, supplierCategory, hasNext: false, paginationError: null };
   }
-  const codigo_municipio = selectedMunicipality?.tceCode.padStart(3, "0");
-  const period = { codigo_municipio, data_inicio: `${filters.year}-01-01`, data_fim: `${filters.year}-12-31` };
-  const bidQuery = { codigo_municipio: codigo_municipio!, codigo_natureza: filters.natureCode, ano: filters.year, limit: filters.pageSize, offset: (filters.page - 1) * filters.pageSize };
-  const empty = { data: null, error: null };
-  const [expenses, participation, micro, local, bids] = await Promise.all([
-    result(listExpensesByNatureService(period)),
-    result(listParticipationByNatureService(period)),
-    result(getMicroenterpriseIndicatorService({ ...period, codigo_natureza: filters.natureCode })),
-    codigo_municipio ? result(listLocalParticipationsService({ ...bidQuery, limit: 1, offset: 0 })) : Promise.resolve(empty),
-    codigo_municipio ? result(listGeneralParticipationsService(bidQuery)) : Promise.resolve(empty),
+  const query = { codigo_municipio: selectedMunicipality.tceCode.padStart(3, "0"), ano: filters.year };
+  const payments = await result(getPaymentsSummaryService(query));
+  const supplierQuery = { ...query, coleta_id: payments.data?.coleta.coleta_id, codigo_natureza: filters.natureCode, categoria_porte: supplierCategory };
+  const loadSupplierPage = async (limit: number, offset: number) => {
+    const page = await listPaymentSuppliersService({ ...supplierQuery, limit, offset });
+    if (page.coleta_id !== payments.data?.coleta.coleta_id) throw new Error("Coleta de fornecedores diferente do resumo");
+    return page;
+  };
+  const selectedNature = filters.natureCode ? payments.data?.data.find((row) => row.codigo_natureza === filters.natureCode) : null;
+  const totalAmount = filters.natureCode ? selectedNature?.total_controle : payments.data?.total_controle;
+  const meAmount = filters.natureCode ? selectedNature?.valor_me : payments.data?.total_me;
+  const [suppliers, local] = await Promise.all([
+    payments.data ? result(loadSupplierPage(filters.pageSize, (filters.page - 1) * filters.pageSize)) : Promise.resolve({ data: null, error: payments.error }),
+    payments.data && totalAmount != null && meAmount != null
+      ? result(loadLocalPayments({ ...query, coleta_id: payments.data.coleta.coleta_id, codigo_natureza: filters.natureCode }))
+      : Promise.resolve({ data: null, error: payments.error }),
   ]);
-  // O resumo é global ao filtro, independentemente de limit/offset.
-  const general = bids;
-  const total = bids.data?.resumo.participacoes_me ?? 0;
-  const hasNext = Boolean(bids.data && bidQuery.offset + bids.data.data.length < total);
-  return { municipalities, selectedMunicipality, filters, expenses, participation, micro, local, general, bids, hasNext };
+  const next = suppliers.data?.data.length === filters.pageSize && payments.data
+    ? await result(loadSupplierPage(1, filters.page * filters.pageSize))
+    : null;
+  return { municipalities, selectedMunicipality, filters, payments, suppliers, local, supplierCategory, hasNext: Boolean(next?.data?.data.length), paginationError: next?.error ?? null };
 }

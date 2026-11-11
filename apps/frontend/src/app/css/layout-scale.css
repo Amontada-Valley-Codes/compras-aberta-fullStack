@@ -9,23 +9,6 @@
   font-size: var(--text-base);
 }
 
-.public-header {
-  height: 116px;
-}
-
-.public-header .brand-logo,
-.public-header .brand-logo img {
-  width: 204px;
-}
-
-.public-header .brand-logo {
-  height: 70px;
-}
-
-.header-inner nav a {
-  font-size: var(--text-lg);
-}
-
 .hero,
 .hero-grid {
   min-height: 720px;
@@ -123,10 +106,6 @@
   font-size: var(--text-lg);
 }
 
-.opportunity-search {
-  max-width: 1180px;
-}
-
 .value-grid h3 {
   font-size: var(--text-xl);
 }
@@ -187,19 +166,6 @@
 
 .municipality-card p {
   font-size: 18px;
-}
-
-.footer-grid p,
-.footer-grid a {
-  font-size: var(--text-base);
-}
-
-.footer-grid b {
-  font-size: var(--text-md);
-}
-
-.footer-grid {
-  grid-template-columns: 2fr repeat(4, minmax(0, 1fr));
 }
 
 .analysis-header {
@@ -641,19 +607,6 @@
     width: calc(100% - 32px);
   }
 
-  .public-header {
-    height: 68px;
-  }
-
-  .public-header .brand-logo,
-  .public-header .brand-logo img {
-    width: 132px;
-  }
-
-  .public-header .brand-logo {
-    height: 46px;
-  }
-
   .analysis-header .brand-logo,
   .analysis-header .brand-logo img {
     width: 132px;
@@ -722,10 +675,6 @@
 
   .municipality-card p {
     font-size: var(--text-base);
-  }
-
-  .footer-grid {
-    grid-template-columns: 1fr;
   }
 
   .analysis-title-row h1 {

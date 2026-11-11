@@ -1,5 +1,6 @@
 # /analise — endpoint correspondente à métrica do gráfico
 
+> Substituído pelo fluxo de pagamentos confirmado pelo usuário: [FONTE-PAGAMENTOS-GRAFICOS.md](FONTE-PAGAMENTOS-GRAFICOS.md).
 Estado final em 05/11/2026. Este alinhamento substitui a migração anterior de todos os gráficos para pagamentos. O escopo é somente `/analise` e sua exportação.
 
 | Elemento | Operação da API de dados | Campo usado |

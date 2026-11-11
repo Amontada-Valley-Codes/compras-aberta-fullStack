@@ -13,6 +13,7 @@ import {
 } from "./analytics.docs";
 
 async function analyticsRoutes(app: FastifyInstance) {
+  app.get("/analytics/municipios", analyticsController.listMunicipalityCatalog);
   app.get("/analytics/pagamentos/resumo", { schema: paymentsSummaryDocs }, analyticsController.getPaymentsSummary);
   app.get("/analytics/pagamentos/fornecedores", { schema: paymentSuppliersDocs }, analyticsController.listPaymentSuppliers);
   app.get(
