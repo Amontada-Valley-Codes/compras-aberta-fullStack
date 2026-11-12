@@ -22,23 +22,49 @@ async function result<T>(promise: Promise<T>): Promise<DataResult<T>> {
   }
 }
 
-export async function loadMunicipalityOptions(): Promise<DataResult<MunicipalityOption[]>> {
-  const [backend, catalog] = await Promise.all([
-    result(listMunicipalitiesService()), result(listMunicipalityCodesService()),
-  ]);
-  if (!catalog.data) return { data: null, error: catalog.error };
+const MUNICIPALITY_OPTIONS_TTL_MS = 60 * 60 * 1000;
+let cachedMunicipalityOptions: {
+  expiresAt: number;
+  promise: Promise<DataResult<MunicipalityOption[]>>;
+} | null = null;
 
-  const names = new Map(backend.data?.map((item) => [String(item.id), item.nome]) ?? []);
-  const options = catalog.data
-    .filter((item) => item.uf === "CE")
-    .filter((item) => !backend.data || names.has(item.codigo_ibge))
-    .map((item) => ({
-      ibgeCode: item.codigo_ibge,
-      tceCode: item.codigo_municipio,
-      name: names.get(item.codigo_ibge) ?? item.nome,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-  return { data: options, error: backend.error };
+export async function loadMunicipalityOptions(): Promise<DataResult<MunicipalityOption[]>> {
+  if (cachedMunicipalityOptions && cachedMunicipalityOptions.expiresAt > Date.now()) {
+    return cachedMunicipalityOptions.promise;
+  }
+
+  const promise = (async (): Promise<DataResult<MunicipalityOption[]>> => {
+    const [backend, catalog] = await Promise.all([
+      result(listMunicipalitiesService()), result(listMunicipalityCodesService()),
+    ]);
+    if (!catalog.data) return { data: null, error: catalog.error };
+
+    const names = new Map(backend.data?.map((item) => [String(item.id), item.nome]) ?? []);
+    const options = catalog.data
+      .filter((item) => item.uf === "CE")
+      .filter((item) => !backend.data || names.has(item.codigo_ibge))
+      .map((item) => ({
+        ibgeCode: item.codigo_ibge,
+        tceCode: item.codigo_municipio,
+        name: names.get(item.codigo_ibge) ?? item.nome,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    return { data: options, error: backend.error };
+  })();
+
+  const entry = { expiresAt: Date.now() + MUNICIPALITY_OPTIONS_TTL_MS, promise };
+  cachedMunicipalityOptions = entry;
+  promise.then((res) => {
+    if (!res.data && cachedMunicipalityOptions === entry) {
+      cachedMunicipalityOptions = null;
+    }
+  }).catch(() => {
+    if (cachedMunicipalityOptions === entry) {
+      cachedMunicipalityOptions = null;
+    }
+  });
+
+  return promise;
 }
 
 export interface PublicData {
