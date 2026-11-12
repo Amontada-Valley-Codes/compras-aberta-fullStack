@@ -8,6 +8,41 @@ const withAccessStatus = {
   accessRequest: { select: { status: true } },
 } as const;
 
+const withAccessAndBusiness = {
+  ...withAccessStatus,
+  business: true,
+} as const;
+
+type LoadedUser = Awaited<ReturnType<typeof loadUserById>>;
+
+const userByIdCache = new Map<string, { user: LoadedUser; expiresAt: number }>();
+const USER_CACHE_TTL_MS = 5_000;
+
+function cacheUser(user: LoadedUser) {
+  if (user?.id) {
+    userByIdCache.set(user.id, { user, expiresAt: Date.now() + USER_CACHE_TTL_MS });
+  }
+  return user;
+}
+
+async function loadUserById(id: string) {
+  try {
+    return await prisma.user.findUnique({
+      where: { id },
+      include: withAccessAndBusiness,
+    });
+  } catch (error) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id },
+        include: { business: true },
+      });
+    } catch {
+      throw error;
+    }
+  }
+}
+
 async function findUserWithOptionalAccessStatus<T extends { where: { email?: string; id?: string } }>(
   query: T,
 ) {
@@ -25,28 +60,24 @@ async function findUserWithOptionalAccessStatus<T extends { where: { email?: str
 
 const userRepository = {
   async findByEmail(email: string) {
-    return findUserWithOptionalAccessStatus({
+    const user = await findUserWithOptionalAccessStatus({
       where: { email },
-      include: withAccessStatus,
+      include: withAccessAndBusiness,
     });
+    return cacheUser(user as LoadedUser);
   },
 
   async findById(id: string) {
-    try {
-      return await prisma.user.findUnique({
-        where: { id },
-        include: { ...withAccessStatus, business: true },
-      });
-    } catch (error) {
-      try {
-        return await prisma.user.findUnique({
-          where: { id },
-          include: { business: true },
-        });
-      } catch {
-        throw error;
-      }
+    const cached = userByIdCache.get(id);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.user;
     }
+    const user = await loadUserById(id);
+    return cacheUser(user);
+  },
+
+  invalidateCache(id: string) {
+    userByIdCache.delete(id);
   },
 
   async listAdmins() {

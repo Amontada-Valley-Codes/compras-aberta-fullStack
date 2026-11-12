@@ -17,27 +17,24 @@ import "@/features/dashboard/gestor-publico/gestor-publico.css";
 // Estrutura de todas as páginas de /gestor. O proxy.ts já barrou quem não é
 // gestor (MANAGER) nem administrador; aqui o perfil é confirmado no backend.
 export default async function GestorLayout({ children }: { children: ReactNode }) {
-  const access = await getGestorAccess();
+  const [access, municipalities] = await Promise.all([
+    getGestorAccess(),
+    getMunicipalityOptions(),
+  ]);
   if (!access) redirect("/auth/login?next=/gestor");
 
   if (access.kind === "error") {
     return <GestorNotice title="Não foi possível abrir o painel" message="Não conseguimos confirmar os dados da sua conta agora. Tente novamente em instantes ou saia e entre de novo." />;
   }
-  // O cadastro de empresas (cidade de cada fornecedor) é a consulta mais
-  // demorada na primeira vez do dia: começa a carregar já na entrada.
-  loadCompanyDirectory().catch(() => undefined);
-  // Do PNCP, só o que várias páginas usam e é leve (contratações do ano e
-  // editais abertos). Contratos e PCA ficam para quando a página for aberta,
-  // para não ocupar a fila do limitador de consultas à toa. Pré-carrega a
-  // prefeitura que abre ao entrar.
-  const homeMunicipalityIbge = gestorHomeMunicipality(access);
-  loadProcurements(homeMunicipalityIbge, defaultGestorYear()).catch(() => undefined);
-  loadOpenTenders(homeMunicipalityIbge).catch(() => undefined);
 
-  // A entrada é liberada mesmo antes do vínculo do município: sem ele, as
-  // telas que usam o recorte da prefeitura abrem na prefeitura padrão, e o
-  // seletor do cabeçalho troca para qualquer município.
-  const municipalities = await getMunicipalityOptions();
+  const homeMunicipalityIbge = gestorHomeMunicipality(access);
+  // Dispara os pré-carregamentos pesados só depois de liberar a renderização da entrada,
+  // para não competir com o login nem saturar a API de dados.
+  setTimeout(() => {
+    loadCompanyDirectory().catch(() => undefined);
+    loadProcurements(homeMunicipalityIbge, defaultGestorYear()).catch(() => undefined);
+    loadOpenTenders(homeMunicipalityIbge).catch(() => undefined);
+  }, 1_500);
 
   return (
     <GestorRouteShell

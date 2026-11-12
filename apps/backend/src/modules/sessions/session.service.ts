@@ -69,7 +69,7 @@ async function validateAndSyncSubscriptionOnAccess(user: UserSessionData) {
   }
 }
 
-async function issueTokens(user: UserSessionData) {
+async function issueTokens(user: UserSessionData, waitRefreshWrite = true) {
   // accessStatus vai no token para o frontend decidir a rota sem consultar o
   // backend; quem garante a restrição de verdade é o ensureAccessApproved.
   const payload = { role: user.role, accessStatus: resolveAccessStatus(user) };
@@ -82,13 +82,19 @@ async function issueTokens(user: UserSessionData) {
 
   const refreshToken = randomBytes(48).toString("base64url");
 
-  await refreshTokenRepository.create({
+  const writePromise = refreshTokenRepository.create({
     tokenHash: hashToken(refreshToken),
     userId: user.id,
     expiresAt: new Date(
       Date.now() + authConfig.refreshToken.expiresInDays * DAY_IN_MS,
     ),
   });
+
+  if (waitRefreshWrite) {
+    await writePromise;
+  } else {
+    void writePromise.catch(() => undefined);
+  }
 
   return { token, refreshToken };
 }
@@ -113,7 +119,7 @@ const sessionService = {
 
     await validateAndSyncSubscriptionOnAccess(user);
 
-    return issueTokens(user);
+    return issueTokens(user, false);
   },
 
   async refresh(refreshToken: string) {

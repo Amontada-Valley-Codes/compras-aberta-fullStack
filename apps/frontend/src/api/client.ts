@@ -3,10 +3,16 @@ import { attachInterceptors } from "./interceptors";
 
 const common = { timeout: 20_000, headers: { Accept: "application/json" } };
 
+const serverBaseURL =
+  process.env.API_BASE_URL ?? process.env.BACKEND_URL ?? "http://localhost:3333";
+
 export const api = attachInterceptors(
   axios.create({
     ...common,
-    baseURL: process.env.API_BASE_URL ?? process.env.BACKEND_URL ?? "http://localhost:3333",
+    baseURL:
+      typeof window === "undefined"
+        ? serverBaseURL
+        : (process.env.NEXT_PUBLIC_API_BASE_URL ?? ""),
   }),
 );
 
