@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import { api } from "@/api/client";
-import { localPaymentsQuerySchema, paymentsSummaryQuerySchema, paymentSuppliersQuerySchema } from "@/schemas/analytics/payments.schema";
-import type { LocalPaymentResponse, PaymentsSummaryResponse, PaymentSuppliersResponse } from "./payments.types";
+import { localPaymentsQuerySchema, otherSizesPaymentsQuerySchema, paymentsSummaryQuerySchema, paymentSuppliersQuerySchema } from "@/schemas/analytics/payments.schema";
+import type { LocalPaymentResponse, OtherSizesPaymentsResponse, PaymentsSummaryResponse, PaymentSuppliersResponse } from "./payments.types";
 
 export async function getPaymentsSummaryService(query: z.input<typeof paymentsSummaryQuerySchema>) {
   const { data } = await api.get<PaymentsSummaryResponse>("/analytics/pagamentos/resumo", { params: paymentsSummaryQuerySchema.parse(query) });
@@ -9,6 +9,10 @@ export async function getPaymentsSummaryService(query: z.input<typeof paymentsSu
 }
 export async function listPaymentSuppliersService(query: z.input<typeof paymentSuppliersQuerySchema>) {
   const { data } = await api.get<PaymentSuppliersResponse>("/analytics/pagamentos/fornecedores", { params: paymentSuppliersQuerySchema.parse(query) });
+  return data;
+}
+export async function getOtherSizesPaymentsService(query: z.input<typeof otherSizesPaymentsQuerySchema>) {
+  const { data } = await api.get<OtherSizesPaymentsResponse>("/analytics/pagamentos/outros-portes", { params: otherSizesPaymentsQuerySchema.parse(query) });
   return data;
 }
 export async function listLocalPaymentsService(query: z.input<typeof localPaymentsQuerySchema>) {

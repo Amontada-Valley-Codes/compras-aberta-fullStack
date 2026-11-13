@@ -12,26 +12,29 @@ export interface ReportModel {
   unavailableReason?: string;
 }
 
+// Todos os modelos comparam microempresas (ME), empresas de pequeno porte
+// (EPP) e demais empresas, com a mesma estrutura: indicadores, comparativo
+// por porte, seções do tema e metodologia.
 export const REPORT_MODELS: ReportModel[] = [
   {
     id: "geral",
     title: "Relatório de compras públicas",
-    description: "Apresentação, metodologia e tabelas por natureza, porte e localização dos fornecedores identificados.",
+    description: "Comparativo entre ME, EPP e demais empresas, valores por natureza, localização dos fornecedores e evolução mensal.",
   },
   {
     id: "natureza",
     title: "Relatório por natureza da despesa",
-    description: "Dotação, licitações e participação das microempresas em cada natureza da despesa.",
+    description: "Valor pago a ME, EPP e demais empresas em cada natureza da despesa, com participação e fornecedores por porte.",
   },
   {
     id: "fornecedores",
     title: "Relatório de fornecedores",
-    description: "Microempresas vencedoras, origem, concentração do valor e lista completa com CNPJ.",
+    description: "Fornecedores por porte, maiores empresas, origem, cidades e lista completa com CNPJ.",
   },
   {
     id: "despesas",
     title: "Relatório de despesas",
-    description: "Dotação por natureza, evolução mensal e lista de todas as licitações do período.",
+    description: "Pagamentos por natureza e porte, evolução mensal, vencedores das licitações por porte e licitações do período.",
   },
   {
     id: "receitas",

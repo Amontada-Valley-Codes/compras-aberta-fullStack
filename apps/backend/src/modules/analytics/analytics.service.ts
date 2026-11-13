@@ -5,6 +5,7 @@ import { createMemoryCache } from "../../lib/cache/memory-cache";
 import { analyticsApi } from "../../lib/axios/analytics-api";
 import { AppError } from "../../utils/AppError";
 import type {
+  OtherSizesPaymentsDTO,
   PaymentsSummaryDTO,
   PaymentSuppliersDTO,
   GetMicroenterpriseIndicatorDTO,
@@ -57,6 +58,19 @@ async function fetchAnalyticsData(
 
     return response.data;
   } catch (error) {
+    // 404 é resposta de negócio (ex.: "Nenhuma apuração de pagamentos
+    // concluída para esse município/ano"), não falha da API: repassa como 404
+    // para quem consome distinguir "sem dados" de "fonte fora do ar".
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      const detail = (error.response.data as { detail?: unknown } | undefined)?.detail;
+      throw new AppError(
+        typeof detail === "string" && detail.trim()
+          ? detail
+          : "Nenhum dado encontrado para os filtros informados.",
+        404,
+      );
+    }
+
     if (axios.isAxiosError(error) && error.response) {
       throw new AppError(
         "A API de análise de dados não conseguiu atender a consulta.",
@@ -92,6 +106,9 @@ const analyticsService = {
   },
   async listPaymentSuppliers(filters: PaymentSuppliersDTO) {
     return getAnalyticsData("/analytics/pagamentos/fornecedores", filters);
+  },
+  async getOtherSizesPayments(filters: OtherSizesPaymentsDTO) {
+    return getAnalyticsData("/analytics/pagamentos/outros-portes", filters);
   },
   async listDetailedBids(filters: ListDetailedBidsDTO) {
     return getAnalyticsData(

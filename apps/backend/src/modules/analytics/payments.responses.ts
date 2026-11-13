@@ -1,5 +1,77 @@
 // Contratos de resposta da API de dados (OpenAPI 1.0.0).
+
+const nullable = (type: string) => ({ anyOf: [{ type }, { type: "null" }] });
+const sizeMap = (type: string) => ({ type: "object", additionalProperties: { type } });
+
+// GET /analytics/pagamentos/outros-portes (EPP e demais empresas).
+const otherSizes = {
+  type: "object",
+  properties: {
+    filtros: {
+      type: "object",
+      properties: {
+        codigo_municipio: { type: "string" },
+        ano: { type: "integer" },
+        categoria_porte: nullable("string"),
+        porte_codigo: nullable("string"),
+      },
+    },
+    periodo: { type: "object", properties: { inicio: { type: "string" }, fim: { type: "string" } } },
+    resumo: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          categoria_porte: { type: "string" },
+          porte_codigo: { type: "string" },
+          total_valor: { type: "string" },
+          quantidade_pagamentos: { type: "integer" },
+          percentual_valor: nullable("number"),
+        },
+        required: ["categoria_porte", "porte_codigo", "total_valor", "quantidade_pagamentos"],
+      },
+    },
+    municipios: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          codigo_municipio: { type: "string" },
+          codigo_ibge: nullable("string"),
+          nome: nullable("string"),
+          valores: sizeMap("string"),
+          quantidade_pagamentos: { type: "integer" },
+          quantidade_pagamentos_por_porte: sizeMap("integer"),
+        },
+        required: ["codigo_municipio", "valores", "quantidade_pagamentos", "quantidade_pagamentos_por_porte"],
+      },
+    },
+    evolucao_temporal: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          periodo: nullable("string"),
+          ano: nullable("integer"),
+          mes: nullable("integer"),
+          categoria_porte: { type: "string" },
+          porte_codigo: { type: "string" },
+          total_valor: { type: "string" },
+          quantidade_pagamentos: { type: "integer" },
+        },
+        required: ["categoria_porte", "porte_codigo", "total_valor", "quantidade_pagamentos"],
+      },
+    },
+    total_valor: { type: "string" },
+    quantidade_pagamentos: { type: "integer" },
+    fonte_classificacao: { type: "string" },
+    observacao: { type: "string" },
+  },
+  required: ["resumo", "municipios", "evolucao_temporal", "total_valor", "quantidade_pagamentos", "fonte_classificacao", "observacao"],
+};
+
 export const paymentResponses = {
+  otherSizes,
   "summary": {
     "properties": {
       "coleta": {
