@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AlertTriangle, ChevronLeft, Clock3, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
@@ -19,11 +19,42 @@ function safeNextPath(value?: string): string | null {
   return value
 }
 
+// Com "Lembrar-me", o e-mail fica salvo só neste navegador para preencher o
+// próximo login. A senha nunca é guardada.
+const REMEMBERED_EMAIL_KEY = 'compras-abertas:login-email'
+
+function readRememberedEmail(): string {
+  try {
+    return window.localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function saveRememberedEmail(email: string | null) {
+  try {
+    if (email) window.localStorage.setItem(REMEMBERED_EMAIL_KEY, email)
+    else window.localStorage.removeItem(REMEMBERED_EMAIL_KEY)
+  } catch {
+    // Armazenamento bloqueado (modo privado etc.): o login segue normalmente.
+  }
+}
+
 export const Login = ({ next }: { next?: string }) => {
   const [showPassword, setShowPassword] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState('')
+  const [remember, setRemember] = useState(false)
   const router = useRouter()
+
+  // Lido depois da montagem para o HTML do servidor e do cliente baterem.
+  useEffect(() => {
+    const saved = readRememberedEmail()
+    if (!saved) return
+    setEmail(saved)
+    setRemember(true)
+  }, [])
   const searchParams = useSearchParams()
   const statusParam = searchParams.get('status')
   const isPendingRegistration = statusParam === 'pending'
@@ -36,14 +67,13 @@ export const Login = ({ next }: { next?: string }) => {
     setPending(true)
 
     const formData = new FormData(event.currentTarget)
-    const email = String(formData.get('email') ?? '')
     const password = String(formData.get('password') ?? '')
 
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, remember }),
       })
       const data = await response.json().catch(() => null)
 
@@ -52,6 +82,8 @@ export const Login = ({ next }: { next?: string }) => {
         setPending(false)
         return
       }
+
+      saveRememberedEmail(remember ? email.trim() : null)
 
       // Empresa ainda sem aprovação vai direto para o status da solicitação,
       // ignorando o "next" (o proxy.ts a devolveria para lá de todo jeito).
@@ -167,6 +199,8 @@ export const Login = ({ next }: { next?: string }) => {
                   type='email'
                   autoComplete='email'
                   required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                 />
                 <Mail size={18} />
               </div>
@@ -199,7 +233,12 @@ export const Login = ({ next }: { next?: string }) => {
 
             <div className='auth-row'>
               <label className='auth-remember'>
-                <input type='checkbox' />
+                <input
+                  type='checkbox'
+                  name='remember'
+                  checked={remember}
+                  onChange={(event) => setRemember(event.target.checked)}
+                />
                 Lembrar-me
               </label>
               <Link href='/contato#acesso' className='auth-forgot'>

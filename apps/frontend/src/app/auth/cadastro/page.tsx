@@ -13,8 +13,10 @@ type CadastroPageProps = {
 
 export default async function CadastroPage({ searchParams }: CadastroPageProps) {
   // ?perfil=me ou ?perfil=gestor abre direto no fluxo (links do login e da landing).
-  const { perfil } = await searchParams;
+  const { perfil, origem } = await searchParams;
   const initialProfile = perfil === "me" || perfil === "gestor" ? perfil : null;
+  // ?origem=inicio: veio do botão "Faça Seu Cadastro" da página inicial.
+  const fromHome = origem === "inicio";
 
-  return <CadastroWizard initialProfile={initialProfile} />;
+  return <CadastroWizard initialProfile={initialProfile} fromHome={fromHome} />;
 }

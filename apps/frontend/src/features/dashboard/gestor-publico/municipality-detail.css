@@ -1,118 +1,188 @@
-.gp-municipality-detail.md-page { display:grid; gap:16px; padding-bottom:24px; color:#25313c; font-size:13px; line-height:1.5; }
-.md-page *, .md-page *::before, .md-page *::after { box-sizing:border-box; letter-spacing:0; }
-.md-page > *, .md-page section, .md-page article { min-width:0; }
-.md-page .md-back { display:inline-flex; align-items:center; gap:6px; justify-self:start; color:#64748b; font-size:12px; font-weight:600; text-decoration:none; }
-.md-page .md-back:hover { color:#11169b; }
-.md-page .md-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; }
-.md-page .md-eyebrow { color:#64748b; font-size:11px; font-weight:700; }
-.md-page .md-heading h1 { margin:4px 0; color:#25313c; font-size:32px; line-height:1.25; overflow-wrap:anywhere; }
-.md-page .md-heading p { margin:0; color:#64748b; font-size:13px; }
-.md-page .md-year { width:180px; flex:none; border:1px solid #dbe6ee; background:#fff; }
-.md-page .md-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
-.md-page .md-metric { padding:16px; border:1px solid #dbe6ee; border-radius:8px; background:#fff; }
-.md-page .md-metric-label { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-.md-page .md-metric-label > span { display:grid; place-items:center; width:30px; height:30px; flex:none; border-radius:6px; background:#f2f3f7; color:#11169b; }
-.md-page .md-metric-label svg { width:17px; height:17px; }
-.md-page .md-metric-label h2 { margin:0; color:#526477; font-size:12px; font-weight:600; line-height:1.4; }
-.md-page .md-metric > strong { display:block; color:#25313c; font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1.3; overflow-wrap:anywhere; }
-.md-page .md-metric p { margin:8px 0 0; color:#64748b; font-size:12px; }
-.md-page .md-metric-accent { border-color:#b9ddd1; }
-.md-page .md-metric-accent .md-metric-label > span { background:#f2f3f7; color:#11169b; }
-.md-page .md-reading { display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:16px; }
-.md-page .md-reading > div { min-width:0; padding-right:16px; border-right:1px solid #dbe6ee; }
-.md-page .md-reading > div:last-child { border:0; padding-right:0; }
-.md-page .md-reading span { display:block; color:#64748b; font-size:12px; }
-.md-page .md-reading strong { display:block; margin:4px 0; color:#334155; font-size:15px; line-height:1.4; }
-.md-page .md-reading p { margin:0; color:#64748b; font-size:12px; }
-.md-page .md-distribution-grid { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); gap:16px; }
-/* Section layout stays local, independent of shared dashboard card rules. */
-.app-shell .gp-municipality-detail.md-page .md-panel { padding:16px 0 0; border:0; border-top:1px solid #dbe6ee; border-radius:0; background:transparent; box-shadow:none; }
-.md-page .md-panel-heading { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.md-page .md-panel-heading > div { flex:1 1 200px; min-width:0; }
-.md-page .md-panel-heading h2 { margin:0 0 4px; color:#25313c; font-size:17px; line-height:1.35; }
-.md-page .md-panel-heading p { margin:0; color:#64748b; font-size:13px; line-height:1.5; }
-.md-page .md-panel-heading > .md-view-toggle { flex:0 0 auto; }
-.md-page .md-view-toggle { display:flex; gap:2px; padding:2px; border:1px solid #dbe6ee; border-radius:6px; background:#f5f8fa; }
-.md-page .md-view-toggle button { display:grid; place-items:center; width:34px; height:34px; padding:0; border:1px solid transparent; border-radius:4px; background:transparent; color:#64748b; cursor:pointer; }
-.md-page .md-view-toggle button:hover { color:#11169b; background:#f2f3f7; }
-.md-page .md-view-toggle button[aria-pressed="true"] { border-color:#11169b; background:#11169b; color:#fff; }
-.md-page :is(button,a):focus-visible { outline:3px solid #85a4f1; outline-offset:3px; }
-.md-page .md-nature-bars { display:grid; gap:16px; }
-.md-page .md-nature-row { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:6px 12px; }
-.md-page .md-nature-name { display:flex; align-items:flex-start; gap:8px; font-size:13px; font-weight:600; }
-.md-page .md-rank { display:inline-grid; place-items:center; width:22px; height:22px; flex:none; border-radius:4px; background:#edf2f5; color:#64748b; font-size:11px; font-weight:600; }
-.md-page .md-nature-amount { text-align:right; font-variant-numeric:tabular-nums; }
-.md-page .md-nature-amount strong { display:block; color:#334155; font-size:13px; }
-.md-page .md-nature-amount > span { display:block; color:#64748b; font-size:11px; }
-.md-page .md-track { height:6px; overflow:hidden; border-radius:3px; background:#edf2f5; }
-.md-page .md-track i { display:block; height:100%; border-radius:inherit; background:#7381bd; }
-.md-page .md-nature-row > .md-track { grid-column:1/-1; margin-left:30px; }
-.md-page .md-nature-row:first-child .md-track i { background:#11169b; }
-.md-page .md-origin-list { display:grid; gap:16px; }
-.md-page .md-origin > div:first-child { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.md-page .md-origin h3 { margin:0; color:#334155; font-size:13px; font-weight:600; }
-.md-page .md-origin strong { font-size:20px; color:#238267; font-variant-numeric:tabular-nums; }
-.md-page .md-origin p { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; margin:8px 0 0; font-size:12px; color:#64748b; }
-.md-page .md-origin p b { color:#334155; font-weight:600; }
-.md-page .md-footnote { margin:12px 0 0; padding-top:10px; border-top:1px solid #edf2f5; color:#64748b; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
-.md-page .md-chart-loading { display:grid; place-items:center; min-height:260px; color:#64748b; font-size:13px; }
-.md-page .md-history-controls { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
-.md-page .md-history-select { flex:1 1 260px; max-width:560px; border:1px solid #dbe6ee; background:#fff; }
-.app-shell .gp-municipality-detail.md-page :is(.md-year, .md-history-select) { border-radius:999px; }
-.app-shell .gp-municipality-detail.md-page .public-filter-trigger { height:auto; min-height:48px; padding:8px 12px; border-radius:999px; }
-.app-shell .gp-municipality-detail.md-page .public-filter-value { white-space:normal; overflow-wrap:anywhere; font-size:13px; line-height:1.4; }
-.md-page .md-history-change span { display:block; color:#64748b; font-size:11px; }
-.md-page .md-history-change strong { display:block; margin-top:2px; font-size:18px; color:#334155; font-variant-numeric:tabular-nums; }
-.md-page .md-year-values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin-bottom:12px; border-block:1px solid #edf2f5; }
-.app-shell .gp-municipality-detail.md-page .md-year-values > div { min-width:0; padding:10px 12px; border-right:1px solid #edf2f5; }
-.app-shell .gp-municipality-detail.md-page .md-year-values > div:last-child { border-right:0; }
-.md-page .md-year-values span { display:block; color:#64748b; font-size:11px; }
-.md-page .md-year-values strong { display:block; margin-top:4px; color:#334155; font-size:18px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.md-page .md-history-chart { min-width:0; min-height:260px; }
-.md-page .md-table-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
-.md-page .md-table { width:100%; border-collapse:collapse; text-align:left; font-size:13px; }
-.md-page .md-table th, .md-page .md-table td { padding:10px 12px; border-bottom:1px solid #edf2f5; vertical-align:middle; }
-.md-page .md-table thead th { background:#f5f8fa; color:#64748b; font-size:11px; font-weight:600; white-space:nowrap; }
-.md-page .md-table tbody th { color:#334155; font-weight:600; min-width:160px; }
-.md-page .md-table td { color:#526477; white-space:nowrap; font-variant-numeric:tabular-nums; }
-.md-page .md-table td:last-child, .md-page .md-table thead th:last-child { text-align:right; }
-.md-page .md-table tbody tr:last-child :is(th,td) { border-bottom:0; }
-.md-page .md-table tbody tr:hover { background:#f5f8fa; }
-.md-page .md-supplier-name { display:flex; align-items:flex-start; gap:8px; overflow-wrap:anywhere; }
-.md-page .md-supplier-name small { display:block; margin-top:3px; font-size:11px; font-weight:400; color:#64748b; }
-.md-page .md-size-badge { display:inline-flex; padding:2px 6px; border-radius:4px; color:#354b82; background:#eef2ff; font-size:11px; font-weight:600; }
-.md-page .md-information { display:grid; gap:12px; padding-top:16px; border-top:1px solid #dbe6ee; }
-.md-page .md-information > div { display:flex; align-items:center; gap:8px; color:#334155; font-size:13px; }
-.md-page .md-information dl { display:flex; flex-wrap:wrap; gap:12px 32px; margin:0; }
-.md-page .md-information dt { color:#64748b; font-size:11px; }
-.md-page .md-information dd { margin:3px 0 0; color:#334155; font-size:12px; font-weight:600; }
-.md-page .md-empty { margin:0; padding:14px; border-left:3px solid #cbd5e1; background:#f5f8fa; color:#526477; font-size:13px; line-height:1.5; }
-.md-page[aria-busy="true"] :is(.md-panel, .md-metrics, .md-reading) { opacity:.6; pointer-events:none; }
-.md-page .md-share-title { margin:0 0 10px; color:#334155; font-size:13px; }
-.md-page .md-local-share { margin-top:16px; padding-top:16px; border-top:1px solid #edf2f5; }
-@container gestor-page (max-width:1000px) {
-  .md-page .md-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .md-page .md-distribution-grid { grid-template-columns:minmax(0,1fr); }
+/*
+ * Detalhe do município (gestor público).
+ * A página usa os blocos padrão do painel (gp-page-heading, analysis-kpis,
+ * analysis-chart-card, gp-card, public-data-table, gp-empty, gp-source-note).
+ * Aqui ficam apenas os elementos exclusivos desta tela.
+ */
+
+.md-page .md-back { margin-bottom: 12px; }
+
+/* Ano da análise: mesmo seletor em pílula dos filtros do painel. */
+.md-page .md-year-filter,
+.md-page .md-nature-filter {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 4px 8px;
 }
-@media (max-width:1000px) {
-  .md-page .md-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .md-page .md-distribution-grid { grid-template-columns:minmax(0,1fr); }
+
+.md-page .md-year-filter { width: 220px; }
+.md-page .md-year-filter > .public-filter-select,
+.md-page .md-nature-filter > .public-filter-select { border-right: 0; }
+
+/* Destaques do período: segunda linha de KPIs, no grid padrão de 3 colunas. */
+.app-shell.is-gestor-publico .md-page .md-highlights { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Quando o valor é um nome (natureza), reduz o corpo para caber sem quebrar o cartão. */
+.app-shell.is-gestor-publico .md-page .analysis-kpis .md-kpi-text strong {
+  font-size: 17px;
+  line-height: 1.35;
+  text-transform: uppercase;
 }
-@media (max-width:700px) {
-  .md-page .md-heading { align-items:stretch; flex-direction:column; gap:12px; }
-  .md-page .md-year { width:100%; }
-  .md-page .md-reading { grid-template-columns:minmax(0,1fr); gap:10px; }
-  .md-page .md-reading > div { padding:0 0 10px; border-right:0; border-bottom:1px solid #dbe6ee; }
-  .md-page .md-reading > div:last-child { padding:0; }
-  .md-page .md-nature-row { grid-template-columns:minmax(0,1fr); }
-  .md-page .md-nature-amount { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; padding-left:30px; text-align:left; }
-  .md-page .md-year-values { grid-template-columns:minmax(0,1fr); }
-  .app-shell .gp-municipality-detail.md-page .md-year-values > div { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; border-right:0; border-bottom:1px solid #edf2f5; }
-  .md-page .md-year-values strong { margin:0; font-size:16px; }
-  .md-page .md-history-select { flex-basis:100%; max-width:100%; }
-  .app-shell .gp-municipality-detail.md-page .md-history-select,
-  .app-shell .gp-municipality-detail.md-page .md-history-select .public-filter-trigger { border-radius:20px; }
+
+.app-shell.is-gestor-publico .md-page .md-grid {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
 }
-@media (max-width:440px) {
-  .md-page .md-metrics { grid-template-columns:minmax(0,1fr); }
+
+.md-page .analysis-chart-card > header { flex-wrap: wrap; gap: 12px; }
+.md-page .analysis-chart-card > header > div { flex: 1 1 220px; min-width: 0; }
+.md-page .analysis-chart-card > header > .analysis-chart-controls { flex: none; margin: 0; }
+.md-page .analysis-chart-table-wrap { margin-top: 12px; }
+
+/* Barras por natureza: mesmo ritmo da lista ranqueada da visão geral. */
+.md-page .md-nature-bars { display: grid; gap: 4px; margin: 12px 0 0; padding: 0; list-style: none; }
+
+.md-page .md-nature-bars > li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.md-page .md-nature-bars > li:last-child { border-bottom: 0; }
+.md-page .md-nature-bars > li:first-child { border-radius: 8px; background: #f1f4ff; }
+
+.md-page .md-rank {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.md-page .md-nature-name {
+  min-width: 0;
+  color: var(--graphite);
+  font-size: 13px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.md-page .md-nature-amount { display: grid; justify-items: end; text-align: right; font-variant-numeric: tabular-nums; }
+.md-page .md-nature-amount strong { color: var(--brand-blue); font-size: 13px; white-space: nowrap; }
+.md-page .md-nature-amount small { color: var(--muted); font-size: 11px; }
+
+.md-page .md-track {
+  grid-column: 2 / -1;
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef2f6;
+}
+
+.md-page .md-track i { display: block; height: 100%; border-radius: inherit; background: #8a90d4; }
+.md-page .md-nature-bars > li:first-child .md-track i { background: var(--brand-blue); }
+
+/* Participação das ME: o par de rosquinhas vem do padrão analysis-share-item. */
+.md-page .md-share-comparison .gp-empty { min-height: 160px; }
+
+/* A rosquinha fica centralizada no espaço livre do bloco; título e botões
+   continuam no topo e o texto de valor no rodapé. */
+.md-page .md-share-comparison .analysis-share-chart-wrap > .local-share-chart { align-self: center; }
+
+/*
+ * Ao lado do cartão de naturezas (grade em duas colunas), o cartão de ME
+ * acompanha a altura do vizinho: os dois blocos ficam empilhados e dividem
+ * essa altura em partes iguais, sem sobrar faixa vazia no fim do cartão.
+ * Em larguras menores a grade vira uma coluna e o layout original volta.
+ */
+@container gestor-page (min-width: 961px) {
+  .md-page .md-grid > .md-share-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .md-page .md-share-card > .md-share-comparison {
+    flex: 1;
+    grid-template-columns: minmax(0, 1fr);
+    /* 1fr (mínimo = conteúdo): blocos com a mesma altura, nunca menores que o conteúdo. */
+    grid-auto-rows: 1fr;
+    align-items: stretch;
+  }
+}
+
+/* Evolução histórica. */
+.md-page .md-history-card { margin-bottom: 12px; }
+
+.md-page .md-history-toolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.md-page .md-year-values {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.md-page .md-year-values > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.md-page .md-year-values dt { color: var(--muted); font-size: 11px; }
+
+.md-page .md-year-values dd {
+  margin: 4px 0 0;
+  color: var(--brand-navy);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.md-page .md-year-values .md-variation { background: #f1f4ff; border-color: #dcdff5; }
+.md-page .md-history-chart { min-width: 0; min-height: 260px; }
+.md-page .md-chart-loading { display: grid; place-items: center; min-height: 260px; color: var(--muted); font-size: 13px; }
+
+/* Fornecedores. */
+.md-page #md-suppliers { scroll-margin-top: 96px; }
+.md-page .md-supplier-table { min-width: 760px; }
+.md-page .md-supplier-table :is(th, td):nth-child(n + 3) { text-align: right; font-variant-numeric: tabular-nums; }
+.md-page .md-supplier-table tbody th { white-space: normal; }
+.md-page .md-supplier-name { display: flex; align-items: flex-start; gap: 10px; min-width: 220px; color: var(--graphite); font-weight: 650; overflow-wrap: anywhere; }
+.md-page .md-supplier-name small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 400; }
+.md-page .md-supplier-table .gp-tag { min-height: 24px; padding: 2px 9px; font-size: 11px; }
+
+.md-page .md-secondary-grid { gap: 12px; margin-bottom: 0; }
+.md-page .md-secondary-grid > .gp-card { margin-bottom: 0; }
+
+.md-page[aria-busy="true"] :is(.analysis-kpis, .analysis-chart-card, .gp-card) { opacity: .6; pointer-events: none; transition: opacity .2s; }
+
+@container gestor-page (max-width: 1100px) {
+  .md-page .md-history-toolbar { grid-template-columns: minmax(0, 1fr); }
+}
+
+@container gestor-page (max-width: 960px) {
+  .app-shell.is-gestor-publico .md-page .md-grid { grid-template-columns: minmax(0, 1fr); }
+  .md-page .md-secondary-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@container gestor-page (max-width: 620px) {
+  .app-shell.is-gestor-publico .md-page .md-highlights { grid-template-columns: minmax(0, 1fr); }
+  .md-page .gp-heading-actions,
+  .md-page .md-year-filter { width: 100%; }
+  .md-page .md-year-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md-page .md-share-comparison { grid-template-columns: minmax(0, 1fr); }
+  .md-page .md-nature-bars > li { grid-template-columns: 24px minmax(0, 1fr); }
+  .md-page .md-nature-amount { grid-column: 2; justify-items: start; text-align: left; }
 }

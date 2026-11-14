@@ -3,19 +3,13 @@ import { NextResponse } from "next/server";
 import axios from "axios";
 import { z } from "zod";
 import { backendLogin } from "@/lib/auth/backend-sessions";
-import {
-  authCookieOptions,
-  REFRESH_COOKIE,
-  REFRESH_MAX_AGE_SECONDS,
-  SESSION_COOKIE,
-  SESSION_MAX_AGE_SECONDS,
-  sessionHomePath,
-  verifySessionToken,
-} from "@/lib/auth/session";
+import { setAuthCookies } from "@/lib/auth/auth-cookies";
+import { sessionHomePath, verifySessionToken } from "@/lib/auth/session";
 
 const bodySchema = z.object({
   email: z.email("E-mail inválido"),
   password: z.string().min(1, "Senha é obrigatória"),
+  remember: z.boolean().optional().default(false),
 });
 
 export async function POST(request: Request) {
@@ -37,15 +31,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const cookieStore = await cookies();
-    cookieStore.set(SESSION_COOKIE, tokens.token, {
-      ...authCookieOptions,
-      maxAge: SESSION_MAX_AGE_SECONDS,
-    });
-    cookieStore.set(REFRESH_COOKIE, tokens.refreshToken, {
-      ...authCookieOptions,
-      maxAge: REFRESH_MAX_AGE_SECONDS,
-    });
+    setAuthCookies(await cookies(), tokens, parsed.data.remember);
 
     return NextResponse.json({
       role: session.role,
