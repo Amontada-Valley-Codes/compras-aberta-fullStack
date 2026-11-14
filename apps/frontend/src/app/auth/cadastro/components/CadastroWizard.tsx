@@ -64,9 +64,11 @@ const RegisterIllustration = () => (
 
 interface CadastroWizardProps {
   initialProfile: Profile | null
+  /** Veio da página inicial: o "Voltar" leva de volta ao início, não ao login. */
+  fromHome?: boolean
 }
 
-export const CadastroWizard = ({ initialProfile }: CadastroWizardProps) => {
+export const CadastroWizard = ({ initialProfile, fromHome = false }: CadastroWizardProps) => {
   const [profile, setProfile] = useState<Profile | null>(initialProfile)
   // Os dados dos dois fluxos ficam aqui: trocar de perfil (ou voltar para a
   // escolha) não apaga o que já foi preenchido, inclusive os arquivos.
@@ -88,7 +90,12 @@ export const CadastroWizard = ({ initialProfile }: CadastroWizardProps) => {
     setProfile(next)
     // Mantém o perfil na URL (recarregar ou compartilhar o link abre no mesmo
     // fluxo) sem criar uma entrada nova no histórico.
-    window.history.replaceState(null, '', next ? `/auth/cadastro?perfil=${next}` : '/auth/cadastro')
+    // A origem também é mantida, para o "Voltar" continuar certo após recarregar.
+    const params = new URLSearchParams()
+    if (next) params.set('perfil', next)
+    if (fromHome) params.set('origem', 'inicio')
+    const query = params.toString()
+    window.history.replaceState(null, '', query ? `/auth/cadastro?${query}` : '/auth/cadastro')
   }
 
   const header = HEADERS[profile ?? 'escolha']
@@ -108,9 +115,9 @@ export const CadastroWizard = ({ initialProfile }: CadastroWizardProps) => {
             <AccountCreated email={sentTo} />
           ) : (
             <>
-              <Link href='/auth/login' className='auth-back'>
+              <Link href={fromHome ? '/' : '/auth/login'} className='auth-back'>
                 <ChevronLeft size={18} />
-                Voltar para o Login
+                {fromHome ? 'Voltar' : 'Voltar para o Login'}
               </Link>
 
               <h1>{header.title}</h1>

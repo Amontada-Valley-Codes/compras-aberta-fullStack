@@ -12,6 +12,7 @@ import {
   GESTOR_PUBLICO_YEARS, getDashboardData, getNatureOptions, getSupplierSummaries, natureName, type GestorPublicFilters, type MunicipalitySummary, type SupplierSummary,
 } from "./gestor-publico-data";
 import { useMunicipalitySummaries } from "./use-gestor-public-data";
+import { AnalysisCard, Card, EmptyState, PageHeader, PublicKpi } from "./GestorPublicoUI";
 
 const currency = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const number = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 0 });
@@ -19,17 +20,7 @@ const pct = (value: number) => `${value.toLocaleString("pt-BR", { maximumFractio
 
 export const DEFAULT_GESTOR_FILTERS: GestorPublicFilters = { municipalities: [], year: GESTOR_PUBLICO_YEARS[0], nature: "" };
 
-export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: string; title: string; description: string; actions?: React.ReactNode }) {
-  return <header className="gp-page-heading"><div>{eyebrow && <span className="gp-eyebrow">{eyebrow}</span>}<h1>{title}</h1><p>{description}</p></div>{actions && <div className="gp-heading-actions">{actions}</div>}</header>;
-}
-
-export function Card({ title, description, children, className = "", actions }: { title: string; description?: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }) {
-  return <section className={`gp-card ${className}`}><header><div><h2>{title}</h2>{description && <p>{description}</p>}</div>{actions}</header>{children}</section>;
-}
-
-function EmptyState({ children }: { children: React.ReactNode }) {
-  return <div className="gp-empty" role="status"><Info size={19} /><span>{children}</span></div>;
-}
+export { PageHeader, Card };
 
 function csvCell(value: string | number): string {
   const text = String(value).replace(/"/g, '""');
@@ -46,14 +37,6 @@ function PublicDashboardFilters({ filters, onChange }: { filters: GestorPublicFi
       <PublicFilterSelect name="natureza" label="Natureza da despesa" allLabel="Todas as naturezas" icon="nature" variant="analysis" value={filters.nature} options={getNatureOptions(summaries).map((item) => ({ value: item.code, label: item.label }))} onValueChange={(value) => onChange({ ...filters, nature: value as GestorPublicFilters["nature"] })} />
     </div>
   </section>;
-}
-
-function PublicKpi({ icon, label, value, detail, accent = false }: { icon: React.ReactNode; label: string; value: string; detail: string; accent?: boolean }) {
-  return <article className={accent ? "accent" : ""}><div><span>{icon}</span><small>{label}</small></div><strong>{value}</strong><p>{detail}</p></article>;
-}
-
-function AnalysisCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
-  return <article className="analysis-chart-card"><header><div><h2>{title}</h2><p>{description}</p></div></header>{children}</article>;
 }
 
 function DashboardLoadingSkeleton() {

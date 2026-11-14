@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { backendLogout } from "@/lib/auth/backend-sessions";
+import { clearAuthCookies, REMEMBER_COOKIE } from "@/lib/auth/auth-cookies";
 import { REFRESH_COOKIE, SESSION_COOKIE } from "@/lib/auth/session";
 
 export async function POST(request: Request) {
@@ -8,8 +9,7 @@ export async function POST(request: Request) {
   const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value;
 
   // Encerra a sessão nos cookies locais imediatamente
-  cookieStore.delete(SESSION_COOKIE);
-  cookieStore.delete(REFRESH_COOKIE);
+  clearAuthCookies(cookieStore);
 
   if (refreshToken) {
     try {
@@ -26,6 +26,7 @@ export async function POST(request: Request) {
   const response = NextResponse.json({ ok: true });
   response.cookies.delete(SESSION_COOKIE);
   response.cookies.delete(REFRESH_COOKIE);
+  response.cookies.delete(REMEMBER_COOKIE);
 
   return response;
 }

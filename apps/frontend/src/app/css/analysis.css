@@ -457,6 +457,20 @@
 .analysis-share-chart-wrap {
   min-width: 0;
 }
+.analysis-share-item > .analysis-share-chart-wrap {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-content: start;
+  justify-self: stretch;
+}
+.analysis-share-item > .analysis-share-chart-wrap > .analysis-chart-controls {
+  justify-content: center;
+}
+.analysis-share-item > .analysis-share-chart-wrap > .analysis-chart-table-wrap {
+  align-self: start;
+  width: 100%;
+  text-align: left;
+}
 .chart-legend-note {
   display: flex;
   align-items: center;
@@ -707,6 +721,11 @@
 }
 .analysis-share-item {
   display: grid;
+  /* Título e controles fixos no topo, gráfico/tabela absorvem a sobra e o
+     texto de valor fica no rodapé: alternar Gráfico/Tabela em um cartão não
+     desloca os botões em relação ao cartão vizinho, mesmo com alturas iguais. */
+  grid-template-rows: auto 1fr auto;
+  align-content: stretch;
   justify-items: center;
   min-width: 0;
   padding: 12px 10px 10px;
