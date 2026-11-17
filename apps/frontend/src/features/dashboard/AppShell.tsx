@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type FocusEvent, type ReactNode, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -30,6 +30,80 @@ function useSessionKeepAlive() {
     }, SESSION_REFRESH_INTERVAL_MS);
     return () => window.clearInterval(id);
   }, []);
+}
+
+// Mesma chave usada no login para o "Lembrar-me" (app/components/auth/login.tsx).
+const REMEMBERED_EMAIL_KEY = "compras-abertas:login-email";
+
+// Expansão por hover da sidebar recolhida: pequenos atrasos evitam que ela
+// abra só por passar o mouse de raspão ou feche ao sair por um instante.
+const SIDEBAR_PEEK_OPEN_DELAY_MS = 120;
+const SIDEBAR_PEEK_CLOSE_DELAY_MS = 220;
+// Só em telas largas com mouse; no celular a sidebar é a gaveta do menu.
+const SIDEBAR_PEEK_MEDIA = "(hover: hover) and (pointer: fine) and (min-width: 901px)";
+
+function useSidebarPeek(enabled: boolean) {
+  const [open, setOpen] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  const schedule = (next: boolean, delay: number) => {
+    window.clearTimeout(timer.current);
+    if (next && (!enabled || !window.matchMedia(SIDEBAR_PEEK_MEDIA).matches)) return;
+    timer.current = window.setTimeout(() => setOpen(next), delay);
+  };
+
+  // Mantém aberta agora (mouse já está sobre a sidebar); fecha no mouseleave.
+  const hold = useCallback(() => {
+    window.clearTimeout(timer.current);
+    setOpen(true);
+  }, []);
+
+  return {
+    open: enabled && open,
+    hold,
+    reset: () => {
+      window.clearTimeout(timer.current);
+      setOpen(false);
+    },
+    handlers: {
+      onMouseEnter: () => schedule(true, SIDEBAR_PEEK_OPEN_DELAY_MS),
+      onMouseLeave: () => schedule(false, SIDEBAR_PEEK_CLOSE_DELAY_MS),
+      // Teclado: ao focar um item da sidebar recolhida ela também se expande.
+      onFocus: () => schedule(true, 0),
+      onBlur: (event: FocusEvent<HTMLElement>) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) schedule(false, 0);
+      },
+    },
+  };
+}
+
+// Apresentação ao entrar/recarregar: a sidebar aparece aberta e recolhe
+// sozinha depois desse tempo, mostrando que ela existe e abre no hover.
+const SIDEBAR_INTRO_DELAY_MS = 1200;
+
+function useSidebarIntro({ enabled, asideRef, holdPeek, collapse }: {
+  enabled: boolean;
+  asideRef: RefObject<HTMLElement | null>;
+  holdPeek: () => void;
+  collapse: () => void;
+}) {
+  const timer = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (!enabled || !window.matchMedia(SIDEBAR_PEEK_MEDIA).matches) return;
+    timer.current = window.setTimeout(() => {
+      // Se o mouse estiver sobre a sidebar nesse momento, ela continua aberta
+      // até ele sair, em vez de fechar debaixo do cursor.
+      if (asideRef.current?.matches(":hover")) holdPeek();
+      collapse();
+    }, SIDEBAR_INTRO_DELAY_MS);
+    return () => window.clearTimeout(timer.current);
+  }, [enabled, asideRef, holdPeek, collapse]);
+
+  // Se o usuário mexer no botão do topo antes, a escolha dele prevalece.
+  return () => window.clearTimeout(timer.current);
 }
 
 export type NavItem = {
@@ -67,10 +141,22 @@ export function AppShell({
   const hasCollapsibleSidebar = true;
   const router = useRouter();
   const { profile } = useUserProfile({ skip: isPublicManager });
+  const sidebarPeek = useSidebarPeek(hasCollapsibleSidebar && sidebarCollapsed);
+  // Recolhida de verdade só quando o usuário escolheu recolher e o mouse
+  // (ou o foco) não está sobre ela; ao expandir, o conteúdo é empurrado.
+  const collapsed = hasCollapsibleSidebar && sidebarCollapsed && !sidebarPeek.open;
+  const asideRef = useRef<HTMLElement>(null);
+  const collapseSidebar = useCallback(() => setSidebarCollapsed(true), []);
+  const cancelSidebarIntro = useSidebarIntro({
+    enabled: hasCollapsibleSidebar,
+    asideRef,
+    holdPeek: sidebarPeek.hold,
+    collapse: collapseSidebar,
+  });
 
-  const companyName = profile?.business?.nome_empresa || (isAdmin ? "Administração" : isPublicManager ? "Gestor público" : "Minha Empresa");
+  const companyName = profile?.business?.nome_empresa || "Minha Empresa";
+  const companyAvatar = getInitials(profile?.business?.nome_empresa, "ME");
   const userName = userNameOverride || profile?.name || (isAdmin ? "Administrador" : isPublicManager ? "Gestor público" : "Responsável Legal");
-  const companyAvatar = isAdmin ? "CA" : isPublicManager ? "GP" : getInitials(profile?.business?.nome_empresa, "ME");
   const userAvatar = isAdmin ? "CM" : isPublicManager ? "GP" : getInitials(profile?.name, "US");
 
   useSessionKeepAlive();
@@ -86,8 +172,11 @@ export function AppShell({
 
     try {
       try {
+        // Preserva só o e-mail do "Lembrar-me" (login.tsx); o resto é limpo.
+        const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
         localStorage.clear();
         sessionStorage.clear();
+        if (rememberedEmail) localStorage.setItem(REMEMBERED_EMAIL_KEY, rememberedEmail);
       } catch {
         // ignore
       }
@@ -113,12 +202,14 @@ export function AppShell({
   };
 
   return (
-    <div className={`app-shell is-${role} ${hasCollapsibleSidebar ? "has-collapsible-sidebar" : ""} ${hasCollapsibleSidebar && sidebarCollapsed ? "is-sidebar-collapsed" : ""}`}>
+    <div className={`app-shell is-${role} ${hasCollapsibleSidebar ? "has-collapsible-sidebar" : ""} ${collapsed ? "is-sidebar-collapsed" : ""} ${sidebarPeek.open ? "is-sidebar-peek" : ""}`}>
       <aside
+        ref={asideRef}
         className={`app-sidebar ${mobileOpen ? "is-open" : ""}`}
+        {...sidebarPeek.handlers}
       >
         <div className="sidebar-head">
-          <BrandLogo href="/" compact={hasCollapsibleSidebar && sidebarCollapsed} />
+          <BrandLogo href="/" compact={collapsed} />
           <button
             className="icon-button sidebar-close"
             onClick={() => setMobileOpen(false)}
@@ -128,13 +219,6 @@ export function AppShell({
           </button>
         </div>
 
-        <div className="workspace-switcher">
-          <span className="workspace-avatar">{companyAvatar}</span>
-          <span>
-            <small>{isAdmin ? "AMBIENTE" : isPublicManager ? "AMBIENTE" : "MINHA EMPRESA"}</small>
-            <strong>{companyName}</strong>
-          </span>
-        </div>
 
         <nav className="sidebar-nav" aria-label="Navegação do painel">
           <small className="nav-group-label">MENU PRINCIPAL</small>
@@ -143,7 +227,7 @@ export function AppShell({
               className={active === item.id ? "active" : ""}
               key={item.id}
               aria-label={item.label}
-              title={hasCollapsibleSidebar && sidebarCollapsed ? item.label : undefined}
+              title={collapsed ? item.label : undefined}
               onClick={() => navigate(item.id)}
             >
               {item.icon}
@@ -152,6 +236,17 @@ export function AppShell({
             </button>
           ))}
         </nav>
+
+        {/* Empresa do usuário (só no painel da ME), logo acima do responsável. */}
+        {role === "me" && (
+          <div className="workspace-switcher is-footer">
+            <span className="workspace-avatar">{companyAvatar}</span>
+            <span>
+              <small>MINHA EMPRESA</small>
+              <strong>{companyName}</strong>
+            </span>
+          </div>
+        )}
 
         <div className="sidebar-user">
           <span className="user-avatar">{userAvatar}</span>
@@ -182,7 +277,11 @@ export function AppShell({
           {hasCollapsibleSidebar && (
             <button
               className="icon-button topbar-sidebar-toggle"
-              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+              onClick={() => {
+                cancelSidebarIntro();
+                sidebarPeek.reset();
+                setSidebarCollapsed((current) => !current);
+              }}
               aria-label={sidebarCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
               aria-expanded={!sidebarCollapsed}
               title={sidebarCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
