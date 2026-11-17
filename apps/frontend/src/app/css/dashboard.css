@@ -46,6 +46,14 @@
   align-items: center;
   gap: 10px;
 }
+/* No rodapé da sidebar, acima do responsável: o quadro da empresa é que
+   empurra o bloco para baixo, e o usuário fica colado logo abaixo dele. */
+.workspace-switcher.is-footer {
+  margin: auto 0 12px;
+}
+.workspace-switcher.is-footer + .sidebar-user {
+  margin-top: 0;
+}
 .workspace-avatar,
 .user-avatar {
   width: 36px;
