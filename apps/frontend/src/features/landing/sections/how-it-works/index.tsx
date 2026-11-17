@@ -17,51 +17,46 @@ const processBlocks: ProcessBlock[] = [
     variant: "manager",
     steps: [
       {
-        title: "Receba o acesso do administrador",
-        description: "O administrador da plataforma vincula o município e libera o acesso para a equipe responsável.",
-      },
-      {
-        title: "Confirme seus dados",
-        description: "Confira os dados do órgão e os documentos compartilhados pelo administrador responsável.",
-      },
-      {
-        title: "Acompanhe a análise",
-        description: "A equipe do Compras Abertas verificará as informações e os documentos enviados.",
-      },
-      {
-        title: "Consulte o resultado",
-        description: "A solicitação poderá aparecer como em análise, aprovada, recusada ou aguardando correção.",
+        title: "Preencha seus dados",
+        description:
+          "Informe os dados solicitados no cadastro de Gestor Público e identifique seu município.",
       },
       {
         title: "Acesse a plataforma",
-        description: "Após a aprovação, consulte os dados e recursos disponíveis para apoiar o planejamento e as decisões.",
+        description:
+          "Após concluir o cadastro, seu acesso à plataforma é liberado.",
+      },
+      {
+        title: "Explore os recursos disponíveis",
+        description:
+          "Consulte receitas, despesas, licitações, contratos, fornecedores e indicadores municipais.",
       },
     ],
   },
   {
-    eyebrow: "Empresas",
-    title: "COMO FUNCIONA PARA AS EMPRESAS",
+    eyebrow: "Microempresa",
+    title: "COMO FUNCIONA PARA A MICROEMPRESA",
     variant: "business",
     steps: [
       {
-        title: "Solicite seu cadastro",
-        description: "Informe os dados da empresa e do responsável pelo acesso.",
+        title: "Preencha os dados da empresa",
+        description:
+          "Informe os dados da empresa e do responsável pelo acesso à plataforma.",
       },
       {
-        title: "Envie os documentos",
-        description: "Anexe os documentos empresariais exigidos no processo de cadastro.",
+        title: "Realize o pagamento",
+        description:
+          "Escolha a assinatura mensal e conclua o pagamento para contratar o plano.",
       },
       {
-        title: "Aguarde a verificação",
-        description: "A equipe do Compras Abertas analisará os dados e confirmará se a empresa atende aos requisitos da plataforma.",
-      },
-      {
-        title: "Acompanhe o resultado",
-        description: "Consulte se a solicitação está em análise, aprovada, recusada ou aguardando correção.",
+        title: "Receba seu acesso automaticamente",
+        description:
+          "Após a confirmação do pagamento, seu acesso à plataforma é liberado automaticamente.",
       },
       {
         title: "Encontre oportunidades",
-        description: "Depois da aprovação, acesse licitações, históricos de compras, comparativos, prazos e alertas personalizados.",
+        description:
+          "Consulte licitações, receba alertas personalizados e explore históricos de compras e informações dos municípios.",
       },
     ],
   },
@@ -70,34 +65,37 @@ const processBlocks: ProcessBlock[] = [
 function ProcessSteps({ steps }: { steps: ProcessStep[] }) {
   return (
     <ol className="how-it-works-steps">
-      {steps.map((step, index) => {
-        return (
-          <li className="how-it-works-step" key={step.title}>
-            <span className="how-it-works-step-marker" aria-hidden="true">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <div>
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
-            </div>
-          </li>
-        );
-      })}
+      {steps.map((step, index) => (
+        <li className="how-it-works-step" key={step.title}>
+          <span className="how-it-works-step-marker" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <div>
+            <h3>{step.title}</h3>
+            <p>{step.description}</p>
+          </div>
+        </li>
+      ))}
     </ol>
   );
 }
 
 function ProcessBlockView({ block }: { block: ProcessBlock }) {
-  const isManager = block.variant === "manager";
-
   return (
-    <article className={`how-it-works-block how-it-works-block--${block.variant}`}>
+    <article
+      className={`how-it-works-block how-it-works-block--${block.variant}`}
+    >
       <div className="public-container how-it-works-grid">
         <div className="how-it-works-heading" data-aos="fade-up">
           <p className="how-it-works-eyebrow">{block.eyebrow}</p>
           <h2>{block.title}</h2>
         </div>
-        <div className="how-it-works-content" data-aos="fade-up" data-aos-delay="120">
+
+        <div
+          className="how-it-works-content"
+          data-aos="fade-up"
+          data-aos-delay="120"
+        >
           <ProcessSteps steps={block.steps} />
         </div>
       </div>
@@ -107,10 +105,15 @@ function ProcessBlockView({ block }: { block: ProcessBlock }) {
 
 export function HowItWorksSection() {
   return (
-    <section className="how-it-works-section" id="como-funciona" aria-labelledby="how-it-works-title">
+    <section
+      className="how-it-works-section"
+      id="como-funciona"
+      aria-labelledby="how-it-works-title"
+    >
       <h2 className="sr-only" id="how-it-works-title">
         Como funciona o acesso ao Compras Abertas
       </h2>
+
       {processBlocks.map((block) => (
         <ProcessBlockView block={block} key={block.variant} />
       ))}

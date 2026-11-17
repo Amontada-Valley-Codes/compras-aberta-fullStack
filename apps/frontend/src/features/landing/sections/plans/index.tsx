@@ -33,7 +33,7 @@ const plans: Plan[] = [
   {
     id: "portal",
     title: "Portal Público",
-    price: { value: "R$ 00,00" },
+    price: { value: "Gratuito" },
     description:
       "Para cidadãos que desejam acompanhar como os recursos públicos são utilizados.",
     benefits: [

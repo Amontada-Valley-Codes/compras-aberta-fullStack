@@ -1,8 +1,14 @@
+import Image from "next/image";
 const FullLogo = () => {
   return (
-    <span className="text-xl font-bold text-link dark:text-white whitespace-nowrap">
-      Compras Abertas
-    </span>
+    <Image
+      src="/logos/logo-horizontal.webp"
+      alt="Compras Abertas"
+      width={180}
+      height={74}
+      priority
+      className="h-auto w-full max-w-[180px] object-contain"
+    />
   );
 };
 
