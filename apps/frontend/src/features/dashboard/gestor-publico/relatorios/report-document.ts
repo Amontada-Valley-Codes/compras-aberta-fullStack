@@ -13,6 +13,9 @@ export interface ReportKpi {
   detail?: string;
 }
 
+// Cor de uma série nos gráficos (cada porte de empresa tem a sua).
+export type ReportTone = "primary" | "gold" | "slate" | "light";
+
 export interface ReportColumn {
   label: string;
   // Largura relativa: as colunas dividem a largura da página nessa proporção.
@@ -25,14 +28,22 @@ export type ReportBlock =
   | { kind: "list"; items: string[] }
   | { kind: "kpis"; items: ReportKpi[] }
   | { kind: "table"; title?: string; columns: ReportColumn[]; rows: string[][]; total?: string[]; emptyText: string }
-  | { kind: "bars"; title?: string; items: Array<{ label: string; value: number; display: string }>; emptyText: string }
+  | { kind: "bars"; title?: string; items: Array<{ label: string; value: number; display: string; tone?: ReportTone }>; emptyText: string }
+  // Barra 100% por linha, dividida em séries (ex.: ME, EPP e demais).
+  | {
+      kind: "stacked";
+      title?: string;
+      legend: Array<{ label: string; tone: ReportTone }>;
+      items: Array<{ label: string; segments: number[]; display: string }>;
+      emptyText: string;
+    }
   | { kind: "note"; text: string };
 
 export interface ReportSection {
   title: string;
   description?: string;
+  // Começa a seção numa folha nova (só nos formatos paginados).
   pageBreakBefore?: boolean;
-  hideTitle?: boolean;
   blocks: ReportBlock[];
 }
 

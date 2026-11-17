@@ -162,5 +162,13 @@ export const paymentSuppliersQuerySchema = paymentsSummaryQuerySchema.extend({
   limit,
   offset,
 });
+// EPP e demais empresas no ano civil completo (a rota não recebe natureza nem
+// coleta). Sem categoria, a API devolve as duas.
+export const otherSizesPaymentsQuerySchema = z.object({
+  codigo_municipio: z.string().trim().length(3),
+  ano,
+  categoria_porte: z.enum(["EPP", "DEMAIS", "03", "05"]).optional(),
+});
 export type PaymentsSummaryDTO = z.infer<typeof paymentsSummaryQuerySchema>;
+export type OtherSizesPaymentsDTO = z.infer<typeof otherSizesPaymentsQuerySchema>;
 export type PaymentSuppliersDTO = z.infer<typeof paymentSuppliersQuerySchema>;

@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     });
     return Response.json(report, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    if (error instanceof ReportDataError) return fail(502, error.message);
+    if (error instanceof ReportDataError) return fail(error.status, error.message);
     console.error("Falha ao montar o relatório do gestor", error);
     return fail(500, "Não foi possível montar o relatório agora. Tente novamente em instantes.");
   }

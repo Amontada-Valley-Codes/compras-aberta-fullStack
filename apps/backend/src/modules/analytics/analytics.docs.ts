@@ -1,12 +1,14 @@
 import { paymentResponses } from "./payments.responses";
 import {
   badGatewayResponse,
+  errorResponse,
   field,
   object,
   toJsonSchema,
   validationErrorResponse,
 } from "../../docs/helpers";
 import {
+  otherSizesPaymentsQuerySchema,
   paymentsSummaryQuerySchema,
   paymentSuppliersQuerySchema,
   getMicroenterpriseIndicatorQuerySchema,
@@ -25,6 +27,12 @@ const upstreamNote = [
 ].join("\n");
 
 const errors = { 400: validationErrorResponse, 502: badGatewayResponse };
+const notFound = {
+  404: errorResponse(
+    "Não há apuração de pagamentos concluída para o município e o ano (mensagem repassada da API de dados).",
+    "Nenhuma apuração de pagamentos concluída para esse município/ano",
+  ),
+};
 
 const pagination = {
   limit: field.integer("Limite aplicado à consulta.", 100),
@@ -331,11 +339,17 @@ export const paymentsSummaryDocs = {
   tags, summary: "Resumo de pagamentos por natureza",
   description: "Pagamentos efetivos da Prefeitura nas sete naturezas, total de controle e subtotal ME. Inclui metadados da coleta e pendências." + upstreamNote,
   querystring: toJsonSchema(paymentsSummaryQuerySchema),
-  response: { 200: paymentResponses.summary, ...errors },
+  response: { 200: paymentResponses.summary, ...errors, ...notFound },
 };
 export const paymentSuppliersDocs = {
   tags, summary: "Pagamentos por fornecedor e natureza",
   description: "Por padrão retorna ME. categoria_porte vazio inclui todas as categorias. Use coleta_id do resumo para manter a mesma coleta." + upstreamNote,
   querystring: toJsonSchema(paymentSuppliersQuerySchema),
-  response: { 200: paymentResponses.suppliers, ...errors },
+  response: { 200: paymentResponses.suppliers, ...errors, ...notFound },
+};
+export const otherSizesPaymentsDocs = {
+  tags, summary: "Pagamentos a EPP e demais empresas",
+  description: "Pagamentos a empresas de pequeno porte (porte 03) e demais empresas (porte 05) no ano civil completo: resumo por porte, valores do município e evolução mensal. ME, CPF, documentos inválidos e porte não informado ficam de fora. Não recebe natureza nem coleta." + upstreamNote,
+  querystring: toJsonSchema(otherSizesPaymentsQuerySchema),
+  response: { 200: paymentResponses.otherSizes, ...errors, ...notFound },
 };
