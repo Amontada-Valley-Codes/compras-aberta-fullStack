@@ -20,9 +20,9 @@ export const metadata: Metadata = {
   description:
     "Oportunidades públicas, dados transparentes e desenvolvimento para a economia local.",
   icons: {
-    icon: "/logos/logo-symbol.png",
-    shortcut: "/logos/logo-symbol.png",
-    apple: "/logos/logo-symbol.png",
+    icon: "/logos/logo-symbol.webp",
+    shortcut: "/logos/logo-symbol.webp",
+    apple: "/logos/logo-symbol.webp",
   },
 };
 
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" data-scroll-behavior="smooth" className={inter.variable}>
       <head>
-        <link rel="icon" href="/logos/logo-symbol.png" type="image/png" />
+        <link rel="icon" href="/logos/logo-symbol.webp" type="image/webp" />
       </head>
       <body className={inter.className}>
         <QueryProvider>

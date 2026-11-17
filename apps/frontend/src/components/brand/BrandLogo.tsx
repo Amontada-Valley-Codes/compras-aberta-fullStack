@@ -12,6 +12,12 @@ export function BrandLogo({
   inverse = false,
   href = "/",
 }: BrandLogoProps) {
+  const logoSrc = compact
+    ? "/logos/logo-symbol.webp"
+    : inverse
+      ? "/logos/logo-horizontal-light-preview.webp"
+      : "/logos/logo-horizontal.webp";
+
   return (
     <Link
       className={`brand-logo ${compact ? "is-compact" : ""} ${inverse ? "is-inverse" : ""}`}
@@ -19,7 +25,7 @@ export function BrandLogo({
       aria-label="Compras Abertas — início"
     >
       <Image
-        src={compact ? "/logos/logo-symbol.png" : "/logos/logo-horizontal.png"}
+        src={logoSrc}
         width={compact ? 48 : 154}
         height={compact ? 48 : 77}
         sizes={compact ? "48px" : "154px"}

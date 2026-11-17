@@ -2,7 +2,7 @@ import type { ReportImage } from "./report-layout";
 
 // Logo do cabeçalho dos arquivos. O PNG original tem muita margem
 // transparente: recorta pelo conteúdo e reduz para um tamanho leve.
-const LOGO_URL = "/logos/logo-horizontal.png";
+const LOGO_URL = "/logos/logo-horizontal.webp";
 const LOGO_MAX_WIDTH = 900;
 
 let logo: Promise<ReportImage | null> | null = null;
