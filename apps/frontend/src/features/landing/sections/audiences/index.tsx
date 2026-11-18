@@ -149,7 +149,7 @@ export function AudiencesSection() {
             Compare municípios, filtre por ano e tipo de compra e encontre os
             dados que ajudam a entender o cenário das compras públicas.
           </p>
-          <Link className="audiences-story-link" href="/auth/cadastro">
+          <Link className="audiences-story-link" href="/auth/cadastro?origem=inicio">
             Faça Seu Cadastro
           </Link>
         </aside>

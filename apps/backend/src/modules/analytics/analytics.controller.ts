@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 import {
+  otherSizesPaymentsQuerySchema,
   paymentsSummaryQuerySchema,
   municipalityCatalogQuerySchema,
   paymentSuppliersQuerySchema,
@@ -25,6 +26,10 @@ const analyticsController = {
   async listPaymentSuppliers(request: FastifyRequest, reply: FastifyReply) {
     const filters = paymentSuppliersQuerySchema.parse(request.query);
     return reply.status(200).send(await analyticsService.listPaymentSuppliers(filters));
+  },
+  async getOtherSizesPayments(request: FastifyRequest, reply: FastifyReply) {
+    const filters = otherSizesPaymentsQuerySchema.parse(request.query);
+    return reply.status(200).send(await analyticsService.getOtherSizesPayments(filters));
   },
   async listDetailedBids(request: FastifyRequest, reply: FastifyReply) {
     const filters = listDetailedBidsQuerySchema.parse(request.query);

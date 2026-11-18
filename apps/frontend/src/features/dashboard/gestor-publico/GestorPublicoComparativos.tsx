@@ -4,13 +4,14 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as Select from "@radix-ui/react-select";
 import type { ApexOptions } from "apexcharts";
-import { ArrowLeftRight, BarChart3, Check, ChevronDown, ChevronUp, Info, MapPinned, RefreshCw, Table2, X } from "lucide-react";
+import { ArrowLeftRight, BarChart3, Building2, Check, ChevronDown, ChevronUp, CircleDollarSign, Info, MapPinned, RefreshCw, Store, Table2, X } from "lucide-react";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { brandTokens } from "@/design-system/tokens";
 import {
   GESTOR_PUBLICO_YEARS, getNatureOptions, natureName, type MunicipalitySummary, type NatureCode,
 } from "./gestor-publico-data";
 import "./comparativos.css";
+import { PublicKpi } from "./GestorPublicoUI";
 import { useMunicipalitySummaries } from "./use-gestor-public-data";
 
 // Comparativo entre municípios com valores consultados na API de pagamentos.
@@ -488,12 +489,12 @@ export function GestorPublicoComparativos({ initialMunicipalities = [] }: { init
         </section>
       ) : (
         <>
-          <dl className="gp-cmp-summary" aria-label="Totais dos municípios selecionados">
-            <div><dt>Municípios comparados</dt><dd>{rows.length}<small>{year} · {nature ? NATURE_SHORT[nature] ?? natureName(nature) : "Todas as naturezas"}</small></dd></div>
-            <div><dt>Total pago</dt><dd>{currency(selectedTotal)}<small>Municípios selecionados</small></dd></div>
-            <div><dt>Pago a ME</dt><dd>{currency(selectedMpe)}<small>{selectedTotal ? pct(selectedMpe / selectedTotal * 100) : "Sem base percentual"}{selectedTotal ? " do total selecionado" : ""}</small></dd></div>
-            <div><dt>Pago a ME locais</dt><dd>{currency(selectedLocal)}<small>{selectedTotal ? pct(selectedLocal / selectedTotal * 100) : "Sem base percentual"}{selectedTotal ? " do total selecionado" : ""}</small></dd></div>
-          </dl>
+          <section className="analysis-kpis gp-kpis-4" aria-label="Totais dos municípios selecionados">
+            <PublicKpi icon={<Building2 />} label="Quantos municípios estão sendo comparados?" value={String(rows.length)} detail={`${year} · ${nature ? NATURE_SHORT[nature] ?? natureName(nature) : "Todas as naturezas"}`} />
+            <PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago no total?" value={currency(selectedTotal)} detail="Soma dos municípios selecionados" />
+            <PublicKpi icon={<Store />} label="Quanto foi pago a ME?" value={currency(selectedMpe)} detail={selectedTotal ? `${pct(selectedMpe / selectedTotal * 100)} do total selecionado` : "Sem base percentual"} accent />
+            <PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" value={currency(selectedLocal)} detail={selectedTotal ? `${pct(selectedLocal / selectedTotal * 100)} do total selecionado` : "Sem base percentual"} />
+          </section>
           <div className="gp-cmp-toolbar">
             {/* A chave refaz a animação de entrada quando a frase muda. */}
             <p className="gp-cmp-leader" key={`${leader?.id}-${indicatorKey}-${year}-${nature}`}>{leaderText}</p>

@@ -63,6 +63,10 @@
 .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-user > span:nth-child(2) {
   display: none;
 }
+/* Recolhida, o quadro da empresa some; o usuário volta a ser empurrado para o fim. */
+.app-shell.has-collapsible-sidebar.is-sidebar-collapsed .workspace-switcher.is-footer + .sidebar-user {
+  margin-top: auto;
+}
 .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button {
   justify-content: center;
   padding-inline: 0;
@@ -96,6 +100,9 @@
   .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .workspace-switcher {
     display: flex;
   }
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .workspace-switcher.is-footer + .sidebar-user {
+    margin-top: 0;
+  }
   .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head {
     height: 51px;
     justify-content: flex-start;
@@ -117,6 +124,64 @@
   .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-user {
     justify-content: flex-start;
     padding-inline: 8px;
+  }
+}
+
+/*
+ * Expansão suave (botão do topo ou hover na sidebar recolhida).
+ * - A largura da sidebar e o deslocamento do conteúdo já transitam juntos.
+ * - Ícones e avatar ficam na mesma posição horizontal nos dois estados, então
+ *   não "pulam" para o lado; só crescem/diminuem.
+ * - Os textos entram com um fade curto em vez de aparecerem de uma vez.
+ */
+@media (min-width: 901px) {
+  .app-shell.has-collapsible-sidebar .app-sidebar {
+    overflow-x: hidden;
+    transition: width .3s ease, padding .3s ease, transform .25s ease;
+  }
+  .app-shell.has-collapsible-sidebar .app-main {
+    transition: width .3s ease, margin-left .3s ease;
+  }
+  .app-shell.has-collapsible-sidebar :is(.sidebar-nav button span, .nav-group-label, .sidebar-user > span:nth-child(2)) {
+    white-space: nowrap;
+  }
+  .app-shell.has-collapsible-sidebar .sidebar-nav button {
+    transition: padding .3s ease, background-color .15s ease, color .15s ease;
+  }
+  .app-shell.has-collapsible-sidebar .sidebar-nav button svg {
+    transition: width .3s ease, height .3s ease, color .15s ease;
+  }
+  .app-shell.has-collapsible-sidebar .sidebar-user {
+    transition: padding .3s ease;
+  }
+
+  /* Recolhida: centraliza ícone (27px) e avatar (36px) nos 62px úteis,
+     alinhados com a posição que ocupam quando a sidebar está aberta. */
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-nav button {
+    justify-content: flex-start;
+    padding-inline: calc((var(--sidebar-collapsed) - 20px - 27px) / 2);
+  }
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-user {
+    justify-content: flex-start;
+    padding-inline: calc((var(--sidebar-collapsed) - 20px - 36px) / 2);
+  }
+
+  .app-shell.has-collapsible-sidebar:not(.is-sidebar-collapsed) :is(.sidebar-nav button span, .sidebar-nav button em, .nav-group-label, .sidebar-user > span:nth-child(2), .workspace-switcher) {
+    animation: sidebar-label-in .3s ease both;
+  }
+}
+
+@keyframes sidebar-label-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.has-collapsible-sidebar :is(.app-sidebar, .app-main, .sidebar-nav button, .sidebar-nav button svg, .sidebar-user) {
+    transition: none;
+  }
+  .app-shell.has-collapsible-sidebar :is(.sidebar-nav button span, .sidebar-nav button em, .nav-group-label, .sidebar-user > span:nth-child(2), .workspace-switcher) {
+    animation: none;
   }
 }
 

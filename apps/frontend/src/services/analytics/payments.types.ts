@@ -64,6 +64,41 @@ export interface PaymentSuppliersResponse {
   data: (PaymentSupplier)[];
 }
 
+// GET /analytics/pagamentos/outros-portes: só EPP (porte 03) e demais
+// empresas (porte 05), no ano civil completo, sem recorte por natureza.
+export interface OtherSizesPaymentsResponse {
+  filtros?: { codigo_municipio: string; ano: number; categoria_porte?: string | null; porte_codigo?: string | null };
+  periodo?: { inicio: string; fim: string };
+  resumo: Array<{
+    categoria_porte: string;
+    porte_codigo: string;
+    total_valor: string;
+    quantidade_pagamentos: number;
+    percentual_valor?: number | null;
+  }>;
+  municipios: Array<{
+    codigo_municipio: string;
+    codigo_ibge?: string | null;
+    nome?: string | null;
+    valores: Record<string, string>;
+    quantidade_pagamentos: number;
+    quantidade_pagamentos_por_porte: Record<string, number>;
+  }>;
+  evolucao_temporal: Array<{
+    periodo?: string | null;
+    ano?: number | null;
+    mes?: number | null;
+    categoria_porte: string;
+    porte_codigo: string;
+    total_valor: string;
+    quantidade_pagamentos: number;
+  }>;
+  total_valor: string;
+  quantidade_pagamentos: number;
+  fonte_classificacao: string;
+  observacao: string;
+}
+
 export interface LocalPaymentResponse {
   limit: number;
   offset: number;

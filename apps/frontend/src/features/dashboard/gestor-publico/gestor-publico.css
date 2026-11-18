@@ -1054,8 +1054,7 @@
 
 .app-shell.is-gestor-publico .analysis-title-row h1,
 .app-shell.is-gestor-publico .gp-page-heading h1,
-.app-shell.is-gestor-publico .dashboard-heading h1,
-.app-shell.is-gestor-publico .md-heading h1 {
+.app-shell.is-gestor-publico .dashboard-heading h1 {
   font-size: 32px;
   line-height: 1.25;
   letter-spacing: 0;
@@ -1064,7 +1063,6 @@
 .app-shell.is-gestor-publico .analysis-title-row p,
 .app-shell.is-gestor-publico .gp-page-heading p,
 .app-shell.is-gestor-publico .dashboard-heading p,
-.app-shell.is-gestor-publico .md-heading p,
 .app-shell.is-gestor-publico .analysis-chart-card > header p,
 .app-shell.is-gestor-publico .gp-card > header p {
   margin: 0;
@@ -1522,8 +1520,7 @@
 @media (max-width: 720px) {
   .app-shell.is-gestor-publico .analysis-title-row h1,
   .app-shell.is-gestor-publico .gp-page-heading h1,
-  .app-shell.is-gestor-publico .dashboard-heading h1,
-  .app-shell.is-gestor-publico .md-heading h1 {
+  .app-shell.is-gestor-publico .dashboard-heading h1 {
     font-size: 25px;
   }
 
@@ -1586,101 +1583,32 @@
     margin-top: 0;
   }
 
-  .app-shell.is-gestor-publico :is(.gp-metric, .md-metric, .dashboard-card) {
+  .app-shell.is-gestor-publico :is(.gp-metric, .dashboard-card) {
     padding: 16px;
     border-radius: 8px;
   }
 
-  .app-shell.is-gestor-publico :is(.gp-metric strong, .md-metric > strong) {
+  .app-shell.is-gestor-publico .gp-metric strong {
     font-size: 24px;
     letter-spacing: 0;
     overflow-wrap: anywhere;
   }
 
-  .app-shell.is-gestor-publico :is(.gp-metric p, .md-metric p, .md-metric-label h2) {
+  .app-shell.is-gestor-publico .gp-metric p {
     font-size: 12px;
   }
 
-  .app-shell.is-gestor-publico :is(.gp-metric-icon, .md-metric-label > span) {
+  .app-shell.is-gestor-publico .gp-metric-icon {
     width: 30px;
     height: 30px;
   }
 
-  .app-shell.is-gestor-publico .md-metric-label {
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .app-shell.is-gestor-publico .gp-municipality-detail.md-page {
-    gap: 16px;
-    font-size: 14px;
-  }
-
-  .app-shell.is-gestor-publico .md-panel {
-    padding: 16px;
-    border-radius: 8px;
-  }
-
-  .app-shell.is-gestor-publico .md-panel-heading {
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .app-shell.is-gestor-publico .md-panel-heading h2 {
-    font-size: 17px;
-    line-height: 1.35;
-    letter-spacing: 0;
-  }
-
-  .app-shell.is-gestor-publico :is(.md-panel-heading p, .md-footnote, .md-source-banner p, .md-nature-name, .md-origin p) {
-    font-size: 13px;
-    line-height: 1.5;
-  }
-
-  .app-shell.is-gestor-publico :is(.md-metrics, .md-distribution-grid) {
-    gap: 12px;
-  }
-
-  .app-shell.is-gestor-publico .md-reading {
-    padding: 16px;
-    border-radius: 8px;
-  }
-
-  .app-shell.is-gestor-publico :is(.md-reading strong, .md-origin h3, .md-share-title) {
-    font-size: 15px;
-  }
-
-  .app-shell.is-gestor-publico :is(.md-reading span, .md-reading p) {
-    font-size: 12px;
-  }
-
-  .app-shell.is-gestor-publico :is(.md-nature-bars, .md-origin-list) {
-    gap: 16px;
-  }
-
-  .app-shell.is-gestor-publico :is(.md-year, .md-history-select) {
-    border-radius: 999px;
-  }
-
-  .app-shell.is-gestor-publico .md-view-toggle button {
-    min-height: 34px;
-    font-size: 12px;
-  }
-
-  .app-shell.is-gestor-publico .md-year-values > div {
-    padding: 12px;
-  }
-
-  .app-shell.is-gestor-publico .md-year-values strong {
-    font-size: 18px;
-  }
-
-  .app-shell.is-gestor-publico :is(.gp-table, .gp-standard-table, .gp-cmp-table, .public-data-table, .md-table, .admin-table) :is(th, td) {
+  .app-shell.is-gestor-publico :is(.gp-table, .gp-standard-table, .gp-cmp-table, .public-data-table, .admin-table) :is(th, td) {
     padding: 10px 12px;
     font-size: 13px;
   }
 
-  .app-shell.is-gestor-publico :is(.gp-table, .gp-standard-table, .gp-cmp-table, .public-data-table, .md-table, .admin-table) thead th {
+  .app-shell.is-gestor-publico :is(.gp-table, .gp-standard-table, .gp-cmp-table, .public-data-table, .admin-table) thead th {
     font-size: 11px;
   }
 
@@ -1733,12 +1661,25 @@
   }
 }
 
+/* Linha de 4 KPIs (detalhe do município, comparativos). */
+.app-shell.is-gestor-publico .analysis-kpis.gp-kpis-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@container gestor-page (max-width: 1100px) {
+  .app-shell.is-gestor-publico .analysis-kpis.gp-kpis-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@container gestor-page (max-width: 620px) {
+  .app-shell.is-gestor-publico .analysis-kpis.gp-kpis-4 { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Responsive layout follows the usable page width, including an open sidebar. */
 .app-shell.is-gestor-publico .gp-main {
   container: gestor-page / inline-size;
 }
 
-.app-shell.is-gestor-publico :is(.gp-main > *, .gp-card > header > div, .analysis-title-row > div, .md-heading > div, .integration-grid > *) {
+.app-shell.is-gestor-publico :is(.gp-main > *, .gp-card > header > div, .analysis-title-row > div, .integration-grid > *) {
   min-width: 0;
 }
 
@@ -1751,12 +1692,12 @@
   max-width: 100%;
 }
 
-.app-shell.is-gestor-publico :is(.gp-page-heading h1, .analysis-title-row h1, .md-heading h1, .md-metric > strong, .md-year-values strong) {
+.app-shell.is-gestor-publico :is(.gp-page-heading h1, .analysis-title-row h1) {
   white-space: normal;
   overflow-wrap: anywhere;
 }
 
-.app-shell.is-gestor-publico :is(.gp-table-wrap, .gp-suppliers-list, .gp-cmp-table-wrap, .md-table-scroll, .table-scroll) {
+.app-shell.is-gestor-publico :is(.gp-table-wrap, .gp-suppliers-list, .gp-cmp-table-wrap, .table-scroll) {
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
@@ -1793,7 +1734,7 @@
 }
 
 @container gestor-page (max-width: 960px) {
-  .app-shell.is-gestor-publico :is(.gp-analysis-chart-grid, .gp-secondary-dashboard-grid, .gp-cmp-grid, .md-distribution-grid) {
+  .app-shell.is-gestor-publico :is(.gp-analysis-chart-grid, .gp-secondary-dashboard-grid, .gp-cmp-grid) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
   }
@@ -1807,11 +1748,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .app-shell.is-gestor-publico .md-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .app-shell.is-gestor-publico :is(.analysis-title-row, .md-heading) {
+  .app-shell.is-gestor-publico .analysis-title-row {
     align-items: flex-start;
     flex-wrap: wrap;
   }
@@ -1833,26 +1770,13 @@
     border-bottom: 0;
   }
 
-  .app-shell.is-gestor-publico :is(.md-reading, .md-origin-list, .gp-nature-insights) {
+  .app-shell.is-gestor-publico .gp-nature-insights {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .app-shell.is-gestor-publico .md-reading > div {
-    padding: 12px 0;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .app-shell.is-gestor-publico .md-reading > div:last-child {
-    border-bottom: 0;
-  }
 }
 
 @container gestor-page (max-width: 400px) {
-  .app-shell.is-gestor-publico .md-metrics {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .app-shell.is-gestor-publico .gp-rpt-option[data-unavailable] {
     grid-template-columns: 32px minmax(0, 1fr);
   }

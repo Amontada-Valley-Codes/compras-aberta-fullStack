@@ -6,7 +6,7 @@ const planFeaturesSchema = z.array(z.string());
 
 const createPlanSchema = z.object({
   name: z.string().min(2, "Nome é obrigatório"),
-  targetRole: z.enum(["BUSINESS", "MANAGER", "ADMIN"]).default("BUSINESS"),
+  targetRole: z.enum(["PUBLIC", "BUSINESS", "MANAGER", "ADMIN"]).default("BUSINESS"),
   priceCents: z.number().int().min(0, "Preço em centavos deve ser maior ou igual a 0"),
   interval: z.enum(["month", "year"]).default("month"),
   trialDays: z.number().int().min(0).default(7),
@@ -14,9 +14,14 @@ const createPlanSchema = z.object({
   features: planFeaturesSchema.default([]),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
+  displayOrder: z.number().int().min(0).optional(),
 });
 
 const updatePlanSchema = createPlanSchema.partial();
+
+const reorderPlansSchema = z.object({
+  orderedIds: z.array(z.string().min(1)).min(1, "Informe a ordem dos planos"),
+});
 
 export const planController = {
   async listPublic(_request: FastifyRequest, reply: FastifyReply) {
@@ -40,6 +45,12 @@ export const planController = {
     const data = updatePlanSchema.parse(request.body);
     const updated = await planService.update(id, data);
     return reply.status(200).send(updated);
+  },
+
+  async reorder(request: FastifyRequest, reply: FastifyReply) {
+    const { orderedIds } = reorderPlansSchema.parse(request.body);
+    const plans = await planService.reorder(orderedIds);
+    return reply.status(200).send(plans);
   },
 
   async delete(request: FastifyRequest, reply: FastifyReply) {

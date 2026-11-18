@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { RevealWords } from "../../RevealWords";
 
 const questions = [
   [
@@ -8,31 +7,31 @@ const questions = [
   ],
   [
     "Quem pode utilizar a plataforma?",
-    "A plataforma atende gestores públicos, microempresas e cidadãos. Alguns recursos são públicos, enquanto funcionalidades específicas para gestores e empresas exigem cadastro aprovado.",
+    "A plataforma atende gestores públicos, microempresas e cidadãos. Cada perfil possui recursos específicos, de acordo com suas necessidades.",
   ],
   [
-    "Como o Gestor público recebe acesso?",
-    "O administrador da plataforma vincula o município e libera o acesso para a equipe responsável. A solicitação de cadastro é feita apenas quando o perfil exigir esse processo.",
+    "Como funciona o acesso do Gestor Público?",
+    "Basta preencher os dados solicitados no cadastro de Gestor Público. Após concluir o cadastro, o acesso à plataforma é liberado.",
   ],
   [
-    "Quais documentos preciso enviar?",
-    "Os documentos variam de acordo com o perfil escolhido. Durante o cadastro, a plataforma mostrará todos os documentos necessários para Gestor público ou ME.",
+    "Como funciona o acesso da Microempresa?",
+    "A empresa informa seus dados, realiza o pagamento da assinatura mensal e, após a confirmação do pagamento, recebe acesso automático à plataforma.",
   ],
   [
-    "Como acompanho minha solicitação?",
-    "Você poderá consultar se sua solicitação está em análise, aprovada, recusada ou aguardando correção diretamente pela plataforma.",
+    "Quando meu acesso será liberado?",
+    "Para Gestores Públicos, o acesso é liberado após a conclusão do cadastro. Para Microempresas, a liberação acontece automaticamente após a confirmação do pagamento.",
   ],
   [
-    "O que acontece depois da aprovação?",
-    "Após a aprovação, seu acesso será liberado conforme o perfil cadastrado. Gestores públicos terão acesso aos recursos de gestão e análise, enquanto microempresas poderão acompanhar licitações, históricos de compras e alertas de oportunidades.",
+    "Quais são os benefícios para microempresas?",
+    "As empresas podem encontrar licitações compatíveis com seu segmento, receber alertas personalizados, consultar históricos de compras municipais, comparar municípios e acompanhar prazos de pagamento.",
   ],
   [
-    "O que acontece se houver algum problema com meus documentos?",
-    "A solicitação ficará aguardando correção. Você poderá consultar o motivo, substituir os documentos necessários e enviar novamente para análise.",
+    "O acesso ao Portal Público é gratuito?",
+    "Sim. O Portal Público é gratuito e permite consultar informações sobre receitas, despesas, licitações, contratos e fornecedores, sem necessidade de assinatura.",
   ],
   [
-    "O cidadão precisa solicitar acesso?",
-    "Não. O cidadão poderá consultar gratuitamente os dados públicos disponíveis, acompanhar os gastos do município e verificar como o dinheiro público está sendo utilizado.",
+    "O cidadão precisa criar uma conta?",
+    "Não. Os cidadãos podem consultar gratuitamente os dados públicos disponíveis e acompanhar como os recursos municipais estão sendo utilizados.",
   ],
 ];
 
@@ -43,10 +42,11 @@ export function FaqSection() {
         <div className="faq-heading">
           <h2>Tire suas dúvidas.</h2>
           <p>
-            Entenda como acessar os dados públicos, solicitar seu cadastro e
-            acompanhar a análise da sua solicitação.
+            Conheça os tipos de acesso, entenda como funciona o cadastro
+            e descubra os recursos disponíveis em cada modalidade.
           </p>
         </div>
+
         <div className="faq-list">
           {questions.map(([question, answer], index) => (
             <details

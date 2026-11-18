@@ -59,6 +59,25 @@ export interface ApiBidItem {
   valor_vencedor: string;
 }
 
+// Vencedores das licitações por classificação de porte (ME, MEI, EPP, outros
+// e desconhecida). O universo inclui itens sem CNPJ; uma licitação com
+// vencedores de portes diferentes aparece em mais de uma classificação.
+export interface ApiClassificationComparison {
+  universo: { quantidade_itens: number; quantidade_licitacoes: number; valor_total: string };
+  por_classificacao: Array<{ classificacao: string; quantidade_itens: number; quantidade_licitacoes: number; valor_total: string }>;
+}
+
+// Pagamentos por UF da sede do fornecedor, todos os portes (agregado oficial
+// da API, no mesmo universo do resumo de pagamentos: coletas por orçamento).
+export interface ApiPaymentsByState {
+  classificacao_localizacao: string;
+  uf_empresa: string | null;
+  total_pago: string;
+  quantidade_pagamentos: number;
+  quantidade_empresas: number;
+  participacao_percentual?: number | null;
+}
+
 export class ApiNotFoundError extends Error {}
 
 const ATTEMPTS = 3;
@@ -143,13 +162,35 @@ export function loadParticipationsByCnpj(cnpj: string): Promise<ApiParticipation
   return getAllPages<ApiParticipation>(`/participacoes?cnpj=${encodeURIComponent(cnpj)}`, HOUR, 5, 100);
 }
 
+export function loadClassificationComparison(tceCode: string, year: number): Promise<ApiClassificationComparison> {
+  return getJson<ApiClassificationComparison>(
+    `/analytics/comparativo-classificacao?codigo_municipio=${encodeURIComponent(tceCode)}&data_inicio=${year}-01-01&data_fim=${year}-12-31`,
+    HOUR,
+  );
+}
+
+export function loadPaymentsByState(tceCode: string, year: number, natureCode?: string): Promise<ApiPaymentsByState[]> {
+  const nature = natureCode ? `&codigo_natureza=${encodeURIComponent(natureCode)}` : "";
+  return getAllPages<ApiPaymentsByState>(
+    `/api/v1/estadual/fornecedores/localizacao?ano=${year}&codigo_municipio=${encodeURIComponent(tceCode)}${nature}`,
+    HOUR,
+    2,
+    10,
+  );
+}
+
 // ---------- Licitações e itens ----------
+// Limite de linhas lidas por consulta de licitações: ao atingi-lo, a lista
+// pode estar incompleta (a API não informa o total).
+const BID_PAGES = 100;
+export const MAX_BIDS = BID_PAGES * PAGE_SIZE;
+
 export function loadBids(tceCode: string, year: number): Promise<ApiBid[]> {
   return getAllPages<ApiBid>(
     `/licitacoes?codigo_municipio=${encodeURIComponent(tceCode)}&data_inicio=${year}-01-01&data_fim=${year}-12-31`,
     HOUR,
     10,
-    100,
+    BID_PAGES,
   );
 }
 

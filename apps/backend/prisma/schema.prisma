@@ -12,6 +12,7 @@ enum UserRole {
   ADMIN
   BUSINESS
   MANAGER // Gestor público (prefeitura): acessa o painel /gestor do seu município.
+  PUBLIC  // Portal público (cidadãos): acesso gratuito de consulta.
 }
 
 enum AccessRequestStatus {
@@ -233,6 +234,7 @@ model plan {
   stripePriceId   String?
   isActive        Boolean  @default(true)
   isFeatured      Boolean  @default(false)
+  displayOrder    Int      @default(0)
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

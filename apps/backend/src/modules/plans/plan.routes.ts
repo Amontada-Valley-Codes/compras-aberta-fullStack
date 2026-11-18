@@ -25,6 +25,14 @@ export async function planRoutes(app: FastifyInstance) {
   );
 
   app.put(
+    "/admin/plans/reorder",
+    {
+      preHandler: [ensureAuthenticated, verifyUserAuthorization(["ADMIN"])],
+    },
+    planController.reorder
+  );
+
+  app.put(
     "/admin/plans/:id",
     {
       preHandler: [ensureAuthenticated, verifyUserAuthorization(["ADMIN"])],
