@@ -1270,7 +1270,175 @@
   gap: 8px;
 }
 
+.plans-admin-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1180px) {
+  .plans-admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.plan-reorder-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #475569;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.plan-reorder-hint > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-reorder-hint > span svg {
+  color: var(--brand-blue, #11169b);
+  flex: none;
+}
+
+.plan-reorder-hint > em {
+  font-style: normal;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--brand-blue, #11169b);
+  font-weight: var(--weight-bold);
+}
+
+.plan-card-head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-card-head-left > span {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--brand-sky);
+  color: var(--brand-blue);
+  flex: none;
+}
+
+.plan-order-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-order-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 9px 0 6px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: var(--brand-blue, #11169b);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-extrabold);
+  cursor: grab;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.plan-order-badge:active {
+  cursor: grabbing;
+}
+
+.plan-order-arrows {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.plan-order-arrow-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid #dce6ec;
+  background: #ffffff;
+  color: #475569;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plan-order-arrow-btn:hover:not(:disabled) {
+  border-color: var(--brand-blue, #11169b);
+  color: var(--brand-blue, #11169b);
+  background: #eff6ff;
+}
+
+.plan-order-arrow-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.plan-draggable-card {
+  cursor: grab;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.plan-draggable-card:active {
+  cursor: grabbing;
+}
+
+.plan-draggable-card.is-dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  border-color: var(--brand-blue, #11169b);
+}
+
+.plan-draggable-card.is-drag-over {
+  border-color: var(--brand-blue, #11169b);
+  box-shadow:
+    0 0 0 2px rgba(17, 22, 155, 0.2),
+    0 12px 24px -10px rgba(17, 22, 155, 0.18);
+  background: #f8fbff;
+}
+
+.plan-draggable-row {
+  cursor: grab;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.plan-draggable-row:active {
+  cursor: grabbing;
+}
+
+.plan-draggable-row.is-dragging {
+  opacity: 0.45;
+  background: #eff6ff;
+}
+
+.plan-draggable-row.is-drag-over td {
+  background: #eff6ff;
+  border-top: 2px solid var(--brand-blue, #11169b);
+  border-bottom: 2px solid var(--brand-blue, #11169b);
+}
+
 @media (max-width: 680px) {
+  .plans-admin-grid,
   .admin-plan-modal__grid,
   .plan-features-preview {
     grid-template-columns: 1fr;

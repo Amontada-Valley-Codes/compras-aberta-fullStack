@@ -13,6 +13,7 @@ export interface CreatePlanDTO {
   features: string[];
   isActive?: boolean;
   isFeatured?: boolean;
+  displayOrder?: number;
 }
 
 export interface UpdatePlanDTO {
@@ -25,19 +26,127 @@ export interface UpdatePlanDTO {
   features?: string[];
   isActive?: boolean;
   isFeatured?: boolean;
+  displayOrder?: number;
 }
 
+const DEFAULT_PORTAL_PUBLICO = {
+  name: "Portal Público",
+  targetRole: "PUBLIC" as UserRole,
+  priceCents: 0,
+  interval: "month",
+  trialDays: 0,
+  description:
+    "Para cidadãos que desejam acompanhar como os recursos públicos são utilizados.",
+  features: [
+    "Consulta de receitas e despesas",
+    "Acesso às licitações e aos contratos",
+    "Consulta de fornecedores",
+    "Visualização dos gastos municipais",
+    "Acesso sem assinatura",
+  ],
+  isActive: true,
+  isFeatured: false,
+  displayOrder: 0,
+};
+
 export const planService = {
+  async ensureDefaultPlans() {
+    const existing = await prisma.plan.findMany({
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+    });
+
+    if (existing.length === 0) {
+      await prisma.plan.createMany({
+        data: [
+          DEFAULT_PORTAL_PUBLICO,
+          {
+            name: "Empresas em Geral",
+            targetRole: "BUSINESS",
+            priceCents: 2999,
+            interval: "month",
+            trialDays: 7,
+            description:
+              "Para empresas e fornecedores que desejam encontrar oportunidades de licitação e vender ao setor público.",
+            features: [
+              "Licitações compatíveis com o segmento",
+              "Alertas personalizados",
+              "Histórico de compras dos municípios",
+              "Comparação entre municípios",
+              "Consulta aos prazos de pagamento",
+              "Análise de fornecedores e valores",
+            ],
+            isActive: true,
+            isFeatured: true,
+            displayOrder: 1,
+          },
+          {
+            name: "Gestor Público",
+            targetRole: "MANAGER",
+            priceCents: 14999,
+            interval: "month",
+            trialDays: 7,
+            description:
+              "Para municípios e servidores públicos que precisam acompanhar recursos, compras, contratos e fornecedores.",
+            features: [
+              "Painel de receitas e despesas",
+              "Acompanhamento de licitações e contratos",
+              "Análise de fornecedores",
+              "Indicadores municipais",
+              "Comparações por período",
+              "Relatórios",
+              "Acesso para a equipe",
+              "Suporte especializado",
+            ],
+            isActive: true,
+            isFeatured: false,
+            displayOrder: 2,
+          },
+        ],
+      });
+      return;
+    }
+
+    const hasPublicPlan = existing.some((p) => p.targetRole === "PUBLIC");
+    if (!hasPublicPlan) {
+      await prisma.$transaction([
+        prisma.plan.create({
+          data: DEFAULT_PORTAL_PUBLICO,
+        }),
+        ...existing.map((plan, index) =>
+          prisma.plan.update({
+            where: { id: plan.id },
+            data: { displayOrder: index + 1 },
+          })
+        ),
+      ]);
+      return;
+    }
+
+    const allZero = existing.length > 1 && existing.every((p) => p.displayOrder === 0);
+    if (allZero) {
+      await prisma.$transaction(
+        existing.map((plan, index) =>
+          prisma.plan.update({
+            where: { id: plan.id },
+            data: { displayOrder: index },
+          })
+        )
+      );
+    }
+  },
+
   async listAll() {
+    await this.ensureDefaultPlans();
     return prisma.plan.findMany({
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
     });
   },
 
   async listActive() {
+    await this.ensureDefaultPlans();
     return prisma.plan.findMany({
       where: { isActive: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
     });
   },
 
@@ -50,15 +159,16 @@ export const planService = {
   async create(data: CreatePlanDTO) {
     let stripeProductId: string | null = null;
     let stripePriceId: string | null = null;
+    const role = data.targetRole || "BUSINESS";
 
-    if (isStripeConfigured) {
+    if (isStripeConfigured && data.priceCents > 0 && role !== "PUBLIC") {
       try {
         const stripeProduct = await stripe.products.create({
           name: data.name,
           description: data.description || undefined,
           active: data.isActive ?? true,
           metadata: {
-            targetRole: data.targetRole || "BUSINESS",
+            targetRole: role,
             trialDays: String(data.trialDays ?? 7),
           },
         });
@@ -79,19 +189,28 @@ export const planService = {
       }
     }
 
+    let nextOrder = data.displayOrder;
+    if (nextOrder === undefined) {
+      const aggregate = await prisma.plan.aggregate({
+        _max: { displayOrder: true },
+      });
+      nextOrder = (aggregate._max.displayOrder ?? -1) + 1;
+    }
+
     return prisma.plan.create({
       data: {
         name: data.name,
-        targetRole: data.targetRole || "BUSINESS",
+        targetRole: role,
         priceCents: data.priceCents,
         interval: data.interval || "month",
-        trialDays: data.trialDays ?? 7,
+        trialDays: data.trialDays ?? (role === "PUBLIC" ? 0 : 7),
         description: data.description || null,
         features: data.features,
         stripeProductId,
         stripePriceId,
         isActive: data.isActive ?? true,
         isFeatured: data.isFeatured ?? false,
+        displayOrder: nextOrder,
       },
     });
   },
@@ -104,8 +223,10 @@ export const planService = {
 
     let stripeProductId = existing.stripeProductId;
     let stripePriceId = existing.stripePriceId;
+    const targetRole = data.targetRole ?? existing.targetRole;
+    const targetPriceCents = data.priceCents ?? existing.priceCents;
 
-    if (isStripeConfigured) {
+    if (isStripeConfigured && targetPriceCents > 0 && targetRole !== "PUBLIC") {
       try {
         if (!stripeProductId) {
           const product = await stripe.products.create({
@@ -136,7 +257,7 @@ export const planService = {
         if ((priceChanged || intervalChanged || !stripePriceId) && stripeProductId) {
           const newPrice = await stripe.prices.create({
             product: stripeProductId,
-            unit_amount: data.priceCents ?? existing.priceCents,
+            unit_amount: targetPriceCents,
             currency: "brl",
             recurring: {
               interval:
@@ -171,10 +292,24 @@ export const planService = {
         ...(data.features ? { features: data.features } : {}),
         ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
         ...(data.isFeatured !== undefined ? { isFeatured: data.isFeatured } : {}),
+        ...(data.displayOrder !== undefined ? { displayOrder: data.displayOrder } : {}),
         stripeProductId,
         stripePriceId,
       },
     });
+  },
+
+  async reorder(orderedIds: string[]) {
+    await prisma.$transaction(
+      orderedIds.map((id, index) =>
+        prisma.plan.updateMany({
+          where: { id },
+          data: { displayOrder: index },
+        })
+      )
+    );
+
+    return this.listAll();
   },
 
   async delete(id: string) {

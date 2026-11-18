@@ -10,7 +10,7 @@ type PlanPrice = {
 };
 
 type Plan = {
-  id: "portal" | "me" | "gestor";
+  id: string;
   title: string;
   price: PlanPrice;
   description: string;
@@ -85,6 +85,55 @@ const plans: Plan[] = [
   },
 ];
 
+function mapDbPlanToLandingPlan(dbPlan: any): Plan {
+  const isPublic = dbPlan.targetRole === "PUBLIC" || dbPlan.priceCents === 0;
+  const isManager = dbPlan.targetRole === "MANAGER";
+
+  const fallbackPlan = isPublic ? plans[0] : isManager ? plans[2] : plans[1];
+
+  const price: PlanPrice =
+    dbPlan.priceCents === 0
+      ? {
+          value: "Gratuito",
+          ...(dbPlan.trialDays > 0
+            ? { note: `${dbPlan.trialDays} dias grátis de teste` }
+            : {}),
+        }
+      : {
+          value: brl.format(dbPlan.priceCents / 100),
+          suffix: `/${dbPlan.interval === "year" ? "ano" : "mês"}`,
+          ...(dbPlan.trialDays > 0
+            ? { note: `${dbPlan.trialDays} dias grátis de teste` }
+            : {}),
+        };
+
+  const cta = isPublic
+    ? "Acessar Portal Público"
+    : dbPlan.trialDays > 0
+      ? `Começar ${dbPlan.trialDays} dias grátis`
+      : "Começar agora";
+
+  const href = isPublic
+    ? "/analise"
+    : isManager
+      ? "/auth/cadastro?perfil=gestor"
+      : "/auth/cadastro?perfil=me";
+
+  return {
+    id: dbPlan.id || fallbackPlan.id,
+    title: dbPlan.name || fallbackPlan.title,
+    price,
+    description: dbPlan.description || fallbackPlan.description,
+    benefits:
+      Array.isArray(dbPlan.features) && dbPlan.features.length > 0
+        ? dbPlan.features
+        : fallbackPlan.benefits,
+    cta,
+    href,
+    featured: Boolean(dbPlan.isFeatured),
+  };
+}
+
 function PlanCard({ plan, index }: { plan: Plan; index: number }) {
   const titleId = `plan-${plan.id}-title`;
 
@@ -135,58 +184,20 @@ export function PlansSection() {
   useEffect(() => {
     async function fetchPlans() {
       try {
-        const res = await fetch("/api/plans");
+        const res = await fetch("/api/plans", { cache: "no-store" });
         if (res.ok) {
           const dbPlans = await res.json();
           if (Array.isArray(dbPlans) && dbPlans.length > 0) {
-            const businessPlan = dbPlans.find(
-              (p: any) => p.targetRole === "BUSINESS" && p.isActive
-            );
-            const managerPlan = dbPlans.find(
-              (p: any) => p.targetRole === "MANAGER" && p.isActive
-            );
+            const activePlans = dbPlans
+              .filter((p: any) => p.isActive)
+              .sort(
+                (a: any, b: any) =>
+                  (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
+              );
 
-            setDynamicPlans((prev) =>
-              prev.map((item) => {
-                if (item.id === "me" && businessPlan) {
-                  return {
-                    ...item,
-                    title: businessPlan.name,
-                    price: {
-                      value: brl.format(businessPlan.priceCents / 100),
-                      suffix: `/${businessPlan.interval === "year" ? "ano" : "mês"}`,
-                      note: `${businessPlan.trialDays} dias grátis de teste`,
-                    },
-                    description: businessPlan.description || item.description,
-                    benefits:
-                      Array.isArray(businessPlan.features) &&
-                      businessPlan.features.length > 0
-                        ? businessPlan.features
-                        : item.benefits,
-                    featured: businessPlan.isFeatured,
-                  };
-                }
-                if (item.id === "gestor" && managerPlan) {
-                  return {
-                    ...item,
-                    title: managerPlan.name,
-                    price: {
-                      value: brl.format(managerPlan.priceCents / 100),
-                      suffix: `/${managerPlan.interval === "year" ? "ano" : "mês"}`,
-                      note: `${managerPlan.trialDays} dias grátis de teste`,
-                    },
-                    description: managerPlan.description || item.description,
-                    benefits:
-                      Array.isArray(managerPlan.features) &&
-                      managerPlan.features.length > 0
-                        ? managerPlan.features
-                        : item.benefits,
-                    featured: managerPlan.isFeatured,
-                  };
-                }
-                return item;
-              })
-            );
+            if (activePlans.length > 0) {
+              setDynamicPlans(activePlans.map(mapDbPlanToLandingPlan));
+            }
           }
         }
       } catch {

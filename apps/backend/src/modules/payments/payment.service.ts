@@ -81,7 +81,7 @@ export const paymentService = {
 
     if (!selectedPlan) {
       selectedPlan = await prisma.plan.findFirst({
-        where: { isActive: true },
+        where: { isActive: true, priceCents: { gt: 0 }, targetRole: { not: "PUBLIC" } },
         orderBy: { isFeatured: "desc" },
       });
     }
