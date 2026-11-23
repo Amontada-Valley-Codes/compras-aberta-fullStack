@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import { NoupeWidget } from "@/components/NoupeWidget";
 import { GestorNotice } from "@/features/dashboard/gestor/GestorNotice";
 import { GestorRouteShell } from "@/features/dashboard/gestor/GestorRouteShell";
 import { loadCompanyDirectory } from "@/features/dashboard/gestor/gestor-api";
@@ -48,6 +49,7 @@ export default async function GestorLayout({ children }: { children: ReactNode }
         userName: access.userName,
       }}
     >
+      <NoupeWidget />
       {children}
     </GestorRouteShell>
   );
