@@ -491,9 +491,9 @@ export function GestorPublicoComparativos({ initialMunicipalities = [] }: { init
         <>
           <section className="analysis-kpis gp-kpis-4" aria-label="Totais dos municípios selecionados">
             <PublicKpi icon={<Building2 />} label="Quantos municípios estão sendo comparados?" value={String(rows.length)} detail={`${year} · ${nature ? NATURE_SHORT[nature] ?? natureName(nature) : "Todas as naturezas"}`} />
-            <PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago no total?" value={currency(selectedTotal)} detail="Soma dos municípios selecionados" />
-            <PublicKpi icon={<Store />} label="Quanto foi pago a ME?" value={currency(selectedMpe)} detail={selectedTotal ? `${pct(selectedMpe / selectedTotal * 100)} do total selecionado` : "Sem base percentual"} accent />
-            <PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" value={currency(selectedLocal)} detail={selectedTotal ? `${pct(selectedLocal / selectedTotal * 100)} do total selecionado` : "Sem base percentual"} />
+            <PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago no total?" amount={selectedTotal} detail="Soma dos municípios selecionados" />
+            <PublicKpi icon={<Store />} label="Quanto foi pago a ME?" amount={selectedMpe} detail={selectedTotal ? `${pct(selectedMpe / selectedTotal * 100)} do total selecionado` : "Sem base percentual"} accent />
+            <PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" amount={selectedLocal} detail={selectedTotal ? `${pct(selectedLocal / selectedTotal * 100)} do total selecionado` : "Sem base percentual"} />
           </section>
           <div className="gp-cmp-toolbar">
             {/* A chave refaz a animação de entrada quando a frase muda. */}

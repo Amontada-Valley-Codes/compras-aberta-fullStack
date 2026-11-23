@@ -6,7 +6,7 @@ import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { PublicTable } from "@/components/filters/PublicTable";
 import { PaymentNatureChart, PaymentShareChart, LocalPaymentShareChart } from "./PaymentCharts";
 import { selectPaymentNatures, selectPaymentTotals } from "./payment-selectors";
-import { count, money, percent } from "@/features/public-data/format";
+import { compactMoney, count, money, percent } from "@/features/public-data/format";
 import type { AnalysisData } from "@/features/public-data/public-data";
 import { AnalysisPagination } from "./AnalysisPagination";
 import { AnalysisPaymentsTable } from "./AnalysisPaymentsTable";
@@ -45,9 +45,9 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         {payments.error && <DataState error={payments.error} />}
         {allMunicipalities && <p className="analysis-data-state" role="status">Dados de {count(allMunicipalities.rows.length)} de {count(allMunicipalities.requested)} municípios consultados. Os totais reúnem as coletas municipais do ano selecionado.</p>}
         <div className="analysis-kpis">
-          <AnalysisKpi icon={<CircleDollarSign />} label="Total de compras" value={money(totals.total)} detail={`${count(totals.payments)} pagamentos realizados no recorte selecionado.`} />
-          <AnalysisKpi icon={<Store />} label="Compras com ME" value={money(totals.me)} detail={allMunicipalities ? `${percent(totals.percentage)} do total.` : `${percent(totals.percentage)} do total · ${count(local.data?.mePayments)} pagamentos a ME.`} accent />
-          <AnalysisKpi icon={<MapPinned />} label="Compras com ME locais" value={local.data?.percentage != null ? money(local.data.localAmount) : "—"} detail={local.error ?? `${percent(local.data?.percentage)} do total.`} />
+          <AnalysisKpi icon={<CircleDollarSign />} label="Total de compras" value={compactMoney(totals.total)} fullValue={money(totals.total)} detail={`${count(totals.payments)} pagamentos realizados no recorte selecionado.`} />
+          <AnalysisKpi icon={<Store />} label="Compras com ME" value={compactMoney(totals.me)} fullValue={money(totals.me)} detail={allMunicipalities ? `${percent(totals.percentage)} do total.` : `${percent(totals.percentage)} do total · ${count(local.data?.mePayments)} pagamentos a ME.`} accent />
+          <AnalysisKpi icon={<MapPinned />} label="Compras com ME locais" value={local.data?.percentage != null ? compactMoney(local.data.localAmount) : "—"} fullValue={local.data?.percentage != null ? money(local.data.localAmount) : "—"} detail={local.error ?? `${percent(local.data?.percentage)} do total.`} />
         </div>
         {local.error && <DataState error={`Recorte de ME locais: ${local.error}`} />}
         <div className="analysis-chart-grid">
@@ -78,8 +78,8 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
   </div>;
 }
 
-function AnalysisKpi({ icon, label, value, detail, accent }: { icon: ReactNode; label: string; value: string; detail: string; accent?: boolean }) {
-  return <article className={accent ? "accent" : ""}><div><span>{icon}</span><small>{label}</small></div><strong>{value}</strong><p>{detail}</p></article>;
+function AnalysisKpi({ icon, label, value, fullValue, detail, accent }: { icon: ReactNode; label: string; value: string; fullValue: string; detail: string; accent?: boolean }) {
+  return <article className={accent ? "accent" : ""}><div><span>{icon}</span><small>{label}</small></div><strong title={fullValue} aria-label={fullValue}>{value}</strong><p>{detail}</p></article>;
 }
 
 function AnalysisChartCard({ title, description, tone, children }: { title: string; description: string; tone: string; children: ReactNode }) {

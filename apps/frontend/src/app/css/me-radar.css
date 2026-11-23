@@ -339,7 +339,7 @@
   flex: none;
 }
 
-/* Corpo dos filtros (fluxo contínuo na página, sem barra de rolagem interna presa) */
+/* Corpo dos filtros; a rolagem interna fica restrita ao layout de duas colunas. */
 .radar-sidebar__body {
   padding: 16px;
   display: grid;
@@ -2062,6 +2062,30 @@
 }
 
 /* ---------- Responsividade ---------- */
+
+@media (min-width: 1121px) {
+  .radar-workspace__sidebar {
+    position: sticky;
+    top: 86px;
+    align-self: start;
+  }
+
+  .radar-sidebar {
+    max-height: calc(100vh - 102px);
+    max-height: calc(100dvh - 102px);
+  }
+
+  .radar-sidebar__top {
+    flex-shrink: 0;
+  }
+
+  .radar-sidebar__body {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+  }
+}
 
 @media (max-width: 1120px) {
   .radar-mobile-filter-btn {

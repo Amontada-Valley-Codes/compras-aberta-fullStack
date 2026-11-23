@@ -2,12 +2,12 @@
 
 import { useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { AlertTriangle, ChevronLeft, Clock3, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
+import { AlertTriangle, ArrowRight, ChevronLeft, Clock3, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { toast } from '@/components/ui/sonner'
-import { AuthIllustration } from './auth-illustration'
 
 // Só aceita um destino relativo dentro do próprio site (nunca "//host" ou
 // "/\host", que o navegador trata como um redirecionamento para outro
@@ -116,13 +116,13 @@ export const Login = ({ next }: { next?: string }) => {
   }
 
   return (
-    <div className='auth-page'>
+    <div className='auth-page auth-login'>
       <div className='auth-shell'>
         <div className='auth-visual'>
-          <div className='auth-icon-wrap'>
-            <AuthIllustration />
+          <div className='auth-login-photo'>
+            <Image src='/images/login-entrepreneur-transparent.png' alt='Profissional segurando um tablet' fill sizes='(min-width: 1200px) 530px, (min-width: 860px) 46vw, 1px' preload />
           </div>
-          <BrandLogo inverse />
+          <div className='auth-login-brand'><BrandLogo inverse /></div>
         </div>
 
         <div className='auth-panel'>
@@ -255,9 +255,10 @@ export const Login = ({ next }: { next?: string }) => {
             </button>
 
             <div className='auth-register-prompt'>
-              <span>Não possui cadastro? </span>
+              <strong>Novo no Compras Abertas?</strong>
               <Link href='/auth/cadastro' className='auth-register-link'>
-                Criar conta
+                Crie sua conta aqui
+                <ArrowRight size={18} aria-hidden='true' />
               </Link>
             </div>
           </form>

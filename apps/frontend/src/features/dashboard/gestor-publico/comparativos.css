@@ -6,26 +6,22 @@
  * usa o prefixo gp-cmp-.
  */
 
-/* ---------- Municípios ----------
-   Sempre numa linha só, ligados por ⇄. Em telas estreitas a linha rola para
-   o lado em vez de quebrar. */
+/* ---------- Municípios ---------- */
 .gp-cmp-slots {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   align-items: center;
   gap: 4px;
   margin: 0 0 16px;
   padding: 2px 0 6px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  scrollbar-width: thin;
+  min-width: 0;
 }
 .gp-cmp-slot-group {
   display: flex;
   flex: 1 1 0;
   align-items: center;
   gap: 4px;
-  min-width: 170px;
-  scroll-snap-align: start;
+  min-width: 0;
   animation: gp-cmp-slide-in 0.28s ease-out both;
 }
 .gp-cmp-slots .gp-cmp-slot {
@@ -404,9 +400,6 @@
   .gp-cmp .gp-cmp-filters .analysis-filter-fields {
     grid-template-columns: minmax(0, 1fr);
   }
-  .gp-cmp-slot-group {
-    min-width: 200px;
-  }
   .gp-cmp-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -533,6 +526,56 @@
   width: 30px;
   height: 30px;
   right: 5px;
+}
+
+.gp-cmp .gp-cmp-empty {
+  min-width: 0;
+}
+
+.gp-cmp .gp-cmp-empty > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.gp-cmp .gp-cmp-empty .gp-primary-button {
+  height: auto;
+  padding-block: 10px;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+@container gestor-page (max-width: 1100px) {
+  .gp-cmp-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gp-cmp-slot-group:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .gp-cmp-vs {
+    display: none;
+  }
+}
+
+@container gestor-page (max-width: 620px) {
+  .gp-cmp-slots {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gp-cmp-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gp-cmp-view {
+    align-self: flex-start;
+  }
+
+  .gp-cmp-empty {
+    padding: 32px 16px;
+  }
 }
 
 @media (max-width: 720px) {

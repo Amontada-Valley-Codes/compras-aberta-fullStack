@@ -27,9 +27,19 @@ const processBlocks: ProcessBlock[] = [
           "Após concluir o cadastro, seu acesso à plataforma é liberado.",
       },
       {
-        title: "Explore os recursos disponíveis",
+        title: "Acompanhe os pagamentos",
         description:
-          "Consulte receitas, despesas, licitações, contratos, fornecedores e indicadores municipais.",
+          "Filtre por ano e natureza da despesa e veja quanto foi pago às microempresas e aos fornecedores locais.",
+      },
+      {
+        title: "Compare os municípios",
+        description:
+          "Identifique diferenças nos valores pagos e na participação das microempresas entre os municípios.",
+      },
+      {
+        title: "Gere seus relatórios",
+        description:
+          "Reúna indicadores e comparativos para apoiar o planejamento e as decisões da gestão municipal.",
       },
     ],
   },
@@ -56,7 +66,12 @@ const processBlocks: ProcessBlock[] = [
       {
         title: "Encontre oportunidades",
         description:
-          "Consulte licitações, receba alertas personalizados e explore históricos de compras e informações dos municípios.",
+          "Defina seus interesses por segmento e município, consulte licitações e acompanhe os alertas personalizados.",
+      },
+      {
+        title: "Analise antes de participar",
+        description:
+          "Consulte históricos de compras, fornecedores e prazos de pagamento para planejar suas próximas propostas.",
       },
     ],
   },

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:analytics": "tsx --tsconfig tsconfig.json --test tests/analysis-data.test.ts tests/municipality-detail.test.ts tests/local-payments.test.ts tests/gestor-comparativos.test.ts tests/supplier-detail.test.ts tests/gestor-relatorios.test.ts",
-    "dev": "next dev",
+    "test:analytics": "tsx --tsconfig tsconfig.json --test tests/analysis-data.test.ts tests/municipality-detail.test.ts tests/local-payments.test.ts tests/gestor-comparativos.test.ts tests/supplier-detail.test.ts tests/gestor-relatorios.test.ts tests/gestor-kpi.test.ts",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
