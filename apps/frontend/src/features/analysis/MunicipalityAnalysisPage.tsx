@@ -17,6 +17,10 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
   const natures = selectPaymentNatures(payments.data, filters.natureCode);
   const totals = selectPaymentTotals(payments.data, filters.natureCode);
   const rows = suppliers.data?.data ?? [];
+  const municipalityRows = allMunicipalities?.rows ?? [];
+  const municipalityStart = (filters.page - 1) * filters.pageSize;
+  const municipalityPageRows = municipalityRows.slice(municipalityStart, municipalityStart + filters.pageSize);
+  const municipalityHasNext = municipalityStart + filters.pageSize < municipalityRows.length;
   return <div className="analysis-page">
     <header className="analysis-header"><div className="analysis-container"><BrandLogo /><nav><Link href="/empresa">Área da empresa</Link></nav></div></header>
     <main className="analysis-container analysis-main">
@@ -26,7 +30,7 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
           <div className="analysis-filter-fields">
             <input type="hidden" name="limite" value={filters.pageSize} />
             {filters.natureCode && <input type="hidden" name="natureza" value={filters.natureCode} />}
-            <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
+            <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" required icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
               ...(municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []),
               ...(filters.municipalityIbge && !municipalities.data?.some((item) => item.ibgeCode === filters.municipalityIbge) ? [{ value: filters.municipalityIbge, label: `Município ${filters.municipalityIbge}` }] : []),
             ]} />
@@ -66,7 +70,8 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         </div>
         {allMunicipalities ? <section className="analysis-table-card" id="municipios">
           <header><div><h2>Pagamentos por município</h2><p>Selecione um município para ver os fornecedores e os pagamentos individuais.</p></div></header>
-          <div className="analysis-table-scroll"><PublicTable><thead><tr><th>Município</th><th>Total pago</th><th>Pago a ME</th><th>Participação de ME</th><th>Pago a ME locais</th></tr></thead><tbody>{allMunicipalities.rows.map((row) => <tr key={row.municipality.ibgeCode}><td><Link href={`/analise?municipio=${row.municipality.ibgeCode}&ano=${filters.year}${filters.natureCode ? `&natureza=${filters.natureCode}` : ""}`}>{row.municipality.name}</Link></td><td>{money(row.total)}</td><td>{money(row.me)}</td><td>{percent(Number(row.total) > 0 ? Number(row.me) / Number(row.total) * 100 : null)}</td><td>{row.local == null ? "—" : money(row.local)}</td></tr>)}</tbody></PublicTable></div>
+          <div className="analysis-table-scroll"><PublicTable><thead><tr><th>Município</th><th>Total pago</th><th>Pago a ME</th><th>Participação de ME</th><th>Pago a ME locais</th></tr></thead><tbody>{municipalityPageRows.map((row) => <tr key={row.municipality.ibgeCode}><td><Link href={`/analise?municipio=${row.municipality.ibgeCode}&ano=${filters.year}${filters.natureCode ? `&natureza=${filters.natureCode}` : ""}`}>{row.municipality.name}</Link></td><td>{money(row.total)}</td><td>{money(row.me)}</td><td>{percent(Number(row.total) > 0 ? Number(row.me) / Number(row.total) * 100 : null)}</td><td>{row.local == null ? "—" : money(row.local)}</td></tr>)}</tbody></PublicTable></div>
+          <AnalysisPagination filters={filters} rowCount={municipalityPageRows.length} hasNext={municipalityHasNext} />
         </section> : <section className="analysis-table-card" id="fornecedores">
           <header><div><h2>Pagamentos a microempresas</h2><p>Total pago por microempresa em cada natureza da despesa, na mesma coleta dos gráficos.</p></div></header>
           {rows.length ? <AnalysisPaymentsTable rows={rows} /> : <DataState error={suppliers.error} fallback="Nenhum pagamento a ME encontrado para estes filtros." />}
