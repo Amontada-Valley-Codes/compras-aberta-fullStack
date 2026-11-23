@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowRight, ArrowUp, CircleDollarSign, Info, MapPinned, Printer, RefreshCw, Search, Store, TrendingUp } from "lucide-react";
 import { formatDateBr } from "@/features/dashboard/gestor/gestor-domain";
+import { compactMoney } from "@/features/public-data/format";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { LocalPaymentShareChart, PaymentNatureChart, PaymentShareChart } from "@/features/analysis/PaymentCharts";
 import {
@@ -112,9 +113,9 @@ function MunicipalityRanking({ municipalities, byValue = false, year }: { munici
           <span className="gp-overview-rank">{String(index + 1).padStart(2, "0")}</span>
           <span className="gp-overview-municipality">
             <span>{item.name}</span>
-            <small>{byValue ? `${pct(item.mpePercent)} dos pagamentos` : `${currency(item.mpeValue)} pagos a ME`}</small>
+            <small title={byValue ? undefined : `${currency(item.mpeValue)} pagos a ME`}>{byValue ? `${pct(item.mpePercent)} dos pagamentos` : `${compactMoney(item.mpeValue)} pagos a ME`}</small>
           </span>
-          <strong>{byValue ? currency(item.mpeValue) : pct(item.mpePercent)}</strong>
+          <strong title={byValue ? currency(item.mpeValue) : undefined} aria-label={byValue ? currency(item.mpeValue) : undefined}>{byValue ? compactMoney(item.mpeValue) : pct(item.mpePercent)}</strong>
           <ArrowRight size={14} aria-hidden="true" />
         </Link>
       </li>
@@ -133,9 +134,9 @@ export function GestorPublicoDashboard() {
     <div className="gp-filter-summary"><span>{data.totals.municipalities} municípios analisados</span><span>Ano {filters.year}</span>{filters.nature && <span>{natureName(filters.nature)}</span>}</div>
     {loading ? <DashboardLoadingSkeleton /> : <>
     <section className="analysis-kpis" aria-label="Indicadores principais">
-      <PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago a ME?" value={currency(data.totals.mpeValue)} detail="Pagamentos registrados para microempresas." />
+      <PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago a ME?" amount={data.totals.mpeValue} detail="Pagamentos registrados para microempresas." />
       <PublicKpi icon={<Store />} label="Quantas ME locais foram identificadas?" value={number(data.totals.suppliers)} detail="Empresas locais identificadas na coleta de pagamentos." accent />
-      <PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" value={currency(data.totals.localValue)} detail="Valor destinado a empresas sediadas no próprio município." />
+      <PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" amount={data.totals.localValue} detail="Valor destinado a empresas sediadas no próprio município." />
     </section>
     {error ? <EmptyState>{error}</EmptyState> : summaries.length ? <PublicDashboardChartGrid data={data} /> : <EmptyState>A API não retornou pagamentos para este exercício.</EmptyState>}
     </>}
@@ -214,7 +215,7 @@ export function GestorPublicoNaturezas() {
     </div></section>
     <div className="gp-filter-summary"><span>{data.totals.municipalities} municípios no recorte</span><span>Ano {year}</span>{filters.nature && <span>{natureName(filters.nature)}</span>}</div>
     {loading ? <DashboardLoadingSkeleton /> : error ? <EmptyState>{error}</EmptyState> : summaries.length ? <>
-      <section className="analysis-kpis gp-nature-kpis" aria-label="Resumo dos pagamentos"><PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago no recorte?" value={currency(data.totals.total)} detail={`${number(data.natures.length)} naturezas consideradas`} /><PublicKpi icon={<Store />} label="Quanto foi pago a ME?" value={currency(data.totals.mpeValue)} detail={`${pct(data.totals.mpePercent)} do total pago`} accent /><PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" value={currency(data.totals.localValue)} detail={`${pct(localPercentage)} do total no recorte`} /><PublicKpi icon={<TrendingUp />} label="Quantas naturezas tiveram pagamentos?" value={number(data.natures.filter((row) => row.value > 0).length)} detail="Categorias disponíveis nos filtros atuais." /><PublicKpi icon={<CircleDollarSign />} label="Quanto concentram as três maiores naturezas?" value={pct(topThreeNatureValue / Math.max(1, allData.totals.total) * 100)} detail={`${currency(topThreeNatureValue)} somados no período.`} /><PublicKpi icon={<MapPinned />} label="Em quantas naturezas houve pagamento a ME locais?" value={number(localNatureCount)} detail="Categorias com valores locais identificados pela API." /></section>
+      <section className="analysis-kpis gp-nature-kpis" aria-label="Resumo dos pagamentos"><PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago no recorte?" amount={data.totals.total} detail={`${number(data.natures.length)} naturezas consideradas`} /><PublicKpi icon={<Store />} label="Quanto foi pago a ME?" amount={data.totals.mpeValue} detail={`${pct(data.totals.mpePercent)} do total pago`} accent /><PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" amount={data.totals.localValue} detail={`${pct(localPercentage)} do total no recorte`} /><PublicKpi icon={<TrendingUp />} label="Quantas naturezas tiveram pagamentos?" value={number(data.natures.filter((row) => row.value > 0).length)} detail="Categorias disponíveis nos filtros atuais." /><PublicKpi icon={<CircleDollarSign />} label="Quanto concentram as três maiores naturezas?" value={pct(topThreeNatureValue / Math.max(1, allData.totals.total) * 100)} detail={`${currency(topThreeNatureValue)} somados no período.`} /><PublicKpi icon={<MapPinned />} label="Em quantas naturezas houve pagamento a ME locais?" value={number(localNatureCount)} detail="Categorias com valores locais identificados pela API." /></section>
       <Card title="Qual natureza merece atenção primeiro?" description="Acesse diretamente a categoria com maior gasto, maior participação de ME ou maior valor local.">
         <div className="gp-nature-insights">{[
           { label: "Qual natureza teve o maior valor pago?", row: leadingTotal, value: leadingTotal ? currency(leadingTotal.value) : "Sem dados", detail: leadingTotal?.label ?? "Sem pagamentos no período." },

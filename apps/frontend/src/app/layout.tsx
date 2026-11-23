@@ -20,9 +20,12 @@ export const metadata: Metadata = {
   description:
     "Oportunidades públicas, dados transparentes e desenvolvimento para a economia local.",
   icons: {
-    icon: "/logos/logo-symbol.webp",
-    shortcut: "/logos/logo-symbol.webp",
-    apple: "/logos/logo-symbol.webp",
+    icon: [
+      { url: "/favicon.svg?v=2", type: "image/svg+xml", sizes: "any" },
+      { url: "/favicon-32.png?v=2", type: "image/png", sizes: "32x32" },
+    ],
+    shortcut: "/favicon-32.png?v=2",
+    apple: { url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" },
   },
 };
 
@@ -33,9 +36,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" data-scroll-behavior="smooth" className={inter.variable}>
-      <head>
-        <link rel="icon" href="/logos/logo-symbol.webp" type="image/webp" />
-      </head>
       <body className={inter.className}>
         <QueryProvider>
           {children}

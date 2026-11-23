@@ -488,3 +488,119 @@
   width: 15px;
   height: 15px;
 }
+
+/* Company filters follow the public-manager controls without affecting forms. */
+.app-shell.is-me .public-filter-select.is-dashboard .public-filter-trigger {
+  height: 52px;
+  min-height: 52px;
+  padding: 0 12px;
+  border-radius: 999px;
+  gap: 10px;
+}
+
+.app-shell.is-me .public-filter-select.is-dashboard .public-filter-leading {
+  width: 20px;
+  height: 20px;
+}
+
+.app-shell.is-me .public-filter-select.is-dashboard .public-filter-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.app-shell.is-me .public-filter-select.is-dashboard .public-filter-copy small {
+  color: #768692;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.app-shell.is-me .public-filter-select.is-dashboard .public-filter-copy small::after {
+  content: none;
+}
+
+.app-shell.is-me .public-filter-select.is-dashboard .public-filter-value {
+  color: #11169b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.app-shell.is-me .public-filter-select.is-dashboard .public-filter-trigger:hover {
+  background: #f6fafe;
+}
+
+.app-shell.is-me .public-filter-select.is-dashboard .public-filter-trigger:focus-visible {
+  outline: 2px solid #11169b;
+  outline-offset: -2px;
+}
+
+.app-shell.is-me .radar-feed-controls .public-filter-select,
+.app-shell.is-me .mybids-toolbar__right .public-filter-select {
+  border-color: var(--line);
+  border-radius: 999px;
+}
+
+.app-shell.is-me .radar-dropdown__control,
+.app-shell.is-me .mybids-filter-select {
+  min-height: 52px;
+  border-color: var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: #11169b;
+}
+
+.app-shell.is-me .radar-dropdown__trigger {
+  color: #11169b;
+  font-size: 14px;
+}
+
+.app-shell.is-me .opp-toolbar {
+  container: company-bid-filters / inline-size;
+  border-radius: 24px;
+}
+
+.app-shell.is-me .opp-toolbar-controls {
+  grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(0, 1fr));
+  padding: 6px 10px;
+}
+
+.app-shell.is-me .opp-search-field {
+  min-width: 0;
+  height: 52px;
+  padding: 0 12px;
+  border-radius: 999px;
+}
+
+.app-shell.is-me .opp-search-field input {
+  min-width: 0;
+  font-size: 14px;
+}
+
+@container company-bid-filters (max-width: 1000px) {
+  .app-shell.is-me .opp-toolbar-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell.is-me .opp-toolbar-controls > :nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .app-shell.is-me .opp-toolbar-controls > :nth-child(2n) {
+    border-right: 0;
+  }
+}
+
+@container company-bid-filters (max-width: 620px) {
+  .app-shell.is-me .opp-toolbar-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell.is-me .opp-toolbar-controls > * {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .app-shell.is-me .opp-toolbar-controls > :last-child {
+    border-bottom: 0;
+  }
+}

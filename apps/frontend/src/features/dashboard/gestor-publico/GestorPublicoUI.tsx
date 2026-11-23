@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { BarChart3, Info, Table2 } from "lucide-react";
+import { compactMoney, money } from "@/features/public-data/format";
 
 /** Blocos visuais compartilhados pelas telas do gestor público. */
 
@@ -23,8 +24,19 @@ export function SourceNote({ children }: { children: ReactNode }) {
   return <p className="gp-source-note"><Info size={15} aria-hidden="true" /><span>{children}</span></p>;
 }
 
-export function PublicKpi({ icon, label, value, detail, accent = false, className = "" }: { icon: ReactNode; label: string; value: string; detail: string; accent?: boolean; className?: string }) {
-  return <article className={[accent ? "accent" : "", className].filter(Boolean).join(" ")}><div><span>{icon}</span><small>{label}</small></div><strong>{value}</strong><p>{detail}</p></article>;
+type PublicKpiProps = {
+  icon: ReactNode;
+  label: string;
+  detail: string;
+  accent?: boolean;
+  className?: string;
+} & ({ value: string; amount?: never } | { amount: number | null | undefined; value?: never });
+
+export function PublicKpi(props: PublicKpiProps) {
+  const { icon, label, value, detail, accent = false, className = "" } = props;
+  const monetary = "amount" in props;
+  const fullValue = monetary ? money(props.amount) : undefined;
+  return <article className={[accent ? "accent" : "", className].filter(Boolean).join(" ")}><div><span>{icon}</span><small>{label}</small></div><strong title={fullValue} aria-label={fullValue}>{monetary ? compactMoney(props.amount) : value}</strong><p>{detail}</p></article>;
 }
 
 /** Alternância Gráfico/Tabela no mesmo formato usado nos gráficos públicos. */

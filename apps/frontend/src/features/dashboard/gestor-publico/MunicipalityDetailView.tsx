@@ -8,7 +8,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ApexOptions } from "apexcharts";
 import { ArrowLeft, CircleDollarSign, MapPinned, Percent, Receipt, Shapes, Store, Users } from "lucide-react";
-import { formatCnpj } from "@/features/public-data/format";
+import { compactMoney, formatCnpj } from "@/features/public-data/format";
 import { PaymentShareChart, LocalPaymentShareChart } from "@/features/analysis/PaymentCharts";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
 import { PublicTable, PublicTablePagination } from "@/components/filters/PublicTable";
@@ -19,7 +19,6 @@ import { AnalysisCard, Card, ChartViewControls, EmptyState, PageHeader, PublicKp
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false, loading: () => <div className="md-chart-loading" role="status">Carregando gráfico…</div> });
 const money = (value: number | null | undefined) => value == null ? "—" : value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const compactMoney = (value: number) => `R$ ${new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(value)}`;
 const percent = (value: number | null | undefined) => value == null ? "—" : `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 const count = (value: number) => value.toLocaleString("pt-BR");
 const share = (part: number | null, total: number | null) => part != null && total != null && total > 0 ? part / total * 100 : null;
@@ -66,7 +65,6 @@ export function MunicipalityDetailView({ data }: { data: MunicipalityDetailData 
   const leadingNature = natures[0];
   const maxNature = Math.max(1, ...natures.map((item) => item.value));
   const paymentCount = summary?.data.reduce((sum, item) => sum + item.quantidade_pagamentos, 0);
-  const pendingCount = summary?.pendencias.reduce((sum, row) => sum + row.quantidade, 0) ?? 0;
   const history = buildDetailHistory(data, selectedNature);
   const historyFirst = history[0]?.value;
   const historyLast = history.at(-1)?.value;
@@ -98,9 +96,9 @@ export function MunicipalityDetailView({ data }: { data: MunicipalityDetailData 
     {payments.error && <EmptyState>{payments.error}</EmptyState>}
 
     <section className="analysis-kpis gp-kpis-4"aria-label={`Resumo de ${year}`}>
-      <PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago no total?" value={money(total)} detail={`${count(natures.length)} naturezas da despesa no exercício ${year}`} />
-      <PublicKpi icon={<Store />} label="Quanto foi pago a ME?" value={money(summary ? Number(summary.total_me) : null)} detail={`${percent(summary?.percentual_me)} do valor total pago`} accent />
-      <PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" value={local.data?.percentage != null ? money(Number(local.data.localAmount)) : "—"} detail={local.error ?? `${percent(local.data?.percentage)} do total, a ME sediadas no município`} />
+      <PublicKpi icon={<CircleDollarSign />} label="Quanto foi pago no total?" amount={total} detail={`${count(natures.length)} naturezas da despesa no exercício ${year}`} />
+      <PublicKpi icon={<Store />} label="Quanto foi pago a ME?" amount={summary ? Number(summary.total_me) : null} detail={`${percent(summary?.percentual_me)} do valor total pago`} accent />
+      <PublicKpi icon={<MapPinned />} label="Quanto foi pago a ME locais?" amount={local.data?.percentage != null ? Number(local.data.localAmount) : null} detail={local.error ?? `${percent(local.data?.percentage)} do total, a ME sediadas no município`} />
       <PublicKpi icon={<Users />} label="Quantos fornecedores receberam?" value={data.suppliers.data ? count(identifiedSuppliers) : "—"} detail={data.suppliers.error ?? "CPF/CNPJ identificados, sem duplicação entre naturezas"} />
     </section>
 
@@ -120,7 +118,6 @@ export function MunicipalityDetailView({ data }: { data: MunicipalityDetailData 
               <span className="md-nature-amount"><strong>{money(item.value)}</strong><small>{percent(share(item.value, total))} do total</small></span>
               <span className="md-track" aria-hidden="true"><i style={{ width: `${share(item.value, maxNature)}%` }} /></span>
             </li>)}</ol>}
-        {summary && <SourceNote>{summary.observacao} Coleta {summary.coleta.coleta_id} · referências {summary.coleta.referencia_pagamentos_inicio} a {summary.coleta.referencia_pagamentos_fim} · {summary.coleta.reconciliado == null ? "conciliação não informada" : summary.coleta.reconciliado ? "conciliada" : "não conciliada"} · {count(pendingCount)} pendências.</SourceNote>}
       </AnalysisCard>
 
       <AnalysisCard className="md-share-card" title="Quanto das compras foi para ME?"description="Compare o total pago a ME com a parcela identificada como local.">
@@ -135,7 +132,7 @@ export function MunicipalityDetailView({ data }: { data: MunicipalityDetailData 
       <div className="md-history-toolbar">
         <div className="analysis-filter-fields md-nature-filter"><PublicFilterSelect name="historico-natureza" label="Natureza da despesa" icon="nature" variant="analysis" value={selectedNature} options={GESTOR_PUBLICO_NATURES.map((item) => ({ value: item.code, label: item.label }))} onValueChange={(value) => setSelectedNature(value as NatureCode)} /></div>
         <dl className="md-year-values">
-          {history.map((item) => <div key={item.year}><dt>{item.year}</dt><dd>{item.value == null ? "Indisponível" : money(item.value)}</dd></div>)}
+          {history.map((item) => <div key={item.year}><dt>{item.year}</dt><dd title={item.value == null ? undefined : money(item.value)} aria-label={item.value == null ? undefined : money(item.value)}>{item.value == null ? "Indisponível" : compactMoney(item.value)}</dd></div>)}
           <div className="md-variation"><dt>Variação {HISTORY_YEARS[0]}–{HISTORY_YEARS.at(-1)}</dt><dd>{historyVariation == null ? "Sem base" : `${historyVariation > 0 ? "+" : ""}${percent(historyVariation)}`}</dd></div>
         </dl>
       </div>
@@ -167,7 +164,7 @@ export function MunicipalityDetailView({ data }: { data: MunicipalityDetailData 
       </Card>
     </div>
 
-    <div className="gp-grid gp-grid-2 md-secondary-grid">
+    <div className="gp-grid md-secondary-grid">
       <Card title="Quanto foi pago a ME locais?" description="Valores e fornecedores identificados pela consulta de ME locais da API.">
         {local.data ? <dl className="gp-overview-summary">
           <div><dt>Participação no total pago</dt><dd>{percent(local.data.percentage)}</dd></div>
@@ -175,9 +172,6 @@ export function MunicipalityDetailView({ data }: { data: MunicipalityDetailData 
           <div><dt>ME locais e pagamentos</dt><dd>{count(local.data.localSuppliers)} ME · {count(local.data.localPaymentCount)} pagamentos</dd></div>
         </dl> : <EmptyState>{local.error ?? "Não foi possível consultar os pagamentos locais a ME."}</EmptyState>}
         <SourceNote>A API fornece o subtotal local; não disponibiliza separadamente valores de fornecedores externos ou com sede não identificada.</SourceNote>
-      </Card>
-      <Card title="Como os pagamentos se distribuem ao longo do ano?" description="Disponibilidade da série de pagamentos por mês.">
-        <EmptyState>Série mensal indisponível na API. O total anual não é distribuído entre meses.</EmptyState>
       </Card>
     </div>
 

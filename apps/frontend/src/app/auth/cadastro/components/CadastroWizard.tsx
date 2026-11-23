@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { CheckCircle2, ChevronLeft } from 'lucide-react'
 
 import { BrandLogo } from '@/components/brand/BrandLogo'
@@ -27,40 +28,6 @@ const HEADERS: Record<Profile | 'escolha', { title: string; subtitle: string }> 
       'Preencha seus dados. A conta fica pronta na hora.',
   },
 }
-
-const RegisterIllustration = () => (
-  <svg
-    className='auth-icon'
-    viewBox='0 0 140 140'
-    fill='none'
-    xmlns='http://www.w3.org/2000/svg'
-    role='img'
-    aria-label='Ícone de cadastro'>
-    <rect
-      x='20'
-      y='20'
-      width='100'
-      height='100'
-      rx='16'
-      fill='#11169b'
-      fillOpacity='0.18'
-      stroke='#6ce3f8'
-      strokeWidth='6'
-    />
-    <rect x='36' y='36' width='68' height='12' rx='6' fill='#d9a441' />
-    <rect x='36' y='56' width='44' height='8' rx='4' fill='#6ce3f8' />
-    <rect x='36' y='70' width='68' height='8' rx='4' fill='#6ce3f8' fillOpacity='0.6' />
-    <rect x='36' y='84' width='52' height='8' rx='4' fill='#6ce3f8' fillOpacity='0.4' />
-    <circle cx='102' cy='102' r='20' fill='#11169b' stroke='#6ce3f8' strokeWidth='4' />
-    <path
-      d='M94 102l5 5 10-10'
-      stroke='#ffffff'
-      strokeWidth='4'
-      strokeLinecap='round'
-      strokeLinejoin='round'
-    />
-  </svg>
-)
 
 interface CadastroWizardProps {
   initialProfile: Profile | null
@@ -101,13 +68,13 @@ export const CadastroWizard = ({ initialProfile, fromHome = false }: CadastroWiz
   const header = HEADERS[profile ?? 'escolha']
 
   return (
-    <div className='auth-page'>
+    <div className='auth-page auth-register'>
       <div className='auth-shell auth-shell-wide'>
         <div className='auth-visual'>
-          <div className='auth-icon-wrap'>
-            <RegisterIllustration />
+          <div className='auth-register-photo'>
+            <Image src='/images/register-entrepreneur-transparent.png' alt='Profissional loira segurando um tablet' fill sizes='(min-width: 1280px) 480px, (min-width: 1024px) 40vw, 1px' preload />
           </div>
-          <BrandLogo inverse />
+          <div className='auth-register-brand'><BrandLogo inverse /></div>
         </div>
 
         <div className='auth-panel'>
