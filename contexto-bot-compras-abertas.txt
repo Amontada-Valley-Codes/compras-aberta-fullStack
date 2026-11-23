@@ -2,6 +2,8 @@ BASE DE CONHECIMENTO DO ASSISTENTE — COMPRAS ABERTAS
 Versão: 20/09/2026
 Idioma principal: português do Brasil
 
+ATUALIZAÇÃO: para treinar o bot Noupe, use `docs/CONTEXTO-BOT-NOUPE.md` como fonte atual e prioritária. Este arquivo contém informações históricas que podem divergir do produto atual, especialmente sobre consulta sem município, dados da análise e estado das áreas autenticadas.
+
 ============================================================
 1. IDENTIDADE DO PROJETO
 ============================================================

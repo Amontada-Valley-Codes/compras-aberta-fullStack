@@ -59,6 +59,7 @@ const plans: Plan[] = [
       "Comparação entre municípios",
       "Consulta aos prazos de pagamento",
       "Análise de fornecedores e valores",
+      "Assistente virtual Noupe",
     ],
     cta: "Começar 7 dias grátis",
     href: "/auth/cadastro?perfil=me",
@@ -79,6 +80,7 @@ const plans: Plan[] = [
       "Relatórios",
       "Acesso para a equipe",
       "Suporte especializado",
+      "Assistente virtual Noupe",
     ],
     cta: "Começar 7 dias grátis",
     href: "/auth/cadastro?perfil=gestor",
@@ -119,15 +121,20 @@ function mapDbPlanToLandingPlan(dbPlan: any): Plan {
       ? "/auth/cadastro?perfil=gestor"
       : "/auth/cadastro?perfil=me";
 
+  const configuredBenefits =
+    Array.isArray(dbPlan.features) && dbPlan.features.length > 0
+      ? dbPlan.features
+      : fallbackPlan.benefits;
+  const benefits = isPublic || configuredBenefits.includes("Assistente virtual Noupe")
+    ? configuredBenefits
+    : [...configuredBenefits, "Assistente virtual Noupe"];
+
   return {
     id: dbPlan.id || fallbackPlan.id,
     title: dbPlan.name || fallbackPlan.title,
     price,
     description: dbPlan.description || fallbackPlan.description,
-    benefits:
-      Array.isArray(dbPlan.features) && dbPlan.features.length > 0
-        ? dbPlan.features
-        : fallbackPlan.benefits,
+    benefits,
     cta,
     href,
     featured: Boolean(dbPlan.isFeatured),
