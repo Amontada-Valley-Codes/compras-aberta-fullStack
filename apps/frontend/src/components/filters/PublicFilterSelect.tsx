@@ -1,9 +1,11 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import * as Select from "@radix-ui/react-select";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   ArrowUpDown,
+  AlertCircle,
   CalendarDays,
   ChartNoAxesColumnIncreasing,
   Check,
@@ -30,6 +32,7 @@ interface PublicFilterSelectProps {
   icon: FilterIcon;
   variant?: "landing" | "analysis" | "dashboard";
   disabled?: boolean;
+  required?: boolean;
   value?: string;
   onValueChange?: (value: string) => void;
 }
@@ -46,12 +49,16 @@ export function PublicFilterSelect({
   icon,
   variant = "analysis",
   disabled = false,
+  required = false,
   value: controlledValue,
   onValueChange,
 }: PublicFilterSelectProps) {
-  const [internalValue, setInternalValue] = useState(defaultValue || allValue);
-  const value = controlledValue === undefined ? internalValue : controlledValue || allValue;
+  const [internalValue, setInternalValue] = useState(defaultValue || (allLabel ? allValue : ""));
+  const value = controlledValue === undefined ? internalValue : controlledValue || (allLabel ? allValue : "");
   const [search, setSearch] = useState("");
+  const [requiredError, setRequiredError] = useState(false);
+  const [selectOpen, setSelectOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const deferredSearch = useDeferredValue(search);
   const showSearch = options.length > 5;
   const Icon =
@@ -82,29 +89,45 @@ export function PublicFilterSelect({
     };
   }, [deferredSearch, normalizedOptions]);
   const selectedLabel =
-    value === allValue
-      ? allLabel
+    value === allValue || value === ""
+      ? allLabel ?? `Selecione ${label.toLocaleLowerCase("pt-BR")}`
       : options.find((item) => item.value === value)?.label;
+
+  useEffect(() => {
+    if (!required) return;
+    const form = triggerRef.current?.closest("form");
+    if (!form) return;
+    const validate = (event: Event) => {
+      if (value && value !== allValue) {
+        setRequiredError(false);
+        return;
+      }
+      event.preventDefault();
+      setRequiredError(true);
+      triggerRef.current?.focus();
+    };
+    form.addEventListener("submit", validate, true);
+    return () => form.removeEventListener("submit", validate, true);
+  }, [required, value]);
 
   return (
     <div className={`public-filter-select ${variant === "dashboard" ? "is-dashboard" : ""}`}>
-      <input
-        type="hidden"
-        name={name}
-        value={value === allValue ? "" : value}
-      />
       <Select.Root
+        name={name}
         value={value}
+        open={selectOpen}
         disabled={disabled}
         onValueChange={(nextValue) => {
           setInternalValue(nextValue);
+          if (nextValue && nextValue !== allValue) setRequiredError(false);
           onValueChange?.(nextValue === allValue ? "" : nextValue);
         }}
         onOpenChange={(open) => {
+          setSelectOpen(open);
           if (!open) setSearch("");
         }}
       >
-        <Select.Trigger className="public-filter-trigger" aria-label={label}>
+        <Select.Trigger ref={triggerRef} className={`public-filter-trigger${requiredError ? " is-invalid" : ""}`} aria-label={label} aria-required={required} aria-invalid={requiredError} aria-describedby={requiredError ? `${name}-required-error` : undefined}>
           <Icon className="public-filter-leading" aria-hidden="true" />
           <span className="public-filter-copy">
             <small>{label}</small>
@@ -168,6 +191,26 @@ export function PublicFilterSelect({
           </Select.Content>
         </Select.Portal>
       </Select.Root>
+      <Dialog.Root open={requiredError} onOpenChange={(open) => setRequiredError(open)}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="public-filter-validation-overlay" />
+          <Dialog.Content className="public-filter-validation-dialog" aria-describedby={`${name}-required-error`}>
+            <span className="public-filter-validation-icon"><AlertCircle size={25} aria-hidden="true" /></span>
+            <Dialog.Title>Selecione um município</Dialog.Title>
+            <Dialog.Description id={`${name}-required-error`}>
+              Para consultar os dados, escolha um município no campo Município. A opção de consultar todos não está disponível.
+            </Dialog.Description>
+            <Dialog.Close asChild>
+              <button type="button" className="public-filter-validation-button" onClick={() => {
+                triggerRef.current?.focus();
+                window.setTimeout(() => setSelectOpen(true), 0);
+              }}>
+                Voltar e escolher
+              </button>
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

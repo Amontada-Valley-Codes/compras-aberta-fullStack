@@ -28,7 +28,7 @@ export function DataExplorerSection() {
           <Image src="/images/hero/foto-hero.png" alt="" fill sizes="(max-width: 767px) 1px, (max-width: 900px) 875px, min(85vw, 1460px)" />
         </div>
         <form className="opportunity-search" action="/analise" method="get">
-          <PublicFilterSelect name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="landing" options={data.municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []} />
+          <PublicFilterSelect name="municipio" label="Município" required icon="municipality" variant="landing" options={data.municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []} />
           <PublicFilterSelect name="ano" label="Ano" icon="year" variant="landing" defaultValue="2026" options={[
             { value: "2026", label: "2026" },
             { value: "2025", label: "2025" },
