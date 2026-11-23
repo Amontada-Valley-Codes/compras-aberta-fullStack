@@ -1,9 +1,9 @@
-import type { PaymentsSummaryResponse } from "@/services/analytics/payments.types";
+import type { PaymentOverview } from "@/features/public-data/all-municipality-payments";
 
-export function selectPaymentNatures(summary: PaymentsSummaryResponse | null, natureCode?: string) {
+export function selectPaymentNatures(summary: PaymentOverview | null, natureCode?: string) {
   return (summary?.data ?? []).filter((row) => !natureCode || row.codigo_natureza === natureCode);
 }
-export function selectPaymentTotals(summary: PaymentsSummaryResponse | null, natureCode?: string) {
+export function selectPaymentTotals(summary: PaymentOverview | null, natureCode?: string) {
   const rows = selectPaymentNatures(summary, natureCode);
   const row = natureCode ? rows[0] : null;
   return {

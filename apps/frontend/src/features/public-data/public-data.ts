@@ -8,6 +8,7 @@ import type {
 import type { MunicipalityOption } from "@/services/municipalities/municipalities.types";
 import { listMunicipalitiesService } from "@/services/municipalities/list-municipalities.service";
 import { listMunicipalityCodesService } from "@/services/municipalities/list-municipality-codes.service";
+import { loadAllMunicipalityPayments, type AllMunicipalityPayments } from "./all-municipality-payments";
 
 export interface DataResult<T> {
   data: T | null;
@@ -95,10 +96,27 @@ export interface AnalysisData {
   supplierCategory: string;
   hasNext: boolean;
   paginationError: string | null;
+  allMunicipalities?: AllMunicipalityPayments;
 }
 
 export async function loadAnalysisData(filters: AnalysisFilters, supplierCategory = "ME"): Promise<AnalysisData> {
   const municipalities = await loadMunicipalityOptions();
+  if (!filters.municipalityIbge) {
+    if (!municipalities.data?.length) {
+      const unavailable = { data: null, error: municipalities.error ?? "Não foi possível carregar o catálogo de municípios." };
+      return { municipalities, selectedMunicipality: null, filters, payments: unavailable, suppliers: unavailable, local: unavailable, supplierCategory, hasNext: false, paginationError: null };
+    }
+    const aggregate = await result(loadAllMunicipalityPayments(municipalities.data, filters.year, filters.natureCode));
+    const unavailable = { data: null, error: aggregate.error };
+    const data = aggregate.data;
+    return {
+      municipalities, selectedMunicipality: null, filters,
+      payments: data ? { data: data.payments, error: data.failed ? `Sem resposta de ${data.failed} de ${data.requested} municípios; os valores exibidos cobrem ${data.rows.length}.` : null } : unavailable,
+      suppliers: unavailable,
+      local: data?.localAmount != null ? { data: { mePayments: 0, localAmount: data.localAmount, percentage: data.payments.total_controle !== "0.00" ? Number(data.localAmount) / Number(data.payments.total_controle) * 100 : null, localSuppliers: 0, localPaymentCount: 0 }, error: null } : { data: null, error: data?.localError ?? aggregate.error },
+      supplierCategory, hasNext: false, paginationError: null, allMunicipalities: data ?? undefined,
+    };
+  }
   const selectedMunicipality = municipalities.data?.find((item) => item.ibgeCode === filters.municipalityIbge) ?? null;
   if (!selectedMunicipality) {
     const unavailable = { data: null, error: filters.municipalityIbge ? "Não foi possível aplicar o filtro de município." : null };
