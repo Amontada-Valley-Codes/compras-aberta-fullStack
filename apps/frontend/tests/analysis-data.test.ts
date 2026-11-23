@@ -36,7 +36,7 @@ test("/analise: somente pagamentos, mesma coleta, filtro de natureza, paginaçã
     let data;
     if (config.url === "/analytics/pagamentos/resumo") {
       if (failSummary) throw new Error("Indisponível");
-      data = { coleta: { coleta_id: 26 }, data: [{ codigo_natureza: "30", nome_natureza: "Material de consumo", total_controle: "2000.00", valor_me: "1010.00", percentual_me: 50.5, quantidade_pagamentos: 200 }], total_controle: "3000.00", total_me: "1010.00", percentual_me: 33.67, pendencias: [] };
+      data = { coleta: { coleta_id: 26 }, data: [{ codigo_natureza: "30", nome_natureza: "Material de consumo", total_controle: "2000.00", valor_me: "1010.00", percentual_me: 50.5, quantidade_pagamentos: 200, valores_por_categoria: { ME: "1010.00" }, reconciliado: true }], total_controle: "3000.00", total_me: "1010.00", percentual_me: 33.67, pendencias: [] };
     } else if (config.url === "/analytics/pagamentos/fornecedores") {
       data = { limit: config.params.limit, offset: config.params.offset, coleta_id: wrongCollection ? 99 : 26, data: Array.from({ length: Math.max(0, Math.min(config.params.limit, 101 - config.params.offset)) }, () => row) };
     } else if (config.url === "/analytics/participacoes-me-locais") {
@@ -77,8 +77,14 @@ test("/analise: somente pagamentos, mesma coleta, filtro de natureza, paginaçã
   assert.deepEqual(selectPaymentNatures(null), []);
   assert.equal((await loadAnalysisData({ ...filters, page: 2 })).hasNext, false);
   const before = calls.length;
-  for (const municipalityIbge of [undefined, "9999999"]) assert.equal((await loadAnalysisData({ ...filters, municipalityIbge })).payments.data, null);
-  assert.equal(calls.length, before, "não ampliar consulta sem município válido");
+  const all = await loadAnalysisData({ ...filters, municipalityIbge: undefined });
+  assert.equal(all.allMunicipalities?.rows.length, 1);
+  assert.equal(all.payments.data?.total_controle, "2000.00");
+  assert.equal(all.local.data?.localAmount, "1010.00");
+  assert.ok(calls.slice(before).every(call => call.params.codigo_municipio === "010"), "consultar cada município pelo código exigido pela API");
+  const afterAll = calls.length;
+  assert.equal((await loadAnalysisData({ ...filters, municipalityIbge: "9999999" })).payments.data, null);
+  assert.equal(calls.length, afterAll, "não consultar município inválido");
   const response = await GET(new Request("http://localhost/analise/exportar?tipo=pagamentos&municipio=2300754&ano=2025&natureza=30"));
   assert.equal(response.status, 200);
   const csv = await response.text();

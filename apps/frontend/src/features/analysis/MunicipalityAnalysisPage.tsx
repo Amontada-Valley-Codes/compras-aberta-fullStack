@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { ArrowLeft, CircleDollarSign, Search, SearchX, Store, MapPinned } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PublicFilterSelect } from "@/components/filters/PublicFilterSelect";
+import { PublicTable } from "@/components/filters/PublicTable";
 import { PaymentNatureChart, PaymentShareChart, LocalPaymentShareChart } from "./PaymentCharts";
 import { selectPaymentNatures, selectPaymentTotals } from "./payment-selectors";
 import { count, money, percent } from "@/features/public-data/format";
@@ -11,7 +12,7 @@ import { AnalysisPagination } from "./AnalysisPagination";
 import { AnalysisPaymentsTable } from "./AnalysisPaymentsTable";
 
 export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
-  const { filters, selectedMunicipality, municipalities, payments, suppliers, local } = data;
+  const { filters, selectedMunicipality, municipalities, payments, suppliers, local, allMunicipalities } = data;
   const municipalityName = selectedMunicipality?.name ?? "";
   const natures = selectPaymentNatures(payments.data, filters.natureCode);
   const totals = selectPaymentTotals(payments.data, filters.natureCode);
@@ -20,12 +21,12 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
     <header className="analysis-header"><div className="analysis-container"><BrandLogo /><nav><Link href="/empresa">Área da empresa</Link></nav></div></header>
     <main className="analysis-container analysis-main">
       <Link className="analysis-back" href="/"><ArrowLeft /> Voltar para a página inicial</Link>
-      <section className="analysis-title-row"><div><h1>Compras e microempresas{municipalityName ? ` em ${municipalityName}` : ""}</h1><p>Valores efetivamente pagos, por natureza da despesa e participação de microempresas.</p></div></section>
+      <section className="analysis-title-row"><div><h1>Compras e microempresas{municipalityName ? ` em ${municipalityName}` : allMunicipalities ? " nos municípios do Ceará" : ""}</h1><p>Valores efetivamente pagos, por natureza da despesa e participação de microempresas.</p></div></section>
         <form className="analysis-filters" action="/analise" method="get">
           <div className="analysis-filter-fields">
             <input type="hidden" name="limite" value={filters.pageSize} />
             {filters.natureCode && <input type="hidden" name="natureza" value={filters.natureCode} />}
-            <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Selecione um município" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
+            <PublicFilterSelect key={`municipio-${filters.municipalityIbge ?? ""}`} name="municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" defaultValue={filters.municipalityIbge} options={[
               ...(municipalities.data?.map((item) => ({ value: item.ibgeCode, label: item.name })) ?? []),
               ...(filters.municipalityIbge && !municipalities.data?.some((item) => item.ibgeCode === filters.municipalityIbge) ? [{ value: filters.municipalityIbge, label: `Município ${filters.municipalityIbge}` }] : []),
             ]} />
@@ -40,11 +41,12 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
         {municipalities.error && <DataState error={`Lista de municípios: ${municipalities.error}`} />}
         {filters.municipalityIbge && !selectedMunicipality && <DataState error="Não foi possível identificar o município selecionado. Selecione outro município para refazer a consulta." />}
 
-      {!selectedMunicipality ? <DataState error={payments.error} fallback="Selecione um município para consultar os pagamentos." /> : <section className="analysis-results">
+      {!selectedMunicipality && !allMunicipalities ? <DataState error={payments.error} fallback="Não foi possível consultar os pagamentos municipais." /> : <section className="analysis-results">
         {payments.error && <DataState error={payments.error} />}
+        {allMunicipalities && <p className="analysis-data-state" role="status">Dados de {count(allMunicipalities.rows.length)} de {count(allMunicipalities.requested)} municípios consultados. Os totais reúnem as coletas municipais do ano selecionado.</p>}
         <div className="analysis-kpis">
           <AnalysisKpi icon={<CircleDollarSign />} label="Total de compras" value={money(totals.total)} detail={`${count(totals.payments)} pagamentos realizados no recorte selecionado.`} />
-          <AnalysisKpi icon={<Store />} label="Compras com ME" value={money(totals.me)} detail={`${percent(totals.percentage)} do total · ${count(local.data?.mePayments)} pagamentos a ME.`} accent />
+          <AnalysisKpi icon={<Store />} label="Compras com ME" value={money(totals.me)} detail={allMunicipalities ? `${percent(totals.percentage)} do total.` : `${percent(totals.percentage)} do total · ${count(local.data?.mePayments)} pagamentos a ME.`} accent />
           <AnalysisKpi icon={<MapPinned />} label="Compras com ME locais" value={local.data?.percentage != null ? money(local.data.localAmount) : "—"} detail={local.error ?? `${percent(local.data?.percentage)} do total.`} />
         </div>
         {local.error && <DataState error={`Recorte de ME locais: ${local.error}`} />}
@@ -62,12 +64,15 @@ export function MunicipalityAnalysisPage({ data }: { data: AnalysisData }) {
             {natures.length ? <PaymentNatureChart data={natures} metric="percentual_me" /> : <DataState error={payments.error} />}
           </AnalysisChartCard>
         </div>
-        <section className="analysis-table-card" id="fornecedores">
+        {allMunicipalities ? <section className="analysis-table-card" id="municipios">
+          <header><div><h2>Pagamentos por município</h2><p>Selecione um município para ver os fornecedores e os pagamentos individuais.</p></div></header>
+          <div className="analysis-table-scroll"><PublicTable><thead><tr><th>Município</th><th>Total pago</th><th>Pago a ME</th><th>Participação de ME</th><th>Pago a ME locais</th></tr></thead><tbody>{allMunicipalities.rows.map((row) => <tr key={row.municipality.ibgeCode}><td><Link href={`/analise?municipio=${row.municipality.ibgeCode}&ano=${filters.year}${filters.natureCode ? `&natureza=${filters.natureCode}` : ""}`}>{row.municipality.name}</Link></td><td>{money(row.total)}</td><td>{money(row.me)}</td><td>{percent(Number(row.total) > 0 ? Number(row.me) / Number(row.total) * 100 : null)}</td><td>{row.local == null ? "—" : money(row.local)}</td></tr>)}</tbody></PublicTable></div>
+        </section> : <section className="analysis-table-card" id="fornecedores">
           <header><div><h2>Pagamentos a microempresas</h2><p>Total pago por microempresa em cada natureza da despesa, na mesma coleta dos gráficos.</p></div></header>
           {rows.length ? <AnalysisPaymentsTable rows={rows} /> : <DataState error={suppliers.error} fallback="Nenhum pagamento a ME encontrado para estes filtros." />}
           {data.paginationError && <DataState error={data.paginationError} fallback="Não foi possível verificar a próxima página." />}
           <AnalysisPagination filters={filters} rowCount={rows.length} hasNext={data.hasNext} />
-        </section>
+        </section>}
       </section>}
     </main>
   </div>;
