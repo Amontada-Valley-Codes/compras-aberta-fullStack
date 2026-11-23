@@ -306,6 +306,37 @@
   font-size: 13px;
   margin: 0;
 }
+
+.analysis-page .analysis-kpis strong {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.analysis-page .analysis-kpis article > div > span {
+  flex: none;
+  background: #f2f3f7;
+  color: #11169b;
+}
+
+@media (min-width: 721px) and (max-width: 900px) {
+  .analysis-page .analysis-kpis > article:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .analysis-page .analysis-kpis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .analysis-page .analysis-kpis article {
+    min-height: 0;
+    padding: 16px;
+  }
+}
 .analysis-insight {
   background: #fff;
   border: 1px solid var(--line);
@@ -421,6 +452,23 @@
 .analysis-chart-controls button:focus-visible {
   outline: 2px solid var(--brand-blue);
   outline-offset: 1px;
+}
+
+.analysis-page .analysis-chart-controls button {
+  font-size: 13px;
+}
+
+.analysis-page .analysis-chart-controls button.is-active {
+  border-color: #11169b;
+  background: #11169b;
+  color: #fff;
+}
+
+.analysis-page .analysis-chart-controls button:not(.is-active):hover,
+.analysis-page .analysis-chart-controls button:not(.is-active):focus-visible {
+  border-color: #dcdde6;
+  background: #f2f3f7;
+  color: #11169b;
 }
 .analysis-chart-table-wrap {
   max-height: 340px;

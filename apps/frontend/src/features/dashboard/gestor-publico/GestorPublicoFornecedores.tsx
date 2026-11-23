@@ -36,7 +36,7 @@ interface SupplierFilters {
   size: SupplierSize | "";
 }
 
-const EMPTY_FILTERS: SupplierFilters = { municipality: "", year: GESTOR_PUBLICO_YEARS[0], size: "" };
+const DEFAULT_FILTERS: SupplierFilters = { municipality: "2300101", year: GESTOR_PUBLICO_YEARS[0], size: "" };
 
 const plain = (text: string) => text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("pt-BR");
 
@@ -54,7 +54,7 @@ function SizeTag({ size }: { size: SupplierSize }) {
 }
 
 export function GestorPublicoFornecedores() {
-  const [filters, setFilters] = useState<SupplierFilters>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<SupplierFilters>(DEFAULT_FILTERS);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"name" | "size" | "municipality" | "total">("total");
   const [ascending, setAscending] = useState(false);
@@ -91,7 +91,7 @@ export function GestorPublicoFornecedores() {
   const firstIndex = (currentPage - 1) * pageSize;
   const pageRows = rows.slice(firstIndex, firstIndex + pageSize);
   const totalValue = rows.reduce((sum, supplier) => sum + supplier.total, 0);
-  const hasFilters = Boolean(query.trim() || filters.municipality || filters.size || filters.year !== EMPTY_FILTERS.year);
+  const hasFilters = Boolean(query.trim() || filters.municipality !== DEFAULT_FILTERS.municipality || filters.size || filters.year !== DEFAULT_FILTERS.year);
 
   const updateFilters = (patch: Partial<SupplierFilters>) => {
     setSelected(null);
@@ -100,7 +100,7 @@ export function GestorPublicoFornecedores() {
   };
   const clearFilters = () => {
     setSelected(null);
-    setFilters(EMPTY_FILTERS);
+    setFilters(DEFAULT_FILTERS);
     setQuery("");
     setPage(1);
   };
@@ -129,7 +129,7 @@ export function GestorPublicoFornecedores() {
     <div className="analysis-filters gp-analysis-filters gp-supplier-filters" role="group" aria-label="Filtros dos fornecedores">
       <div className="analysis-filter-fields">
         <PublicFilterSelect name="fornecedores-municipio" label="Município" allLabel="Todos os municípios" icon="municipality" variant="analysis" value={filters.municipality} options={municipalities.map((item) => ({ value: item.id, label: item.name }))} onValueChange={(value) => updateFilters({ municipality: value })} />
-        <PublicFilterSelect name="fornecedores-ano" label="Ano" icon="year" variant="analysis" value={String(filters.year)} options={GESTOR_PUBLICO_YEARS.map((year) => ({ value: String(year), label: String(year) }))} onValueChange={(value) => updateFilters({ year: Number(value) || EMPTY_FILTERS.year })} />
+        <PublicFilterSelect name="fornecedores-ano" label="Ano" icon="year" variant="analysis" value={String(filters.year)} options={GESTOR_PUBLICO_YEARS.map((year) => ({ value: String(year), label: String(year) }))} onValueChange={(value) => updateFilters({ year: Number(value) || DEFAULT_FILTERS.year })} />
         <PublicFilterSelect name="fornecedores-porte" label="Porte" allLabel="Todos" icon="nature" variant="analysis" value={filters.size} options={SIZES.map((size) => ({ value: size, label: size }))} onValueChange={(value) => updateFilters({ size: value as SupplierFilters["size"] })} />
       </div>
     </div>

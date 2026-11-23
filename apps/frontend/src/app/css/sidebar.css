@@ -8,6 +8,14 @@
   padding: 18px 15px 14px;
   transition: width .28s ease, transform .25s ease;
 }
+
+.app-shell.is-me .app-sidebar {
+  scrollbar-width: none;
+}
+
+.app-shell.is-me .app-sidebar::-webkit-scrollbar {
+  display: none;
+}
 .app-shell.has-collapsible-sidebar .app-main {
   width: calc(100% - var(--sidebar-expanded));
   margin-left: var(--sidebar-expanded);
@@ -135,6 +143,22 @@
  * - Os textos entram com um fade curto em vez de aparecerem de uma vez.
  */
 @media (min-width: 901px) {
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head .brand-logo {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    overflow: hidden;
+  }
+
+  .app-shell.has-collapsible-sidebar.is-sidebar-collapsed .sidebar-head .brand-logo img {
+    width: 52px;
+    height: 52px;
+    max-width: none;
+    object-fit: cover;
+    transform: scale(1.25);
+  }
+
   .app-shell.has-collapsible-sidebar .app-sidebar {
     overflow-x: hidden;
     transition: width .3s ease, padding .3s ease, transform .25s ease;

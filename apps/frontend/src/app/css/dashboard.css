@@ -776,6 +776,63 @@
     grid-template-columns: 1fr;
   }
 }
+
+.app-shell.is-me .recommendation-card,
+.app-shell.is-me .match-spotlight-grid,
+.app-shell.is-me .match-spotlight-item,
+.app-shell.is-me .match-spotlight-title {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell.is-me .recommendation-card {
+  container: company-recommendations / inline-size;
+}
+
+.app-shell.is-me .match-spotlight-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.app-shell.is-me .match-spotlight-title {
+  overflow-wrap: anywhere;
+}
+
+.app-shell.is-me .match-spotlight-footer {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.app-shell.is-me .match-spotlight-location {
+  flex: 1 1 160px;
+}
+
+.app-shell.is-me .match-spotlight-price {
+  margin-left: auto;
+}
+
+@container company-recommendations (max-width: 760px) {
+  .app-shell.is-me .match-spotlight-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container company-recommendations (max-width: 420px) {
+  .app-shell.is-me .recommendation-card > .card-header {
+    flex-wrap: wrap;
+  }
+
+  .app-shell.is-me .match-spotlight-item {
+    padding: 14px;
+  }
+
+  .app-shell.is-me .match-spotlight-location {
+    flex-basis: 100%;
+  }
+
+  .app-shell.is-me .match-spotlight-price {
+    margin-left: 0;
+  }
+}
 .compact-card,
 .health-card,
 .activity-card,
