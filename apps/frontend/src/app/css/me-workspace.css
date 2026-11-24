@@ -1206,6 +1206,18 @@ select.mybids-filter-select {
 .ws-page {
   display: grid;
   gap: 16px;
+  min-width: 0;
+  container: company-workspace / inline-size;
+}
+
+.ws-page > *,
+.ws-tab-stack,
+.ws-tab-stack > *,
+.ws-bottom-split > *,
+.ws-card,
+.ws-card > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ws-breadcrumb {
@@ -3193,6 +3205,47 @@ select.mybids-filter-select {
 }
 
 /* ---------- Responsividade ---------- */
+
+@container company-workspace (max-width: 960px) {
+  .ws-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ws-bottom-split,
+  .ws-company-docs-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container company-workspace (max-width: 600px) {
+  .ws-card {
+    padding: 16px;
+  }
+
+  .ws-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ws-milestones-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ws-overview-ctas > .ws-btn {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .ws-inline-reminder-form input[type="text"]:first-child {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+}
+
+@container company-workspace (max-width: 400px) {
+  .ws-milestones-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
 @media (max-width: 1100px) {
   .mybids-layout {

@@ -777,12 +777,49 @@
   }
 }
 
+.app-shell.is-me .dashboard-page {
+  min-width: 0;
+  container: company-page / inline-size;
+}
+
+.app-shell.is-me .dashboard-page > *,
+.app-shell.is-me .metric-grid > *,
+.app-shell.is-me .dashboard-grid > *,
+.app-shell.is-me .card-header > div,
+.app-shell.is-me .ranking-row > div,
+.app-shell.is-me .activity-list > span > div,
 .app-shell.is-me .recommendation-card,
 .app-shell.is-me .match-spotlight-grid,
 .app-shell.is-me .match-spotlight-item,
 .app-shell.is-me .match-spotlight-title {
   min-width: 0;
   max-width: 100%;
+}
+
+.app-shell.is-me .metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.app-shell.is-me .metric-top > small,
+.app-shell.is-me .metric-value-row > b,
+.app-shell.is-me .card-header h2,
+.app-shell.is-me .card-header p,
+.app-shell.is-me .ranking-row b,
+.app-shell.is-me .activity-list b,
+.app-shell.is-me .activity-list small {
+  overflow-wrap: anywhere;
+}
+
+.app-shell.is-me .metric-value-row {
+  flex-wrap: wrap;
+}
+
+.app-shell.is-me .dashboard-grid.two-thirds {
+  grid-template-columns: minmax(0, 1.72fr) minmax(280px, 0.78fr);
+}
+
+.app-shell.is-me .dashboard-grid.halves {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .app-shell.is-me .recommendation-card {
@@ -808,6 +845,72 @@
 
 .app-shell.is-me .match-spotlight-price {
   margin-left: auto;
+}
+
+@container company-page (max-width: 1040px) {
+  .app-shell.is-me .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell.is-me .metric-grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .app-shell.is-me .dashboard-grid.two-thirds {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container company-page (max-width: 860px) {
+  .app-shell.is-me .dashboard-grid.halves {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container company-page (max-width: 560px) {
+  .app-shell.is-me .metric-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .app-shell.is-me .metric-card {
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .app-shell.is-me .chart-card,
+  .app-shell.is-me .recommendation-card,
+  .app-shell.is-me .compact-card {
+    padding: 16px;
+  }
+
+  .app-shell.is-me .card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .app-shell.is-me .ranking-row {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+
+  .app-shell.is-me .ranking-row > strong {
+    margin-left: auto;
+  }
+
+  .app-shell.is-me .activity-list > span {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+
+  .app-shell.is-me .activity-list > span > div {
+    flex: 1 1 calc(100% - 52px);
+  }
+
+  .app-shell.is-me .activity-list > span > em {
+    margin-left: 50px;
+  }
 }
 
 @container company-recommendations (max-width: 760px) {
